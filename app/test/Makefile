@@ -1,0 +1,56 @@
+
+PRJ_LIBROOT := ../..
+
+#-------------------------------------------------------------------
+# Project information
+#-------------------------------------------------------------------
+
+# Project Name
+PRJ_NAME := test
+
+# Project Description
+PRJ_DESC := HtmApp Test Application
+
+# Project output file type
+PRJ_TYPE := exe
+
+# Resource directories (dir1 dir2 ...)
+PRJ_RESD := res
+
+# Files to compile
+PRJ_CIIX := *.htm
+
+# Include folders
+PRJ_INCS :=
+
+# Libraries to link
+PRJ_LIBS :=
+
+# Framework
+PRJ_FWRK := qtwk
+
+# Homepage
+PRJ_HOME := http://embedded/home.htm
+
+#-------------------------------------------------------------------
+#Configure
+#-------------------------------------------------------------------
+include $(PRJ_LIBROOT)/mak/init.mk
+
+ifeq ($(TGT_PLATFORM),windows)
+	PRJ_LIBS := QtWebKit4 QtNetwork4 QtGui4 QtCore4
+else
+	PRJ_LIBS := QtWebKit QtNetwork QtGui QtCore
+endif
+
+#-------------------------------------------------------------------
+# Build dependencies
+#-------------------------------------------------------------------
+#include $(PRJ_LIBROOT)/mak/build.mk
+
+
+#-------------------------------------------------------------------
+# Build the target
+#-------------------------------------------------------------------
+include $(PRJ_LIBROOT)/mak/go.mk
+
