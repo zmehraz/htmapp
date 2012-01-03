@@ -78,7 +78,7 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 				
 			return 0;
 		} // end if
-
+		
 	if ( !cl.pb().IsSet( "q" ) )
 		str::Print( "b: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
@@ -103,7 +103,6 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 													 t_string8( "\n\t0\n};\n\nextern const long size_" ) + sVar + " = ",
 													 ";\n"
 													);
-
 
 	return lBytes;
 }

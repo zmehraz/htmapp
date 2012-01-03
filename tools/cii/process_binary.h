@@ -42,15 +42,11 @@ template< typename T, typename T_STR >
 
 		disk::HFILE hIn = disk::Open( sIn.c_str(), "rb" );
 		if ( disk::c_invalid_hfile == hIn )
-		{
-str::Print( "n1\n" );
 			return -1;
-		} // end if
 
 		disk::HFILE hOut = disk::Open( sOut.c_str(), "wb" );
 		if ( disk::c_invalid_hfile == hOut )
 		{	disk::Close( hIn );
-str::Print( "n2\n" );
 			return -1;
 		} // end if
 
@@ -68,15 +64,11 @@ str::Print( "n2\n" );
 		long bl = 0, lRead = 0, lTotal = 0;
 		T in[ 64 * 1024 ], out[ sizeof( in ) ], *s;
 		
-str::Print( "%lu\n", lTotal );
-
 		// Read in data in chunks
 		while ( 0 < ( lRead = disk::Read( in, 1, sizeof( in ), hIn ) ) )
 		{
 			// Track the total bytes
 			lTotal += lRead;
-			
-str::Print( "%lu\n", lTotal );
 
 			// Convert each byte and write it out
 			for ( long i = 0; i < lRead; i++ )

@@ -30,6 +30,33 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+HFILE Open( const char *x_pFile, const char *x_pMode )
+{
+#if defined( CII_NOSTAT64 )
+	tHFILE res = fopen( x_pFile, x_pMode );
+#else
+	tHFILE res = fopen64( x_pFile, x_pMode );
+#endif
+	if ( !res )
+		return c_invalid_hfile;
+	return (HFILE)res;
+}
+
+t_size Write( const void *x_pData, t_size x_nSize, t_size x_nCount, HFILE x_hFile )
+{
+	return fwrite( x_pData, x_nSize, x_nCount, (tHFILE)x_hFile );
+}
+
+t_size Read( void *x_pData, t_size x_nSize, t_size x_nCount, HFILE x_hFile )
+{
+	return fread( x_pData, x_nSize, x_nCount, (tHFILE)x_hFile );
+}
+
+t_size Close( HFILE x_hFile )
+{
+	return fclose( (tHFILE)x_hFile );
+}
+
 bool mkdir( const char *x_pPath )
 {
 	if ( !x_pPath || !*x_pPath )
@@ -106,21 +133,21 @@ str::tc_int64 Size( HFILE x_hFile )
 
 #if defined( CII_NOSTAT64 )
 
-	struct stat s;
-	if ( fstat( x_hFile, &s ) )
-		return 0;
-
-	return s.st_size;
+	int size = 0;
+	int pos = ftell( (tHFILE)x_hFile );
+	if ( !fseek( (tHFILE)x_hFile, 0, SEEK_END ) )
+		size = ftell( (tHFILE)x_hFile ),
+		fseek( (tHFILE)x_hFile, pos, SEEK_SET );
+	return size;	
 
 #else
 
-	struct stat64 s64;
-
-	// +++ Ensure this works correctly
-	if ( fstat64( x_hFile, &s64 ) )
-		return 0;
-
-	return s64.st_size;
+	off64_t size = 0;
+	off64_t pos = ftello64( (tHFILE)x_hFile );
+	if ( !fseeko64( (tHFILE)x_hFile, 0, SEEK_END ) )
+		size = ftello64( (tHFILE)x_hFile ),
+		fseeko64( (tHFILE)x_hFile, pos, SEEK_SET );
+	return (str::tc_int64)size;	
 
 #endif
 }

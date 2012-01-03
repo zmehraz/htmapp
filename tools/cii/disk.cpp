@@ -51,29 +51,6 @@ namespace disk
 {
 	typedef FILE* tHFILE;
 
-	HFILE Open( const char *x_pFile, const char *x_pMode )
-	{
-		tHFILE res = fopen( x_pFile, x_pMode );
-		if ( !res )
-			return c_invalid_hfile;
-		return (HFILE)res;
-	}
-
-	t_size Write( const void *x_pData, t_size x_nSize, t_size x_nCount, HFILE x_hFile )
-	{
-		return fwrite( x_pData, x_nSize, x_nCount, (tHFILE)x_hFile );
-	}
-
-	t_size Read( void *x_pData, t_size x_nSize, t_size x_nCount, HFILE x_hFile )
-	{
-		return fread( x_pData, x_nSize, x_nCount, (tHFILE)x_hFile );
-	}
-
-	t_size Close( HFILE x_hFile )
-	{
-		return fclose( (tHFILE)x_hFile );
-	}
-
 #if defined( _WIN32 )
 #	include "disk-windows.hpp"
 #else
