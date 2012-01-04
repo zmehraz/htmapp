@@ -32,6 +32,8 @@ endif
 BLD_SRCDEPS := $(subst $(BLD_SRCDIR)/,$(BLD_PRJROOT)/,$(BLD_SOURCES))
 BLD_DEPENDS := $(BLD_DEPENDS) $(subst .$(BLD_EXTN),.obj,$(BLD_SRCDEPS))
 
+PRJ_INCS := $(PRJ_INCS) $(CFG_LIBROOT)/inc
+
 # Include directories
 ifneq ($(PRJ_INCS),)
 	BLD_INCS := $(BLD_INCS) $(foreach inc,$(PRJ_INCS),-I$(inc))

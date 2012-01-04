@@ -128,9 +128,7 @@ template< typename T, typename T_STR >
   @param[in] sName		- Namespace / function name
   @param[in] sScript	- File or script data
   @param[in] bFile		- Non-zero if sScript is a file name
-  @param[in] sFn		- Function declaration, the name must
-						  be _internal_run
-
+  
   @code
   @endcode
 
@@ -145,16 +143,15 @@ template< typename T, typename T_STR >
 		if ( 0 >= szSrc )
 			return -1;
 
-		// Function prototype
 		const T *pFn = sFn.data();
 		if ( !sFn.length() || !pFn || !*pFn )
-			pFn = tcTT( T, "static int _internal_run( const TPropertyBag< char > &in, std::basic_string< char > &out )" ); 
+			pFn = tcTT( T, "static int _do_run_run_run( const TPropertyBag< char > &in, basic_string< char > &out )" ); 
 
 		// Start out with some space
 		sDst.reserve( sSrc.length() * 2 );
 
 		// Start off the file
-		sDst = T_STR() + tcTT( T, "\n#include \"property_bag.h\"\n\n" ) + pFn + tcTT( T, "\n{\n" );
+		sDst = T_STR() + tcTT( T, "\n\n" ) + pFn + tcTT( T, "\n{\n" );
 
 		// Global data
 		T_STR sGlobal;
@@ -192,7 +189,7 @@ template< typename T, typename T_STR >
 			{
 				// Encode any text
 				if ( nStart < nOpen )
-				{	sDst += tcTT( T, "\n\tout += \"" );
+				{	sDst += tcTT( T, "\n\tout << \"" );
 					sDst += CppEncode< T, T_STR >( &pSrc[ nStart ], nOpen - nStart );
 					sDst += tcTT( T, "\";\n" );
 				} // end if
@@ -224,7 +221,7 @@ template< typename T, typename T_STR >
 
 		// Copy whatever is left
 		if ( nStart < szSrc )
-		{	sDst += tcTT( T, "\n\tout += \"" );
+		{	sDst += tcTT( T, "\n\tout << \"" );
 			sDst += CppEncode< T, T_STR >( &pSrc[ nStart ], szSrc - nStart );
 			sDst += tcTT( T, "\";\n" );
 		} // end if
@@ -233,7 +230,7 @@ template< typename T, typename T_STR >
 		sDst += tcTT( T, "\n\treturn 0;\n}\n" );
 
 		// Add extern pointer to function
-		sDst += T_STR() + tcTT( T, "\n\nvoid * f_" ) + sVar + tcTT( T, " = (void*)&_internal_run;\n" );
+		sDst += T_STR() + tcTT( T, "\n\nextern void * f_" ) + sVar + tcTT( T, " = &_do_run_run_run;\n" );
 
 		// Write out the file
 		return disk::WriteFile< T >( sOut, sGlobal, sDst );

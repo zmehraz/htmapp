@@ -50,7 +50,7 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 	// Create full input and output file paths
 	t_string8 sIn = disk::FilePath< char >( x_sInDir, x_sFile );
 	t_string8 sOut = disk::FilePath< char >( x_sOutDir, disk::Path< char >( x_sOutPre, x_sFile, '_' ) ) + t_string8( ".cpp" );
-	t_string8 sFn = cl.pb()[ "f" ].str();
+	t_string8 sFn = cl.pb()[ "f" ];
 
 	// Is this a compiled type?
 	stdForeach( t_strlist8::iterator, it, lstCmp )
@@ -69,9 +69,9 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "cii_resource.cpp" ),
 									  t_string8( "\n{" )
 									  + "\n\t\"" + disk::WebPath< char >( x_sRel, x_sFile ) + "\","
-									  + "\n\tf_" + sVar + ","
 									  + "\n\t0,"
-									  + "\n\t2\n},\n"
+									  + "\n\t0,"
+									  + "\n\tf_" + sVar + "\n},\n"
 									);
 
 			// Process the embedded c/c++ file
@@ -95,12 +95,12 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 							  t_string8( "\n{" )
 							  + "\n\t\"" + disk::WebPath< char >( x_sRel, x_sFile ) + "\","
 							  + "\n\tdata_" + sVar + ","
-							  + "\n\tsize_" + sVar + ",\n\t1\n},\n"
+							  + "\n\tsize_" + sVar + ",\n\t0\n},\n"
 							);
 
 	// Create the binary data file
 	long lBytes = process_binary< char, t_string8 >( sIn, sOut,
-													 t_string8( "\nextern const char data_" ) + sVar + "[] = \n{\n\t",
+													 t_string8( "\nextern const char *data_" ) + sVar + " = \n{\n\t",
 													 t_string8( "\n\t0\n};\n\nextern const long size_" ) + sVar + " = ",
 													 ";\n"
 													);
@@ -196,15 +196,15 @@ int main( int argc, char* argv[] )
 	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "cii_resource.cpp" ),
 							 t_string8() + "#include \"cii_resource.h\"\n"
 										   "#include \"cii_resource_extern.hpp\"\n"
-										   "\SCiiResourceInfo _cii_resources[] = \n{\n" );
+										   "\nextern SCiiResourceInfo _cii_resources[] = \n{\n" );
 
 	// resource.h
 	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "cii_resource.h" ),
 							 t_string8() + "\nstruct SCiiResourceInfo\n{"
 										   "\n\tconst char*   name;"
-										   "\n\tconst void*   data;"
+										   "\n\tconst char*   data;"
 										   "\n\tunsigned long size;"
-										   "\n\tunsigned long type;"
+										   "\n\tvoid*         func;"
 										   "\n};\n" 
 										   "\nextern SCiiResourceInfo _cii_resources[];\n"
 										 );

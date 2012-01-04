@@ -27,3 +27,9 @@ BLDTGT := build_resources
 # Add this folder to our includes
 CFG_INCS := $(CFG_INCS) $(RES_DIR)
 
+PRJ_INCS := $(PRJ_INCS) $(CFG_LIBROOT)/inc
+BLD_TYPE := cpp
+BLD_EXTN := cpp
+BLD_FLST :=
+BLD_SRCDIR := $(RES_DIR)
+include $(CFG_MAKROOT)/build.mk
