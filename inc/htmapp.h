@@ -30,31 +30,8 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#if defined( _WIN32 )
-#	include <windows.h>
-#else
-#	include <errno.h>
-#	include <sys/stat.h>
-#	include <sys/types.h>
-#	if !defined( CII_NODIRENT )
-#		include <dirent.h>
-#	endif
-#endif
-
-#include <stdio.h>
-#include <string>
 #include <string.h>
-#include "htmapp.h"
-
-namespace disk
-{
-	typedef FILE* tHFILE;
-
-#if defined( _WIN32 )
-#	include "disk-windows.hpp"
-#else
-#	include "disk-posix.hpp"
-#endif
-
-}; // namespace disk
-
+#include "htmapp/str.h"
+#include "htmapp/cmd_line.h"
+#include "htmapp/disk.h"
+#include "htmapp/resources.h"

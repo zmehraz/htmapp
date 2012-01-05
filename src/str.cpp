@@ -54,7 +54,7 @@
 #	define CAST_VL			va_list
 #endif
 
-#include "str.h"
+#include "htmapp.h"
 
 namespace str
 {

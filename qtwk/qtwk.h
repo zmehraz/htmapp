@@ -42,5 +42,6 @@
 #include <QtWebKit/QtWebKit>
 #include <QtNetwork/QNetworkAccessManager>
 
-#include "cii_resource.h"
+#include "htmapp_resources.h"
+#include "htmapp.h"
 

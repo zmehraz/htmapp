@@ -30,7 +30,7 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "libhtmapp.h"
+#include "qtwk.h"
 #include "network.h"
 #include "mainwindow.h"
 

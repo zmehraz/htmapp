@@ -185,6 +185,18 @@ namespace str
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%f" ), n ) );
 		}
 
+	template < typename T >
+		long Compare( T *s1, long l1, T *s2, long l2 )
+		{
+			if ( !s1 || !s2 )
+				return 0;
+		
+			if ( l1 != l2 )
+				return l1 - l2;
+			
+			return memcmp( s1, s2, l1 * sizeof( T ) );
+		}
+
 }; // namespace str
 
 /**
@@ -234,6 +246,32 @@ namespace zstr
 
             return ln_src;
         }
+
+	template < typename T >
+		long Compare( T *s1, T *s2 )
+		{
+			if ( !s1 || !s2 )
+				return 0;
+		
+			long l1 = Length( s1 ), l2 = Length( s2 );
+			if ( l1 != l2 )
+				return l1 - l2;
+			
+			return memcmp( s1, s2, l1 * sizeof( T ) );
+		}
+		
+	template < typename T >
+		long Compare( T *s1, long l1, T *s2 )
+		{
+			if ( !s1 || !s2 )
+				return 0;
+		
+			long l2 = Length( s2 );
+			if ( l1 != l2 )
+				return l1 - l2;
+			
+			return memcmp( s1, s2, l1 * sizeof( T ) );
+		}
 
 }; // namespace zstr
 

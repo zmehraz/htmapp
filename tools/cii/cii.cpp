@@ -32,9 +32,7 @@
 
 #include <time.h>
 
-#include "str.h"
-#include "cmd_line.h"
-#include "disk.h"
+#include "htmapp.h"
 #include "process_binary.h"
 #include "process_cpp.h"
 
@@ -60,15 +58,16 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 				str::Print( "c: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
 			// Declare variables
-			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "cii_resource_extern.hpp" ),
+			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
 									  t_string8()
 									  + "\nextern void * f_" + sVar + ";\n"
 									);
 
 			// Add to map
-			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "cii_resource.cpp" ),
+			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resources.cpp" ),
 									  t_string8( "\n{" )
 									  + "\n\t\"" + disk::WebPath< char >( x_sRel, x_sFile ) + "\","
+									  + "\n\t" + str::ToString< char, t_string8 >( (long)disk::WebPath< char >( x_sRel, x_sFile ).length() ) + ","
 									  + "\n\tf_" + sVar + ","
 									  + "\n\t0,"
 									  + "\n\t2\n},\n"
@@ -84,16 +83,17 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 		str::Print( "b: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
 	// Declare variables
-	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "cii_resource_extern.hpp" ),
+	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
 							  t_string8()
 							  + "\nextern const char *data_" + sVar + ";"
 							  + "\nextern const long size_" + sVar + ";\n"
 							);
 
 	// Add to map
-	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "cii_resource.cpp" ),
+	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resources.cpp" ),
 							  t_string8( "\n{" )
 							  + "\n\t\"" + disk::WebPath< char >( x_sRel, x_sFile ) + "\","
+							  + "\n\t" + str::ToString< char, t_string8 >( (long)disk::WebPath< char >( x_sRel, x_sFile ).length() ) + ","
 							  + "\n\tdata_" + sVar + ","
 							  + "\n\tsize_" + sVar + ",\n\t1\n},\n"
 							);
@@ -165,7 +165,7 @@ int main( int argc, char* argv[] )
 	{	str::Print( "Options\n"
 				" -i            '<comma separated input directories>'\n"
 				" -o            '<output directory>'\n"
-				" -c            '<semi-colon separated compiled file types>' - default is '*.cii'\n"
+				" -c            '<semi-colon separated compiled file types>' - default is '*.htm'\n"
 				" -f / --fdec   Function declaration\n"
 				" -q / --quiet  Suppress all output\n"
 				" -d / --debug  'Show processed command line array'\n"
@@ -190,29 +190,37 @@ int main( int argc, char* argv[] )
 	} // end if
 
 	// res_extern.hpp
-	disk::unlink( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "cii_resource_extern.hpp" ).c_str() );
+	disk::unlink( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resource_extern.hpp" ).c_str() );
 	
 	// res_list.hpp
-	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "cii_resource.cpp" ),
-							 t_string8() + "#include \"cii_resource.h\"\n"
-										   "#include \"cii_resource_extern.hpp\"\n"
-										   "\SCiiResourceInfo _cii_resources[] = \n{\n" );
+	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ),
+							 t_string8() + "#include \"htmapp_resources.h\"\n"
+										   "#include \"htmapp_resource_extern.hpp\"\n"
+										   "SHmResourceInfo _htmapp_resources[] = \n{\n" );
 
 	// resource.h
-	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "cii_resource.h" ),
-							 t_string8() + "\nstruct SCiiResourceInfo\n{"
+	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.h" ),
+							 t_string8() + 
+										   ""
+										   "#if defined HTMAPP_NORESOURCES\n"
+										   "#\terror Include htmapp_resources.h before htmapp.h\n"
+										   "#endif\n\n"
+										   "#define HTMAPP_RESOURCES 1\n\n"
+										   "#define hmResourceFn( n ) int (*n)( const TPropertyBag< char > &in, std::basic_string< char > &out );\n"
+										   "\nstruct SHmResourceInfo\n{"
 										   "\n\tconst char*   name;"
+										   "\n\tunsigned long sz_size;"
 										   "\n\tconst void*   data;"
-										   "\n\tunsigned long size;"
+										   "\n\tunsigned long sz_data;"
 										   "\n\tunsigned long type;"
 										   "\n};\n" 
-										   "\nextern SCiiResourceInfo _cii_resources[];\n"
+										   "\nextern SHmResourceInfo _htmapp_resources[];\n"
 										 );
 
 	// Get compiled types
 	t_strlist8 lstCmp;
 	if ( !cl.pb().IsSet( "c" ) )
-		lstCmp.push_back( "*.cii" );
+		lstCmp.push_back( "*.htm" );
 	else
 		lstCmp = str::SplitQuoted< char, t_string8, t_strlist8 >
 								   ( (char*)cl.pb()[ "c" ].data(), cl.pb()[ "c" ].length(), 
@@ -234,8 +242,8 @@ int main( int argc, char* argv[] )
 		process_directory( *it, cl.pb()[ "o" ].str(), *it, "", cl, lstCmp, sRoot, lI );
 
 	// Close up res_list.hpp
-	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "cii_resource.cpp" ), 
-							  t_string8( "\n{0,0,0,0}\n\n};\n" ) );
+	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ), 
+							  t_string8( "\n{0,0,0,0,0}\n\n};\n" ) );
 
 	return 0;
 }

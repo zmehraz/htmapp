@@ -33,7 +33,6 @@
 #pragma once
 
 #include <string.h>
-#include "str.h"
 
 /// Returns non-zero if the character is a valid html character
 template< typename T >
@@ -154,7 +153,7 @@ template< typename T, typename T_STR >
 		sDst.reserve( sSrc.length() * 2 );
 
 		// Start off the file
-		sDst = T_STR() + tcTT( T, "\n#include \"property_bag.h\"\n\n" ) + pFn + tcTT( T, "\n{\n" );
+		sDst = T_STR() + tcTT( T, "\n#include \"htmapp.h\"\n\n" ) + pFn + tcTT( T, "\n{\n" );
 
 		// Global data
 		T_STR sGlobal;
