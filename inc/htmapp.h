@@ -30,8 +30,9 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include <string.h>
 #include "htmapp/str.h"
 #include "htmapp/cmd_line.h"
 #include "htmapp/disk.h"
 #include "htmapp/resources.h"
+
+

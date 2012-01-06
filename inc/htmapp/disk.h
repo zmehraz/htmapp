@@ -148,6 +148,35 @@ namespace disk
 #endif
 		}
 
+	template< typename T, typename T_STR >
+		T_STR GetExtension( T_STR sFile )
+		{	T_STR sFilename = GetName< T, T_STR >( sFile );
+			long pos = sFile.find_last_of( tcTC( T, "." ) );
+			if ( T_STR::npos == pos )
+				return T_STR();
+			return T_STR( sFile, pos + 1 );
+		}
+
+	template < typename T, typename T_STR >
+		T_STR GetMimeType( T_STR sFile )
+		{
+			T_STR sExt = disk::GetExtension( sFile );			
+			if ( !sExt.length() )
+				return tcTC( T, "application/octet-stream" );
+				
+			str::ToLower< T, T_STR >( sExt.data(), sExt.length() );
+
+			// +++ Add MIME types
+			if ( sExt == tcTC( T, "jpg" ) ) return tcTC( T, "image/jpeg" );
+			else if ( sExt == tcTC( T, "png" ) ) return tcTC( T, "image/png" );
+			else if ( sExt == tcTC( T, "gif" ) ) return tcTC( T, "image/gif" );
+			else if ( sExt == tcTC( T, "htm" ) ) return tcTC( T, "text/html" );
+			else if ( sExt == tcTC( T, "html" ) ) return tcTC( T, "text/html" );
+			else if ( sExt == tcTC( T, "css" ) ) return tcTC( T, "text/css" );
+			else if ( sExt == tcTC( T, "txt" ) ) return tcTC( T, "text/plain" );
+			else return tcTC( T, "application/octet-stream" );
+		}
+
 	// File flags
     enum
     {

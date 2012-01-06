@@ -32,6 +32,9 @@
 
 #pragma once
 
+#include <string>
+#include <string.h>
+
 #ifndef stdForeach
 #	define stdForeach( t, i, o ) for ( t i = o.begin(); o.end() != i; i++ )
 #endif
@@ -64,6 +67,14 @@
 
 namespace str
 {
+	// char string type
+	typedef char t_char8;
+	typedef std::basic_string< t_char8 > t_string8;
+	
+	// wide char string type
+	typedef char t_charw;
+	typedef std::basic_string< t_charw > t_stringw;
+
 	/// Size type
 	typedef long t_size;
 	
@@ -196,6 +207,53 @@ namespace str
 			
 			return memcmp( s1, s2, l1 * sizeof( T ) );
 		}
+		
+	/// Converts upper case letters to lower case
+    /**
+        \param [in] dst     -   String to modify
+        \param [in] ln_dst  -   Length of string in dst
+    */
+    template< typename T >
+	    T* ToLower( T *dst, long ln_dst )
+	{
+		if ( !dst || 0 >= ln_dst )
+			return dst;
+
+		while ( 0 < ln_dst-- )
+		{
+            if ( *dst >= tcTT( T, 'A' ) && *dst <= tcTT( T, 'Z' ) )
+				*dst -= tcTT( T, 'A' ) - tcTT( T, 'a' );
+
+			dst++;
+
+		} // end while
+
+        return dst;
+	}
+
+	/// Converts lower case letters to upper case
+    /**
+        \param [in] dst     -   String to modify
+        \param [in] ln_dst  -   Length of string in dst
+    */
+    template< typename T >
+    	T* ToUpper( T *dst, long ln_dst )
+	{
+		if ( !dst || 0 >= ln_dst )
+			return dst;
+
+		while ( 0 < ln_dst-- )
+		{
+            if ( *dst >= tcTT( T, 'a' ) && *dst <= tcTT( T, 'z' ) )
+				*dst += tcTT( T, 'A' ) - tcTT( T, 'a' );
+
+			dst++;
+
+		} // end while
+
+		return dst;
+	}
+		
 
 }; // namespace str
 

@@ -63,7 +63,7 @@ public:
 	int LoadFromModule( const char *pModule );
 	
 	/// Returns non-zero if there is a resource list
-	int IsResources();
+	int IsValid();
 
 	/// Sets the pointer to the resource array
 	void SetResourcePtr( HMRES hRes );

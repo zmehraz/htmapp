@@ -49,9 +49,30 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	// Get the path to the file
 	QByteArray path = req.url().path().toUtf8();
 
+	str::t_string8 full = 
+		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
+
+	// Check for linked in resources
+	CHmResources res;
+	if ( res.IsValid() )
+	{
+		printf( "%s\n", "Have embedded resources" );
+		
+		// See if there is such a resource
+		HMRES hRes = res.FindResource( 0, full.c_str() );
+		if ( hRes )
+		{
+			printf( "%s\n", "Found resource" );
+			
+			// Get function pointer
+			CHmResources::t_fn pFn = res.Fn( hRes );
+			if ( pFn )
+				printf( "%s\n", "Found function" );
+			
+		} // end if		
 	
-	// +++ Put content in m_content
-	
+	} // end if
+
 	
 	// Set headers
 //	setHeader( QNetworkRequest::ContentTypeHeader, QVariant( sMime.c_str() ) );

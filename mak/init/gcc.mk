@@ -16,7 +16,7 @@ CFG_DP := $(PRE)makedepend
 CFG_AS := $(PRE)as
 CFG_RC := $(PRE)windres
 
-CFG_LD_FLAGS := $(CFG_LD_FLAGS) -export-all-symbols
+#CFG_LD_FLAGS := $(CFG_LD_FLAGS) -export-all-symbols
 CFG_PP_FLAGS := $(CFG_PP_FLAGS) -MMD -Wall -fno-strict-aliasing -D__int64="long long"
 
 ifeq ($(TGT_PLATFORM),windows)

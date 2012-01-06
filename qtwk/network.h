@@ -36,7 +36,6 @@
 #	include "qtwk.h"
 //#endif
 
-
 class CNetworkReply : public QNetworkReply
 {
 	Q_OBJECT

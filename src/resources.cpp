@@ -31,7 +31,7 @@ int CHmResources::LoadFromModule( const char *pModule )
 	return 0;
 }
 
-int CHmResources::IsResources()
+int CHmResources::IsValid()
 {
 	return m_ptr ? 1 : 0;
 }
