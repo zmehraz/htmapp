@@ -2,6 +2,8 @@
 #-------------------------------------------------------------------
 # What to build?
 #-------------------------------------------------------------------
+BUILDDIRS := $(BUILDDIRS) src
+
 BUILDDIRS := $(BUILDDIRS) tools/cii
 
 BUILDDIRS := $(BUILDDIRS) app/test

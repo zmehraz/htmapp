@@ -33,3 +33,4 @@ BLD_EXTN := cpp
 BLD_FLST :=
 BLD_SRCDIR := $(RES_DIR)
 include $(CFG_MAKROOT)/build.mk
+

@@ -1,14 +1,14 @@
 
-PRJ_LIBROOT := ../..
+PRJ_LIBROOT := ..
 
 #-------------------------------------------------------------------
 # Project information
 #-------------------------------------------------------------------
-PRJ_NAME := cii
-PRJ_DESC := Embedded c/c++ compiler
-PRJ_TYPE := exe
-PRJ_INCS := 
-PRJ_LIBS := htmapp
+PRJ_NAME := htmapp
+PRJ_DESC := HTML based application development library
+PRJ_TYPE := lib
+PRJ_INCS := inc
+PRJ_LIBS :=
 
 
 #-------------------------------------------------------------------

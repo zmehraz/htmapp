@@ -24,7 +24,7 @@ PRJ_CIIX := *.htm
 PRJ_INCS :=
 
 # Libraries to link
-PRJ_LIBS :=
+PRJ_LIBS := htmapp
 
 # Framework
 PRJ_FWRK := qtwk
@@ -38,9 +38,9 @@ PRJ_HOME := http://embedded/home.htm
 include $(PRJ_LIBROOT)/mak/init.mk
 
 ifeq ($(TGT_PLATFORM),windows)
-	PRJ_LIBS := QtWebKit4 QtNetwork4 QtGui4 QtCore4
+	PRJ_LIBS := $(PRJ_LIBS) QtWebKit4 QtNetwork4 QtGui4 QtCore4
 else
-	PRJ_LIBS := QtWebKit QtNetwork QtGui QtCore
+	PRJ_LIBS := $(PRJ_LIBS) QtWebKit QtNetwork QtGui QtCore
 endif
 
 #-------------------------------------------------------------------

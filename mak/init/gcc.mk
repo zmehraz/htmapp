@@ -19,6 +19,7 @@ CFG_RC := $(PRE)windres
 #CFG_LD_FLAGS := $(CFG_LD_FLAGS) -export-all-symbols
 CFG_PP_FLAGS := $(CFG_PP_FLAGS) -MMD -Wall -fno-strict-aliasing -D__int64="long long"
 
+
 ifeq ($(TGT_PLATFORM),windows)
 	ifeq ($(TGT_PROC),x64)
 		CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fno-leading-underscore
@@ -49,12 +50,23 @@ ifeq ($(PRJ_TYPE),dll)
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -rdynamic -Wl,-E -Wl,--export-dynamic
 	endif
 else
-	ifeq ($(TGT_PLATFORM),windows)
-		CFG_TGT_EXT := .exe
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
+	ifeq ($(PRJ_TYPE),lib)
+		ifeq ($(TGT_PLATFORM),windows)
+			CFG_TGT_EXT := .lib
+			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
+		else
+			CFG_TGT_PRE := lib
+			CFG_TGT_EXT := .a			
+			CFG_AR_FLAGS := cq
+		endif
 	else
-		CFG_TGT_EXT :=
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -rdynamic -Wl,-E -Wl,--export-dynamic
+		ifeq ($(TGT_PLATFORM),windows)
+			CFG_TGT_EXT := .exe
+			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
+		else
+			CFG_TGT_EXT :=
+			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -rdynamic -Wl,-E -Wl,--export-dynamic
+		endif
 	endif
 endif
 

@@ -1,6 +1,8 @@
 
 #include "htmapp.h"
 
+#include "stdio.h"
+
 CHmResources::~CHmResources()
 {
 	Unload();
@@ -43,15 +45,20 @@ void CHmResources::SetResourcePtr( HMRES hRes )
 
 HMRES CHmResources::FindResource( const char *pRoot, const char *pName )
 {
+	printf( "NAME : %s\n", pName );
+
 	if ( !pName || !*pName )
 		return 0;
 	
-	unsigned long lName = zstr::Length( pName );
-	const _SHmResourceInfo *p = m_ptr;
-	while ( p && *p->name )
-		if ( *p->name == *pName && p->sz_name == lName )
-			if ( !str::Compare( p->name, p->sz_name, pName, lName ) )
-				return p;
+	printf( "NAME : %s\n", pName );
+	
+	unsigned long lName = zstr::Length( pName );	
+	for ( long i = 0; m_ptr[ i ].type && *m_ptr[ i ].name; i++ )
+	{	printf( "%s\n", m_ptr[ i ].name );
+		if ( *m_ptr[ i ].name == *pName && m_ptr[ i ].sz_name == lName )
+			if ( !str::Compare( m_ptr[ i ].name, m_ptr[ i ].sz_name, pName, lName ) )
+				return &m_ptr[ i ];
+	} // end for
 	
 	return 0;
 }

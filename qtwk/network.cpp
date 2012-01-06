@@ -49,9 +49,11 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	// Get the path to the file
 	QByteArray path = req.url().path().toUtf8();
 
-	str::t_string8 full = 
-		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
+	str::t_string8 full = str::t_string8( path.data(), path.length() );
+//		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
 
+	printf( "RES : %s\n", full.c_str() );
+	
 	// Check for linked in resources
 	CHmResources res;
 	if ( res.IsValid() )

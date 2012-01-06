@@ -5,9 +5,6 @@
 #	define HTMAPP_NORESOURCES 1
 #endif
 
-#if defined( HTMAPP_RESOURCES )
-	typedef SHmResourceInfo _SHmResourceInfo;
-#else
 	struct _SHmResourceInfo
 	{
 		const char *   name;
@@ -18,7 +15,6 @@
 		
 		unsigned long  type;
 	};
-#endif
 
 typedef const _SHmResourceInfo* HMRES;
 
@@ -41,7 +37,7 @@ public:
 	CHmResources()
 	{
 #if defined( HTMAPP_RESOURCES )
-		m_ptr = _htmapp_resources;
+		m_ptr = (const _SHmResourceInfo*)_htmapp_resources;
 #else
 		m_ptr = 0;
 #endif

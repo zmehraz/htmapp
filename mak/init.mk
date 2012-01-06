@@ -80,7 +80,7 @@ BLDTGT := $(CFG_PRJROOT)
 include $(CFG_MAKROOT)/init/gcc.mk
 
 # Target filename
-CFG_OUTFILE := $(CFG_OUTROOT)/$(PRJ_NAME)$(CFG_TGT_EXT)
+CFG_OUTFILE := $(CFG_OUTROOT)/$(CFG_TGT_PRE)$(PRJ_NAME)$(CFG_TGT_EXT)
 
 # Resources?
 ifneq ($(PRJ_RESD),)
