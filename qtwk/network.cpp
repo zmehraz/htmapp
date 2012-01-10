@@ -49,37 +49,75 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	// Get the path to the file
 	QByteArray path = req.url().path().toUtf8();
 
+	str::t_string8 mime = "text/html";
 	str::t_string8 full = str::t_string8( path.data(), path.length() );
 //		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
 
-	printf( "RES : %s\n", full.c_str() );
+//	printf( "RES : %s\n", full.c_str() );
 	
 	// Check for linked in resources
 	CHmResources res;
 	if ( res.IsValid() )
 	{
-		printf( "%s\n", "Have embedded resources" );
-		
 		// See if there is such a resource
 		HMRES hRes = res.FindResource( 0, full.c_str() );
 		if ( hRes )
 		{
-			printf( "%s\n", "Found resource" );
+			switch ( res.Type( hRes ) )
+			{
+				default :
+					break;
 			
-			// Get function pointer
-			CHmResources::t_fn pFn = res.Fn( hRes );
-			if ( pFn )
-				printf( "%s\n", "Found function" );
+				case 1 :
+				{				
+					mime = "image/jpg";
+					const void *ptr = res.Ptr( hRes );
+					unsigned long sz = res.Size( hRes );
+					
+					printf( "%lu : %lu : %s\n", (unsigned long)ptr, sz, mime.c_str() );
+					
+					if ( ptr && 0 < sz )
+						m_content.append( QByteArray::fromRawData( (const char* )ptr, sz ) );
+				
+					printf( "MIME : %s\n", mime.c_str() );
+				
+				} break;
+					
+				case 2 :
+				{	
+					mime = "text/html";
+					
+					// Get function pointer
+					CHmResources::t_fn pFn = res.Fn( hRes );
+					if ( pFn )
+					{
+						TPropertyBag< char > in;
+						std::basic_string< char > out;
+						
+						pFn( in, out );
+					
+						// Set the output
+						m_content.append( out.data(), out.length() );
+
+					} // end if
+					
+				} break;
+					
+			} // end switch
 			
 		} // end if		
 	
 	} // end if
 
-	
-	// Set headers
-//	setHeader( QNetworkRequest::ContentTypeHeader, QVariant( sMime.c_str() ) );
+	// Data size
 	setHeader( QNetworkRequest::ContentLengthHeader, QVariant( m_content.size() ) );
+	
+	// MIME Type
+	if ( mime.length() )
+		setHeader( QNetworkRequest::ContentTypeHeader, QVariant( mime.c_str() ) );
 
+	printf( "%s\n", mime.c_str() );
+		
 	// Call notify functions
 	QMetaObject::invokeMethod( this, "metaDataChanged", Qt::QueuedConnection );
 	QMetaObject::invokeMethod( this, "readyRead", Qt::QueuedConnection );

@@ -79,7 +79,7 @@ CHmResources::t_size CHmResources::Size( HMRES hRes )
 
 CHmResources::t_fn CHmResources::Fn( HMRES hRes )
 {
-	if ( !hRes )
+	if ( !hRes || 2 != hRes->type )
 		return 0;
 	return (t_fn)hRes->data;
 }
