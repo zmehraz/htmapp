@@ -213,16 +213,16 @@ namespace str
         \param [in] dst     -   String to modify
         \param [in] ln_dst  -   Length of string in dst
     */
-    template< typename T >
-	    T* ToLower( T *dst, long ln_dst )
+    template< typename T, typename T_SIZE >
+	    T* ToLower( T *dst, T_SIZE ln_dst )
 	{
 		if ( !dst || 0 >= ln_dst )
 			return dst;
 
 		while ( 0 < ln_dst-- )
 		{
-            if ( *dst >= tcTT( T, 'A' ) && *dst <= tcTT( T, 'Z' ) )
-				*dst -= tcTT( T, 'A' ) - tcTT( T, 'a' );
+            if ( *dst >= tcTC( T, 'A' ) && *dst <= tcTC( T, 'Z' ) )
+				*dst -= tcTC( T, 'A' ) - tcTC( T, 'a' );
 
 			dst++;
 
@@ -236,8 +236,8 @@ namespace str
         \param [in] dst     -   String to modify
         \param [in] ln_dst  -   Length of string in dst
     */
-    template< typename T >
-    	T* ToUpper( T *dst, long ln_dst )
+    template< typename T, typename T_SIZE >
+    	T* ToUpper( T *dst, T_SIZE ln_dst )
 	{
 		if ( !dst || 0 >= ln_dst )
 			return dst;

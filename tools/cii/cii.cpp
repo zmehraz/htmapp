@@ -85,7 +85,7 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 	// Declare variables
 	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
 							  t_string8()
-							  + "\nextern const char *data_" + sVar + ";"
+							  + "\nextern const char data_" + sVar + "[];"
 							  + "\nextern const long size_" + sVar + ";\n"
 							);
 
@@ -239,7 +239,7 @@ int main( int argc, char* argv[] )
 	// Process each directory
 	long lI = 0;
 	stdForeach( t_strlist8::iterator, it, lstDir )
-		process_directory( *it, cl.pb()[ "o" ].str(), *it, "", cl, lstCmp, sRoot, lI );
+		process_directory( *it, cl.pb()[ "o" ].str(), *it, it->c_str(), cl, lstCmp, sRoot, lI );
 
 	// Close up res_list.hpp
 	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ), 

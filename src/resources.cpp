@@ -45,16 +45,12 @@ void CHmResources::SetResourcePtr( HMRES hRes )
 
 HMRES CHmResources::FindResource( const char *pRoot, const char *pName )
 {
-	printf( "NAME : %s\n", pName );
-
 	if ( !pName || !*pName )
 		return 0;
 	
-	printf( "NAME : %s\n", pName );
-	
 	unsigned long lName = zstr::Length( pName );	
 	for ( long i = 0; m_ptr[ i ].type && *m_ptr[ i ].name; i++ )
-	{	printf( "%s\n", m_ptr[ i ].name );
+	{	// printf( "%s(%d) : %s\n", __FILE__, __LINE__, m_ptr[ i ].name );
 		if ( *m_ptr[ i ].name == *pName && m_ptr[ i ].sz_name == lName )
 			if ( !str::Compare( m_ptr[ i ].name, m_ptr[ i ].sz_name, pName, lName ) )
 				return &m_ptr[ i ];

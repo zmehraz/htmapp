@@ -49,11 +49,11 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	// Get the path to the file
 	QByteArray path = req.url().path().toUtf8();
 
-	str::t_string8 mime = "text/html";
-	str::t_string8 full = str::t_string8( path.data(), path.length() );
-//		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
+	str::t_string8 mime = "application/octet-stream";
+	str::t_string8 full = //str::t_string8( path.data(), path.length() );
+		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
 
-//	printf( "RES : %s\n", full.c_str() );
+	printf( "%s(%d) : RES : %s\n", __FILE__, __LINE__, full.c_str() );
 	
 	// Check for linked in resources
 	CHmResources res;
@@ -69,17 +69,13 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 					break;
 			
 				case 1 :
-				{				
-					mime = "image/jpg";
+				{		
+					mime = disk::GetMimeType< str::t_char8, str::t_string8 >( full );
 					const void *ptr = res.Ptr( hRes );
 					unsigned long sz = res.Size( hRes );
-					
-					printf( "%lu : %lu : %s\n", (unsigned long)ptr, sz, mime.c_str() );
-					
+			
 					if ( ptr && 0 < sz )
 						m_content.append( QByteArray::fromRawData( (const char* )ptr, sz ) );
-				
-					printf( "MIME : %s\n", mime.c_str() );
 				
 				} break;
 					
@@ -91,8 +87,8 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 					CHmResources::t_fn pFn = res.Fn( hRes );
 					if ( pFn )
 					{
-						TPropertyBag< char > in;
-						std::basic_string< char > out;
+						TPropertyBag< str::t_char8 > in;
+						std::basic_string< str::t_char8 > out;
 						
 						pFn( in, out );
 					
@@ -116,8 +112,6 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	if ( mime.length() )
 		setHeader( QNetworkRequest::ContentTypeHeader, QVariant( mime.c_str() ) );
 
-	printf( "%s\n", mime.c_str() );
-		
 	// Call notify functions
 	QMetaObject::invokeMethod( this, "metaDataChanged", Qt::QueuedConnection );
 	QMetaObject::invokeMethod( this, "readyRead", Qt::QueuedConnection );
@@ -159,7 +153,7 @@ CNetworkMgr::CNetworkMgr( QObject *pParent, QNetworkAccessManager *pPrev )
 
 QNetworkReply* CNetworkMgr::createRequest( QNetworkAccessManager::Operation op, const QNetworkRequest &req, QIODevice *device )
 {
-	// printf( ": %s\n", req.url().toString().toUtf8().data() );
+	// printf( "%s(%d) : %s\n", __FILE__, __LINE__, req.url().toString().toUtf8().data() );
 
 	if ( req.url().host() == "embedded" )
 		return new CNetworkReply( this, req, op );

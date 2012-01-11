@@ -86,8 +86,7 @@ CMainWindow::CMainWindow()
 #if defined( CII_HOME )
 	m_pView->load( QUrl( CII_HOME ) );
 #else
-	m_pView->load( QUrl( "http://embedded/mars.jpg" ) );
-//	m_pView->load( QUrl( "http://embedded/index.htm" ) );
+	m_pView->load( QUrl( "http://embedded/index.htm" ) );
 #endif
 
 }
