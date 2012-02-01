@@ -11,14 +11,9 @@ else
 endif
 
 # Processor type
-ifneq ($(findstring x64,$(TGT)),)
-	TGT_PROC := x64
-else
-	ifneq ($(findstring arm,$(TGT)),)
-		TGT_PROC := arm
-	else
-		TGT_PROC := x86
-	endif
+TGT_PROC := $(strip $(foreach t,x86 x64 arm,$(findstring $(t),$(TGT))))
+ifeq ($(TGT),)
+	TGT_PROC := x86
 endif
 
 # Link type - static / shared
@@ -40,5 +35,5 @@ ifndef TGT_LINK
 endif
 
 # Create a type string
-TTYPE := $(PRE)$(TGT_PLATFORM)-$(TGT_PROC)-$(TGT_LINK)
+TTYPE := $(TGT_PLATFORM)-$(TGT_PROC)-$(TGT_LINK)
 

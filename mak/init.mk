@@ -53,25 +53,12 @@ init: $(BLDOUT)
 	- @echo .=======================================================
 BLDOUT := init
 
-# bin
-$(CFG_BINROOT): $(BLDOUT)
-	-mkdir -p $@
-BLDOUT := $(CFG_BINROOT)
+#$(warning =======================================================)
+#$(warning = $(PRJ_NAME) )
+#$(warning =======================================================)
 
-# bin/<type>
-$(CFG_OUTROOT): $(BLDOUT)
-	-mkdir -p $@
-BLDOUT := $(CFG_OUTROOT)
-
-# bin/<type>/obj
-$(CFG_OBJROOT): $(BLDOUT)
-	-mkdir -p $@
-BLDOUT := $(CFG_OBJROOT)
-
-# bin/<type>/obj/<project>
-$(CFG_PRJROOT): $(BLDOUT)
-	-mkdir -p $@
-BLDOUT := $(CFG_PRJROOT)
+# Ensure directories
+include $(CFG_MAKROOT)/init/dir.mk
 
 #-------------------------------------------------------------------
 # Configure gcc
