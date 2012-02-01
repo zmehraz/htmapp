@@ -20,15 +20,16 @@ endif
 
 ifeq ($(PRJ_TYPE),lib)
 
-$(CFG_OUTFILE): $(BLDTGT) $(BLD_DEPENDS)
-	- $(CFG_DEL) $@
+$(CFG_OUTFILE): $(BLDOUT) $(BLDTGT) $(BLD_DEPENDS)
+	- rm -f $@
 	$(CFG_AR) $(CFG_AR_FLAGS) $@ $(BLD_DEPENDS)
 BLDTGT := $(CFG_OUTFILE)
 
 # lib
 else
 
-$(CFG_OUTFILE): $(BLDTGT) $(BLD_DEPENDS)
+$(CFG_OUTFILE): $(BLDOUT) $(BLDTGT) $(BLD_DEPENDS)
+	- rm -f $@
 	$(CFG_LD) $(CFG_LD_FLAGS) $(BLD_DEPENDS) $(GO_LIBS) -o "$@"
 BLDTGT := $(CFG_OUTFILE)
 

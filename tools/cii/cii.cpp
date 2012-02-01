@@ -50,6 +50,10 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 	t_string8 sOut = disk::FilePath< char >( x_sOutDir, disk::Path< char >( x_sOutPre, x_sFile, '_' ) ) + t_string8( ".cpp" );
 	t_string8 sFn = cl.pb()[ "f" ].str();
 
+	// Dependency file
+	if ( cl.pb()[ "t" ].length() )
+		disk::AppendFile< char >( cl.pb()[ "t" ].str(), t_string8( sOut ) + ": " + sIn + "\n\n" );
+
 	// Is this a compiled type?
 	stdForeach( t_strlist8::iterator, it, lstCmp )
 		if ( 0 <= str::MatchPattern( sIn.data(), sIn.length(), it->data(), it->length(), true ) )
@@ -165,6 +169,7 @@ int main( int argc, char* argv[] )
 	{	str::Print( "Options\n"
 				" -i            '<comma separated input directories>'\n"
 				" -o            '<output directory>'\n"
+				" -t            'dependencies file'\n"
 				" -c            '<semi-colon separated compiled file types>' - default is '*.htm'\n"
 				" -f / --fdec   Function declaration\n"
 				" -q / --quiet  Suppress all output\n"
@@ -189,6 +194,9 @@ int main( int argc, char* argv[] )
 		disk::mkdir( cl.pb()[ "o" ].c_str() );
 	} // end if
 
+	// res.d
+	disk::unlink( cl.pb()[ "t" ].str().c_str() );
+
 	// res_extern.hpp
 	disk::unlink( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resource_extern.hpp" ).c_str() );
 	
@@ -202,9 +210,6 @@ int main( int argc, char* argv[] )
 	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.h" ),
 							 t_string8() + 
 										   ""
-										   "#if defined HTMAPP_NORESOURCES\n"
-										   "#\terror Include htmapp_resources.h before htmapp.h\n"
-										   "#endif\n\n"
 										   "#define HTMAPP_RESOURCES 1\n\n"
 										   "#define hmResourceFn( n ) int (*n)( const TPropertyBag< char > &in, std::basic_string< char > &out );\n"
 										   "\nstruct SHmResourceInfo\n{"
@@ -214,7 +219,7 @@ int main( int argc, char* argv[] )
 										   "\n\tunsigned long sz_data;"
 										   "\n\tunsigned long type;"
 										   "\n};\n" 
-										   "\nextern SHmResourceInfo _htmapp_resources[];\n"
+										   "\nextern \"C\" SHmResourceInfo _htmapp_resources[];\n"
 										 );
 
 	// Get compiled types

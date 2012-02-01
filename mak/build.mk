@@ -9,8 +9,13 @@ else
 	BLD_PRJROOT := $(CFG_PRJROOT)/_obj
 endif
 
+ifneq ($(BLD_NAME),)
+	BLD_PRJROOT := $(BLD_PRJROOT)/$(BLD_NAME)
+	BLD_NAME :=
+endif
+
 $(BLD_PRJROOT): $(BLDTGT)
-	-mkdir $@
+	-mkdir -p $@
 BLDTGT := $(BLD_PRJROOT)
 
 ifeq ($(BLD_SRCDIR),)
@@ -30,7 +35,12 @@ endif
 
 # Build a list of object files
 BLD_SRCDEPS := $(subst $(BLD_SRCDIR)/,$(BLD_PRJROOT)/,$(BLD_SOURCES))
-BLD_DEPENDS := $(BLD_DEPENDS) $(subst .$(BLD_EXTN),.obj,$(BLD_SRCDEPS))
+
+ifeq ($(BLD_TYPE),moc)
+	BLD_DEPENDS := $(BLD_DEPENDS) $(subst .$(BLD_EXTN),.moc.o,$(BLD_SRCDEPS))
+else
+	BLD_DEPENDS := $(BLD_DEPENDS) $(subst .$(BLD_EXTN),.o,$(BLD_SRCDEPS))
+endif
 
 PRJ_INCS := $(PRJ_INCS) $(CFG_LIBROOT)/inc
 
@@ -61,18 +71,22 @@ endif
 
 ifeq ($(BLD_TYPE),moc)
 
+-include $(BLD_PRJROOT)/*.moc.d
+
 # moc
-.PRECIOUS: $(BLD_PRJROOT)/moc_%.cpp
-$(BLD_PRJROOT)/moc_%.cpp : $(BLD_SRCDIR)/%.h $(BLDTGT)
+.PRECIOUS: $(BLD_PRJROOT)/%.moc.cpp
+$(BLD_PRJROOT)/%.moc.cpp : $(BLD_SRCDIR)/%.h $(BLDOUT)
 	moc "$<" -o "$@" $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) 
 
-$(BLD_PRJROOT)/%.obj : $(BLD_PRJROOT)/moc_%.cpp
+# cpp build
+$(BLD_PRJROOT)/%.moc.o : $(BLD_PRJROOT)/%.moc.cpp
 	$(CFG_PP) $< $(CFG_PP_FLAGS) $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) -o $@
 
 else
 
 # cpp build
-$(BLD_PRJROOT)/%.obj : $(BLD_SRCDIR)/%.cpp $(BLDTGT)
+-include $(BLD_DEPENDS:.o=.d)
+$(BLD_PRJROOT)/%.o : $(BLD_SRCDIR)/%.$(BLD_EXTN) $(BLDOUT)
 	$(CFG_PP) $< $(CFG_PP_FLAGS) $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) -o $@
 	
 endif

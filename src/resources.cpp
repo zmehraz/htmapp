@@ -3,6 +3,14 @@
 
 #include "stdio.h"
 
+// Resource pointer
+const _SHmResourceInfo* _htmapp_resources_ptr = 0;
+
+CHmResources::CHmResources()
+{
+	m_ptr = (const _SHmResourceInfo*)_htmapp_resources_ptr;
+}
+
 CHmResources::~CHmResources()
 {
 	Unload();

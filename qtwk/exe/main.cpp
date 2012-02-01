@@ -30,17 +30,27 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#include "qtwk.h"
+#include "htmapp_resources.h"
+#include "network.h"
+#include "mainwindow.h"
 
-#pragma once
+int main( int argc, char* argv[] )
+{
+	// Initialize resources
+	HTMAPP_INIT_RESOURCES();
 
-#include <string>
-#include <list>
-#include <map>
-#include <vector>
+	// Initialize application object
+	QApplication app( argc, argv );
 
-#include <QtGui/QtGui>
-#include <QtWebKit/QtWebKit>
-#include <QtNetwork/QNetworkAccessManager>
+	// Create main window
+	CMainWindow *pWindow = new CMainWindow;
+	if ( !pWindow )
+		return -1;
 
-#include "htmapp.h"
+	// Show the window
+	pWindow->show();
 
+	// Run the app
+	return app.exec();
+}

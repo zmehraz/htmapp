@@ -47,32 +47,31 @@ endif
 # Initialize
 #-------------------------------------------------------------------
 .PHONY: init
-init: $(BLDTGT)
+init: $(BLDOUT)
 	- @echo .=======================================================
 	- @echo .= $(PRJ_NAME)
 	- @echo .=======================================================
-BLDTGT := init
+BLDOUT := init
 
 # bin
-$(CFG_BINROOT): $(BLDTGT)
-	-mkdir $@
-BLDTGT := $(CFG_BINROOT)
+$(CFG_BINROOT): $(BLDOUT)
+	-mkdir -p $@
+BLDOUT := $(CFG_BINROOT)
 
 # bin/<type>
-$(CFG_OUTROOT): $(BLDTGT)
-	-mkdir $@
-BLDTGT := $(CFG_OUTROOT)
+$(CFG_OUTROOT): $(BLDOUT)
+	-mkdir -p $@
+BLDOUT := $(CFG_OUTROOT)
 
 # bin/<type>/obj
-$(CFG_OBJROOT): $(BLDTGT)
-	-mkdir $@
-BLDTGT := $(CFG_OBJROOT)
+$(CFG_OBJROOT): $(BLDOUT)
+	-mkdir -p $@
+BLDOUT := $(CFG_OBJROOT)
 
 # bin/<type>/obj/<project>
-$(CFG_PRJROOT): $(BLDTGT)
-	-mkdir $@
-BLDTGT := $(CFG_PRJROOT)
-
+$(CFG_PRJROOT): $(BLDOUT)
+	-mkdir -p $@
+BLDOUT := $(CFG_PRJROOT)
 
 #-------------------------------------------------------------------
 # Configure gcc

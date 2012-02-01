@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------
 # What to build?
 #-------------------------------------------------------------------
-BUILDDIRS := $(BUILDDIRS) src
+BUILDDIRS := $(BUILDDIRS) src qtwk
 
 BUILDDIRS := $(BUILDDIRS) tools/cii
 

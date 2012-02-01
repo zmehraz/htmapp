@@ -1,22 +1,24 @@
 
 #pragma once
 
-#if !defined( HTMAPP_RESOURCES )
-#	define HTMAPP_NORESOURCES 1
-#endif
-
-	struct _SHmResourceInfo
-	{
-		const char *   name;
-		unsigned long  sz_name;
-		
-		const char *   data;
-		unsigned long  sz_data;
-		
-		unsigned long  type;
-	};
+struct _SHmResourceInfo
+{
+	const char *   name;
+	unsigned long  sz_name;
+	
+	const char *   data;
+	unsigned long  sz_data;
+	
+	unsigned long  type;
+};
 
 typedef const _SHmResourceInfo* HMRES;
+
+/// Pointer to embedded resources
+extern "C" const _SHmResourceInfo* _htmapp_resources_ptr;
+
+/// Use this macro to set the resource pointer
+#define HTMAPP_INIT_RESOURCES()	( _htmapp_resources_ptr = (const _SHmResourceInfo*)_htmapp_resources )
 
 class CHmResources
 {
@@ -34,14 +36,7 @@ public:
 public:
 
 	/// Constructor
-	CHmResources()
-	{
-#if defined( HTMAPP_RESOURCES )
-		m_ptr = (const _SHmResourceInfo*)_htmapp_resources;
-#else
-		m_ptr = 0;
-#endif
-	}
+	CHmResources();
 
 	/// Constructor
 	CHmResources( HMRES hRes );
