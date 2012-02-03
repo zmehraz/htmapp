@@ -11,13 +11,13 @@ BUILDDIRS := $(BUILDDIRS) app/test
 #-------------------------------------------------------------------
 # multithreading
 #-------------------------------------------------------------------
+NOMULTI := 1
 ifeq ($(NOMULTI),)
 ifeq ($(NUMJOBS),)
-ifdef NUMBER_OF_PROCESSORS
+#ifdef NUMBER_OF_PROCESSORS
 NUMJOBS := -j$(NUMBER_OF_PROCESSORS)
 else
 NUMJOBS := -j2
-endif
 endif
 endif
 

@@ -76,7 +76,7 @@ ifeq ($(BLD_TYPE),moc)
 # moc
 .PRECIOUS: $(BLD_PRJROOT)/%.moc.cpp
 $(BLD_PRJROOT)/%.moc.cpp : $(BLD_SRCDIR)/%.h $(BLDOUT)
-	moc "$<" -o "$@" $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) 
+	$(CFG_QTMOC) "$<" -o "$@" $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) 
 
 # cpp build
 $(BLD_PRJROOT)/%.moc.o : $(BLD_PRJROOT)/%.moc.cpp

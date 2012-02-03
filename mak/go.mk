@@ -22,7 +22,7 @@ ifeq ($(PRJ_TYPE),lib)
 
 $(CFG_OUTFILE): $(BLDOUT) $(BLDTGT) $(BLD_DEPENDS)
 	- rm -f $@
-	$(CFG_AR) $(CFG_AR_FLAGS) $@ $(BLD_DEPENDS)
+	$(CFG_AR) $(CFG_AR_FLAGS) "$@" $(foreach f,$(BLD_DEPENDS),"$(f)")
 BLDTGT := $(CFG_OUTFILE)
 
 # lib

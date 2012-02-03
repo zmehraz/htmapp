@@ -54,6 +54,11 @@ $(info =======================================================)
 include $(CFG_MAKROOT)/init/dir.mk
 
 #-------------------------------------------------------------------
+# Configure Qt
+#-------------------------------------------------------------------
+include $(CFG_MAKROOT)/init/qt.mk
+
+#-------------------------------------------------------------------
 # Configure gcc
 #-------------------------------------------------------------------
 include $(CFG_MAKROOT)/init/gcc.mk
@@ -65,5 +70,3 @@ CFG_OUTFILE := $(CFG_OUTROOT)/$(CFG_TGT_PRE)$(PRJ_NAME)$(CFG_TGT_EXT)
 ifneq ($(PRJ_RESD),)
 	include $(CFG_MAKROOT)/init/res.mk
 endif
-
-

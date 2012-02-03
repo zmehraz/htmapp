@@ -1,1 +1,21 @@
+
+// Linux
+make SYSINCS="/usr/include/qt4 /usr/include/qt4/QtCore"
+
 make SYSINCS=~/qtsdk-2010.05/qt/include SYSLIBP=~/qtsdk-2010.05/qt/lib
+
+// Linux cross build for Windows
+
+
+
+// Cygwin
+make PRE=/bin/i686-pc-mingw32- \
+	 QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
+
+make PRE=/cygdrive/c/QtSDK/mingw/bin/ \
+	 QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
+
+make PRE=/bin/i686-pc-mingw32- \
+	 QTBIN=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw/bin \
+	 SYSINCS=/cygdrive/c/QtSDK/Desktop/Q4.7.4/mingw/include \
+	 SYSLIBP=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw/lib

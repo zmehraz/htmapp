@@ -12,7 +12,7 @@ endif
 
 # Processor type
 TGT_PROC := $(strip $(foreach t,x86 x64 arm,$(findstring $(t),$(TGT))))
-ifeq ($(TGT),)
+ifeq ($(TGT_PROC),)
 	TGT_PROC := x86
 endif
 

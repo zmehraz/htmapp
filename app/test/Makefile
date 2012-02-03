@@ -38,7 +38,7 @@ PRJ_HOME := http://embedded/home.htm
 include $(PRJ_LIBROOT)/mak/init.mk
 
 ifeq ($(TGT_PLATFORM),windows)
-	PRJ_LIBS := $(PRJ_LIBS) QtWebKit4 QtNetwork4 QtGui4 QtCore4
+	PRJ_LIBS := $(PRJ_LIBS) QtWebKit4 QtNetwork4 QtGui4 QtCore4 phonon4
 else
 	PRJ_LIBS := $(PRJ_LIBS) QtWebKit QtNetwork QtGui QtCore
 endif
