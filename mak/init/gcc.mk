@@ -63,7 +63,6 @@ else
 		else
 			CFG_TGT_PRE := lib
 			CFG_TGT_EXT := .a			
-			CFG_AR_FLAGS := cq
 		endif
 	else
 		ifeq ($(TGT_PLATFORM),windows)

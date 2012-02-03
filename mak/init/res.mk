@@ -1,6 +1,10 @@
 
 # Resource tool
+ifneq ($(BLD),)
+RES_EXE := $(CFG_BINROOT)/$(BLD)/cii
+else
 RES_EXE := $(CFG_LOCALROOT)/cii
+endif
 RES_DIR := $(CFG_PRJROOT)/_res
 
 RES_CIIX = $(PRJ_CIIX)

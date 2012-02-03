@@ -2,11 +2,17 @@
 #-------------------------------------------------------------------
 # What to build?
 #-------------------------------------------------------------------
-BUILDDIRS := $(BUILDDIRS) src qtwk
+BUILDDIRS := $(BUILDDIRS) src
 
 BUILDDIRS := $(BUILDDIRS) tools/cii
 
+ifeq ($(TOOLSONLY),)
+
+BUILDDIRS := $(BUILDDIRS) qtwk
+
 BUILDDIRS := $(BUILDDIRS) app/test
+
+endif
 
 #-------------------------------------------------------------------
 # multithreading
