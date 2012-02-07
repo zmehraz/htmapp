@@ -32,7 +32,6 @@
 
 #pragma once
 
-// int process_binary( oex::CFile &f, oex::CStr8 &sData, oex::CStr &sVar, oex::CStr &sPre, oex::CStr &sSuf )
 template< typename T, typename T_STR >
 	int process_binary( const T_STR sIn, const T_STR sOut, const T_STR sPre, const T_STR sLen, const T_STR sEnd )
 	{

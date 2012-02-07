@@ -238,7 +238,7 @@ unsigned long CThreadResource::InjectException( void* hThread, long nError )
 	// Save error code
 	s_last_error = nError;
 
-#if !defined( OEX_CPU_ARM )
+#if !defined( _WIN32_WCE )
 
 	// Get handle
 	HANDLE h = (HANDLE)hThread;
