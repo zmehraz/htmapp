@@ -10,7 +10,10 @@ ifeq ($(TOOLSONLY),)
 
 BUILDDIRS := $(BUILDDIRS) qtwk
 
-BUILDDIRS := $(BUILDDIRS) app/test
+BUILDDIRS := $(BUILDDIRS) \
+							app/dsa \
+							app/test \
+							
 
 endif
 

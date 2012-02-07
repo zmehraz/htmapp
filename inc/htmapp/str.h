@@ -36,13 +36,14 @@
 #include <string.h>
 
 #ifndef stdForeach
-#	define stdForeach( t, i, o ) for ( t i = o.begin(); o.end() != i; i++ )
+#	define stdForeach( _t, _i, _o ) for ( _t _i = _o.begin(); _o.end() != _i; _i++ )
 #endif
 
 // Anyone know a better way?
 #define tcTT( c, s )		( 1 == sizeof( c ) ? ( ( c* )( s ) ) : ( ( c* )( L##s ) ) )
 #define tcTC( c, s )		( 1 == sizeof( c ) ? ( ( c )( s ) ) : ( ( c )( L##s ) ) )
-#define tcTTEXT( c, s )		pbTT( c, s )
+#define tcTTEXT( c, s )		tcTT( c, s )
+#define tcNL8				"\n"
 
 #if defined( __GNUC__ )
 #	define tcVaList				__builtin_va_list

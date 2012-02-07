@@ -1,3 +1,28 @@
+
+<?c
+	out += parser::EncodeJsonStr< str::t_char8, str::t_string8 >( "JSON Encode String \x05" ).c_str();
+?>
+
+<br>
+
+<?c
+	t_pb8 pb;
+	pb[ "A" ][ "AA" ] = "Hello World!";
+	pb[ "A" ][ "AB" ] = (long)1;
+	pb[ "B" ][ "BA" ] = (double)3.14159;
+
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
+?>
+
+<br>
+
+<?c
+	pb.is_list( true );
+	pb[ "A" ].is_list( true );
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
+
+?>
+
 <?c
 	for( int i = 0; i < 3; i++ )
 	{

@@ -34,5 +34,6 @@
 #include "htmapp/cmd_line.h"
 #include "htmapp/disk.h"
 #include "htmapp/resources.h"
+#include "htmapp/parser.h"
 
 

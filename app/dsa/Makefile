@@ -6,10 +6,10 @@ PRJ_LIBROOT := ../..
 #-------------------------------------------------------------------
 
 # Project Name
-PRJ_NAME := test
+PRJ_NAME := dsa
 
 # Project Description
-PRJ_DESC := HtmApp Test Application
+PRJ_DESC := Disk Space Analyzer
 
 # Project output file type
 PRJ_TYPE := exe
@@ -30,7 +30,13 @@ PRJ_LIBS := htmapp
 PRJ_FWRK := qtwk
 
 # Homepage
-PRJ_HOME := http://embedded/index.htm
+CII_HOME := http://embedded/index.htm
+
+# Window width
+CII_WIDTH := 800
+
+# Window height
+CII_HEIGHT := 600
 
 #-------------------------------------------------------------------
 #Configure
@@ -47,6 +53,7 @@ endif
 # Build dependencies
 #-------------------------------------------------------------------
 #include $(PRJ_LIBROOT)/mak/build.mk
+
 
 #-------------------------------------------------------------------
 # Build the target

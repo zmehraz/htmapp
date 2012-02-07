@@ -1,0 +1,26 @@
+<?global
+
+	#include "stdio.h"
+
+	void make_array( t_pb8 &pb, long d, long &i )
+	{
+		pb[ "name" ] = ++i;
+		if ( d )
+		{	pb[ "children" ].is_list( true );
+			for( long x = 0; x < d; x++ )
+				make_array( pb[ "children" ][ x ], d - 1, i );
+		}
+		else
+			pb[ "size" ] = ++i;		
+	}
+
+?>
+
+
+<?c
+	t_pb8 pb;
+	long i = 0;
+	make_array( pb, 5, i );
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
+	return 0;
+?>

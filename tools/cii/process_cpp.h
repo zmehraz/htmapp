@@ -34,92 +34,6 @@
 
 #include <string.h>
 
-/// Returns non-zero if the character is a valid html character
-template< typename T >
-	static bool IsCppChar( T x_ch )
-{
-	switch( x_ch )
-	{	case tcTC( T, '"' ) :
-		case tcTC( T, '\\' ) :
-			return false;
-	} // end switch
-
-	return ( 0 > x_ch || tcTC( T, ' ' ) <= x_ch ) ? true : false;
-}
-
-template< typename T, typename T_STR >
-	static T_STR CppEncodeChar( T x_ch )
-	{
-		switch( x_ch )
-		{
-			case tcTC( T, '"' ) :
-				return tcTT( T, "\\\"" );
-
-			case tcTC( T, '\'' ) :
-				return tcTT( T, "\\\\" );
-
-			case tcTC( T, '\t' ) :
-				return tcTT( T, "\\t" );
-
-			case tcTC( T, '\r' ) :
-				return tcTT( T, "\\r" );
-
-			case tcTC( T, '\n' ) :
-				return tcTT( T, "\\n" );
-
-		} // end switch
-
-		// Convert to two byte character
-		T s[ 16 ] = { '"', ' ', '"', '\\', 'x', 0, 0, '"', ' ', '"', 0 };
-		str::ntoa< char >( &s[ 5 ], (char)x_ch );
-		
-		return T_STR( s, 11 );
-	}
-
-template< typename T, typename T_STR >
-	static T_STR CppEncode( const T *x_pStr, typename T_STR::size_type x_lSize = 0 )
-	{
-		if ( !x_pStr || !*x_pStr || 0 >= x_lSize )
-			return T_STR();
-		
-		T_STR ret;
-		typename T_STR::size_type nStart = 0, nPos = 0;
-
-		while ( nPos < x_lSize )
-		{
-			// Must we encode this one?
-			if ( !IsCppChar( x_pStr[ nPos ] ) )
-			{
-				// Copy data that's ok
-				if ( nStart < nPos )
-					ret.append( &x_pStr[ nStart ], nPos - nStart );
-
-				// Encode this character
-				ret.append( CppEncodeChar< T, T_STR >( x_pStr[ nPos ] ) );
-
-				// Next
-				nStart = ++nPos;
-
-			} // end if
-
-			else
-				nPos++;
-
-		} // end while
-
-		// Copy remaining data
-		if ( nStart < nPos )
-			ret.append( &x_pStr[ nStart ], nPos - nStart );
-
-		return ret;
-	}
-
-template< typename T, typename T_STR >
-	static T_STR CppEncode( const T_STR &x_str )
-	{
-		return CppEncode< T, T_STR >( x_str.data(), x_str.length() );
-	}
-
 
 /// This function turns html with embedded c++ code inside out
 /**
@@ -153,10 +67,10 @@ template< typename T, typename T_STR >
 		sDst.reserve( sSrc.length() * 2 );
 
 		// Start off the file
-		sDst = T_STR() + tcTT( T, "\n#include \"htmapp.h\"\n\n" ) + pFn + tcTT( T, "\n{\n" );
+		sDst = T_STR() + pFn + tcTT( T, "\n{\n" );
 
 		// Global data
-		T_STR sGlobal;
+		T_STR sGlobal = T_STR() + tcTT( T, "\n#include \"htmapp.h\"\n\n" );
 
 		// Tags
 		const T *tsOpen = tcTT( T, "<?c" ), *tsGlobal = tcTT( T, "<?global" ), *tsClose = tcTT( T, "?>" );
@@ -192,7 +106,7 @@ template< typename T, typename T_STR >
 				// Encode any text
 				if ( nStart < nOpen )
 				{	sDst += tcTT( T, "\n\tout += \"" );
-					sDst += CppEncode< T, T_STR >( &pSrc[ nStart ], nOpen - nStart );
+					sDst += parser::CppEncode< T, T_STR >( &pSrc[ nStart ], nOpen - nStart );
 					sDst += tcTT( T, "\";\n" );
 				} // end if
 
@@ -224,7 +138,7 @@ template< typename T, typename T_STR >
 		// Copy whatever is left
 		if ( nStart < szSrc )
 		{	sDst += tcTT( T, "\n\tout += \"" );
-			sDst += CppEncode< T, T_STR >( &pSrc[ nStart ], szSrc - nStart );
+			sDst += parser::CppEncode< T, T_STR >( &pSrc[ nStart ], szSrc - nStart );
 			sDst += tcTT( T, "\";\n" );
 		} // end if
 
@@ -237,3 +151,4 @@ template< typename T, typename T_STR >
 		// Write out the file
 		return disk::WriteFile< T >( sOut, sGlobal, sDst );
 	}
+

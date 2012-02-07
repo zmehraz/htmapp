@@ -73,6 +73,13 @@ template < typename T > class TPropertyBag
 {
 public:
 
+	enum eFlags
+	{
+		efList = 0x00000001
+	};
+
+public:
+
     //==================================================================
     // CAutoMem
     //
@@ -98,6 +105,7 @@ public:
 
             /// Returns a pointer to encapsulated object
             T_OBJ& Obj() { if ( !m_p ) m_p = new T_OBJ; return *m_p; }
+            const T_OBJ& Obj() const { return ((CAutoMem*)(this))->Obj(); }
 
             /// Returns a pointer to encapsulated object
             T_OBJ& operator *() { return Obj(); }
@@ -111,6 +119,7 @@ public:
 
             /// Returns a pointer to the encapsulated object
             T_OBJ* operator ->() { Obj(); return m_p; }
+            const T_OBJ* operator ->() const { Obj(); return m_p; }
 			
         private:
 
@@ -141,7 +150,7 @@ public:
 public:
 
     /// Default constructor
-    TPropertyBag() { }
+    TPropertyBag() { m_flags = 0; }
 
     //==============================================================
     // TPropertyBag()
@@ -151,7 +160,8 @@ public:
         \param [in] sStr    -   Encoded array
     */
     TPropertyBag( t_String sStr )
-    {   deserialize( sStr );
+    {   m_flags = 0;
+    	deserialize( sStr );
     }
 
     //==============================================================
@@ -162,7 +172,9 @@ public:
         \param [in] r    - Reference to property bag to be copied
     */
     TPropertyBag( const TPropertyBag &r )
-    {	merge( r ); }
+    {	m_flags = 0;
+    	merge( r ); 
+    }
 
     //==============================================================
     // operator = ()
@@ -191,10 +203,10 @@ public:
 	}
 
     /// Releases all memory resources and prepares class for reuse.
-    void clear() { m_lstSub.clear(); m_str.clear(); }
+    void clear() { m_lstSub.clear(); m_str.clear(); m_flags = 0; }
 
 	/// Returns the number of items in the property bag
-	long size() { return m_lstSub.size(); }
+	long size() const { return m_lstSub.size(); }
 
     //==============================================================
     // operator []()
@@ -378,6 +390,24 @@ public:
     {   return m_str = str::ToString< T, t_String >( n ); }
 
     //==============================================================
+    // is_list()
+    //==============================================================
+    /// Returns non-zero if this is the list flag is set
+    bool is_list() const { return 0 != ( m_flags & efList ); }    
+
+    //==============================================================
+    // is_list()
+    //==============================================================
+    /// Sets the list flag
+	void is_list( bool b ) 
+	{
+		if ( b ) 
+			m_flags |= efList;
+		else
+			m_flags &= ~efList;
+	}		
+
+    //==============================================================
     // T*()
     //==============================================================
     /// Conversion to const T*
@@ -387,31 +417,32 @@ public:
     // c_str()
     //==============================================================
     /// Returns NULL terminated const pointer to string buffer
-    const T* c_str() { return m_str.c_str(); }
+    const T* c_str() const { return m_str.c_str(); }
 
     //==============================================================
     // data()
     //==============================================================
     /// Returns pointer to string buffer (may not be NULL terminated)
-    const T* data() { return m_str.c_str(); }
+    const T* data() const { return m_str.c_str(); }
 	
     //==============================================================
     // length()
     //==============================================================
     /// Returns length of string
-    long length() { return m_str.length(); }
+    long length() const { return m_str.length(); }
 
     //==============================================================
     // ToString()
     //==============================================================
     /// Returns reference to string object
     t_String& str() { return m_str; }
+    const t_String& str() const { return m_str; }
 
     //==============================================================
     // ToString()
     //==============================================================
     /// Returns copy of the string object
-    t_String ToString() { return m_str; }
+    t_String ToString() const { return m_str; }
 
     //==============================================================
     // ToInt64()
@@ -464,6 +495,9 @@ public:
 
 private:
 
+	/// Array flags
+	long							m_flags;
+
     /// Our value
     t_String						m_str;
 
@@ -474,7 +508,8 @@ private:
 
 /// Property bag types
 /** \see TPropertyBag */
-typedef TPropertyBag< char > CPropertyBag8;
+typedef TPropertyBag< str::t_char8 > t_pb8;
 #ifndef CII_NO_WCHAR
-	typedef TPropertyBag< wchar_t > CPropertyBagW;
+	typedef TPropertyBag< str::t_charw > t_pbw;
 #endif
+

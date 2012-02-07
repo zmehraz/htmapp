@@ -46,13 +46,43 @@ public:
 
 	/// Constructor
 	CMainWindow();
+	
+	/// Initializes the window
+	void Init();
+	
+	/// Set the project name
+	void setName( str::t_string8 s ) { m_name = s; }
+
+	/// Set the project description
+	void setDescription( str::t_string8 s ) { m_desc = s; }
+
+	/// Set the initial url
+	void setHomeUrl( str::t_string8 s ) { m_url = s; }
+
+	/// Set the window size
+	void setWindowSize( long w, long h ) { m_width = w; m_height = h; }
 
 private:
 
 	/// Web view
-	QPointer< QWebView > m_pView;
+	QPointer< QWebView > 		m_pView;
 
 	/// Custom network object
-	QPointer< CNetworkMgr > m_pNet;
+	QPointer< CNetworkMgr > 	m_pNet;
+	
+	/// Initial URL
+	str::t_string8				m_url;
 
+	/// Project name
+	str::t_string8				m_name;
+
+	/// Project Description
+	str::t_string8				m_desc;
+	
+	/// Initial window width
+	long						m_width;
+	
+	/// Initial window height
+	long						m_height;
+	
 };

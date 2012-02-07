@@ -48,9 +48,29 @@ int main( int argc, char* argv[] )
 	if ( !pWindow )
 		return -1;
 
+#if defined( CII_PROJECT_NAME )
+	pWindow->setName( CII_PROJECT_NAME );
+#endif	
+
+#if defined( CII_PROJECT_DESC )
+	pWindow->setDescription( CII_PROJECT_DESC );
+#endif	
+
+#if defined( CII_HOME )
+	pWindow->setHomeUrl( CII_HOME );
+#endif	
+
+#if defined( CII_WIDTH ) && defined( CII_HEIGHT )
+	pWindow->setWindowSize( CII_WIDTH, CII_HEIGHT );
+#endif
+
+	// Initialize the window
+	pWindow->Init();
+
 	// Show the window
 	pWindow->show();
 
 	// Run the app
 	return app.exec();
 }
+

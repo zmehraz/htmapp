@@ -34,6 +34,18 @@ CFG_PRJROOT := $(CFG_OBJROOT)/$(PRJ_NAME)
 CFG_EXTR := $(CFG_EXTR) -DCII_PROJECT_NAME="\"$(PRJ_NAME)\"" \
 						-DCII_PROJECT_DESC="\"$(PRJ_DESC)\""
 
+ifneq ($(CII_HOME),)
+	CFG_EXTR := $(CFG_EXTR) -DCII_HOME="\"$(CII_HOME)\""
+endif
+
+ifneq ($(CII_WIDTH),)
+	CFG_EXTR := $(CFG_EXTR) -DCII_WIDTH=$(CII_WIDTH)
+endif
+
+ifneq ($(CII_HEIGHT),)
+	CFG_EXTR := $(CFG_EXTR) -DCII_HEIGHT=$(CII_HEIGHT)
+endif
+
 #-------------------------------------------------------------------
 # Configure local built tools
 #-------------------------------------------------------------------

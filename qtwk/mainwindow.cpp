@@ -36,6 +36,22 @@
 
 CMainWindow::CMainWindow()
 {
+	m_url = "http://embedded/index.htm";
+
+#if defined( CII_PROJECT_NAME )
+	m_name = CII_PROJECT_NAME;
+#endif
+
+#if defined( CII_PROJECT_DESC )
+	m_desc = CII_PROJECT_DESC;
+#endif
+
+	m_width = 0;
+	m_height = 0;
+}
+
+void CMainWindow::Init()
+{
 	// Create web view
 	m_pView = new QWebView( this );
 	if ( m_pView.isNull() )
@@ -50,14 +66,14 @@ CMainWindow::CMainWindow()
 	m_pView->page()->setNetworkAccessManager( m_pNet );
 
 	// Set window title
-#if defined( CII_PROJECT_DESC )
-	setWindowTitle( CII_PROJECT_DESC );
-#endif
+	if ( m_desc.length() )
+		setWindowTitle( m_desc.c_str() );
+	else if ( m_name.length() )
+		setWindowTitle( m_name.c_str() );
 
 	// Check for fixed size window
-#if defined( CII_WIDTH ) && defined( CII_HEIGHT )
-	setFixedSize( CII_WIDTH, CII_HEIGHT );
-#endif
+	if ( 0 < m_width && 0 < m_height )
+		setFixedSize( m_width, m_height );
 
 	// No scrollbars
 #if defined( CII_NOSCROLL )
@@ -83,11 +99,6 @@ CMainWindow::CMainWindow()
 	setCentralWidget( m_pView );
 
 	// Load the home page
-#if defined( CII_HOME )
-	m_pView->load( QUrl( CII_HOME ) );
-#else
-	m_pView->load( QUrl( "http://embedded/index.htm" ) );
-#endif
-
+	m_pView->load( QUrl( m_url.c_str() ) );
 }
 
