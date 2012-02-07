@@ -30,11 +30,11 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "htmapp/str.h"
-#include "htmapp/cmd_line.h"
-#include "htmapp/disk.h"
-#include "htmapp/resources.h"
-#include "htmapp/parser.h"
-#include "htmapp/threads.h"
+#include "htmapp.h"
 
+#if defined( _WIN32 )
+#	include "threads-windows.hpp"
+#else
+#	include "threads-posix.hpp"
+#endif
 

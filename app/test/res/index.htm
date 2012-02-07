@@ -6,9 +6,16 @@
 <br>
 
 <?c
+	out += parser::DecodeJsonStr< str::t_char8, str::t_string8 >( "JSON Decode String \\u0041" ).c_str();
+?>
+
+<br>
+
+<?c
 	t_pb8 pb;
 	pb[ "A" ][ "AA" ] = "Hello World!";
-	pb[ "A" ][ "AB" ] = (long)1;
+	pb[ "A" ][ "AB" ] = (long)444;
+	pb[ "A" ][ "AC" ] = (long)999;
 	pb[ "B" ][ "BA" ] = (double)3.14159;
 
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
@@ -20,6 +27,15 @@
 	pb.is_list( true );
 	pb[ "A" ].is_list( true );
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
+
+?>
+
+<br>
+
+<?c
+	str::t_string8 s = parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb );
+	t_pb8 pb2 = parser::DecodeJson< str::t_char8, str::t_string8, t_pb8 >( s );
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb2 ).c_str();
 
 ?>
 

@@ -74,7 +74,7 @@ namespace parser
 		// Convert to two byte character
 		T s[ 16 ] = { '"', ' ', '"', '\\', 'x', 0, 0, '"', ' ', '"', 0 };
 		str::ntoa< char >( &s[ 5 ], (char)x_ch );
-		
+
 		return T_STR( s, 10 );
 	}
 
@@ -83,7 +83,7 @@ namespace parser
 	{
 		if ( !x_pStr || !*x_pStr || 0 >= x_lSize )
 			return T_STR();
-		
+
 		T_STR ret;
 		typename T_STR::size_type nStart = 0, nPos = 0;
 
@@ -118,25 +118,23 @@ namespace parser
 
 	template< typename T, typename T_STR >
 		static T_STR CppEncode( const T_STR &x_str )
-	{
-		return CppEncode< T, T_STR >( x_str.data(), x_str.length() );
-	}
+	{	return CppEncode< T, T_STR >( x_str.data(), x_str.length() ); }
 
 
 	template< typename T, typename T_STR >
-		static T_STR EncodeJsonStr( const T_STR &x_str )
+		static T_STR EncodeJsonStr( const T *p, typename T_STR::size_type nLen )
 	{
-		// Data pointer and length
-		const T *p = x_str.c_str();
-		typename T_STR::size_type nLen = x_str.length();
+		// Sanity check
+		if ( !p || 0 >= nLen )
+			return T_STR();
 
 		// Need at least this much space
 		T_STR ret;
 		ret.reserve( nLen );
-		
+
 		// Hex string buffer
 		T hex[] = { tcTC( T, '\\' ), tcTC( T, 'u' ), 0, 0, 0, 0, 0 };
-				
+
 		while ( 0 < nLen-- )
 		{
 			switch( *p )
@@ -154,7 +152,7 @@ namespace parser
 					else
 						ret += *p;
 					break;
-			
+
 			} // end switch
 
 			// Next character
@@ -165,6 +163,9 @@ namespace parser
 		return ret;
 	}
 
+	template< typename T, typename T_STR >
+		static T_STR EncodeJsonStr( const T_STR &x_str )
+	{	return EncodeJsonStr< T, T_STR >( x_str.data(), x_str.length() ); }
 
 	template< typename T, typename T_STR, typename T_PB >
 		static T_STR EncodeJson( const T_PB &x_pb, long x_depth = 0 )
@@ -188,11 +189,11 @@ namespace parser
 				sStr += tcTT( T, "," ), sStr += tcTTEXT( T, tcNL8 );
 
 			sStr += sTab1;
-			
+
 			// Add key
 			if ( !bList )
-				sStr += tcTC( T, '\"' ), 
-				sStr += EncodeJsonStr< T, T_STR >( it->first ), 
+				sStr += tcTC( T, '\"' ),
+				sStr += EncodeJsonStr< T, T_STR >( it->first ),
 				sStr += tcTT( T, "\": " );
 
 			// Single value
@@ -214,184 +215,199 @@ namespace parser
 		return sStr;
 	}
 
-/*
-	/// Decodes a json
-	template< typename T >
-		static TStr< T > DecodeJSON( oexCONST T *x_pStr )
-		{   oexASSERT_PTR( x_pStr );
-			return DecodeJSON( TStr< T >( x_pStr ) );
-		}
-
-	template< typename T >
-		static TStr< T > DecodeJSON( TStr< T > x_str )
+	template< typename T, typename T_STR >
+		static T_STR DecodeJsonStr( const T *p, typename T_STR::size_type nLen )
 	{
-		TStr< T > ret, num;
-		oexINT nLen = x_str.Length();
+		if ( !p || 0 >= nLen )
+			return T_STR();
+
+		T_STR ret;
+		unsigned long n;
 
 		while ( 0 < nLen-- )
 		{
-			if ( oexTC( T, '\\' ) == *x_str )
+			// Escaped?
+			if ( tcTC( T, '\\' ) == *p )
 			{
-				x_str++, nLen--;
+				p++, nLen--;
 				if ( 0 < nLen )
-				{	switch( *x_str )
+				{	switch( *p )
 					{
-						case oexTC( T, '"' ) : ret << oexTC( T, '"' ); break;
-						case oexTC( T, '\'' ) : ret << oexTC( T, '\'' ); break;
-						case oexTC( T, '\\' ) : ret << oexTC( T, '\\' ); break;
-						case oexTC( T, '/' ) : ret << oexTC( T, '/' ); break;
-						case oexTC( T, 'b' ) : ret << oexTC( T, '\b' ); break;
-						case oexTC( T, 'f' ) : ret << oexTC( T, '\f' ); break;
-						case oexTC( T, 'n' ) : ret << oexTC( T, '\n' ); break;
-						case oexTC( T, 'r' ) : ret << oexTC( T, '\r' ); break;
-						case oexTC( T, 't' ) : ret << oexTC( T, '\t' ); break;
-						case oexTC( T, 'v' ) : ret << oexTC( T, '\v' ); break;
-						case oexTC( T, 'u' ) : 
-							if ( 4 <= nLen ) 
-							{	x_str++;
-								ret << (T)x_str.ToNum( 4, 16 );
-								x_str.LTrim( 3 ); nLen -= 4;
-							} // end if
+						case tcTC( T, '"' ) :	ret += tcTC( T, '"' ); break;
+						case tcTC( T, '\'' ) :	ret += tcTC( T, '\'' ); break;
+						case tcTC( T, '\\' ) :	ret += tcTC( T, '\\' ); break;
+						case tcTC( T, '/' ) :	ret += tcTC( T, '/' ); break;
+						case tcTC( T, 'b' ) :	ret += tcTC( T, '\b' ); break;
+						case tcTC( T, 'f' ) :	ret += tcTC( T, '\f' ); break;
+						case tcTC( T, 'n' ) :	ret += tcTC( T, '\n' ); break;
+						case tcTC( T, 'r' ) :	ret += tcTC( T, '\r' ); break;
+						case tcTC( T, 't' ) :	ret += tcTC( T, '\t' ); break;
+						case tcTC( T, 'v' ) :	ret += tcTC( T, '\v' ); break;
+						case tcTC( T, 'u' ) :
+							if ( 4 <= nLen )
+								p++, ret += (T)str::aton( p, &n, 4 ), nLen -= 4;
 							break;
 						default: break;
 					} // end switch
-					
-					x_str++;
-					
+
+					p++;
+
 				} // end if
 
 			} // end if
 
-			else 
-				ret << *x_str, x_str++;
+			else
+				ret += *p; p++;
 
 		} // end while
 
 		return ret;
 	}
 
-	template< typename T >
-		static TPropertyBag< TStr< T > > DecodeJSON( TStr< T > x_sStr, oexLONG x_lArrayType = 0, oexBOOL x_bMerge = oexFALSE, oexLONG *x_pLast = oexNULL )
-		{	TPropertyBag< TStr< T > > pb;
-			_DecodeJSON( x_sStr, pb, x_lArrayType, x_bMerge, x_pLast );
-			return pb;
-		}
+	template< typename T, typename T_STR >
+		static T_STR DecodeJsonStr( const T_STR x_str )
+	{	return DecodeJsonStr< T, T_STR >( x_str.data(), x_str.length() ); }
 
-	template< typename T >
-		static oexLONG DecodeJSON( TStr< T > x_sStr, TPropertyBag< TStr< T > > &x_pb, oexLONG x_lArrayType = 0, oexBOOL x_bMerge = oexFALSE, oexLONG *x_pLast = oexNULL )
-		{	return _DecodeJSON( x_sStr, x_pb, x_lArrayType, x_bMerge, x_pLast ); }
-
-	template< typename T >
-		static oexLONG _DecodeJSON( TStr< T > &x_sStr, TPropertyBag< TStr< T > > &x_pb, oexLONG x_lArrayType = 0, oexBOOL x_bMerge = oexFALSE, oexLONG *x_pLast = oexNULL )
+	template< typename T, typename T_STR, typename T_PB >
+		static str::t_size _DecodeJson( const T *p, str::t_size nLen, T_PB &x_pb, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
 	{
 		// Lose previous contents
 		if ( !x_bMerge )
-			x_pb.Destroy();
+			x_pb.clear();
 
-		// Punt if null string
-		if ( !x_sStr.Length() )
+		// Sanity check
+		if ( !p || 0 >= nLen )
 			return 0;
 
-		// Find array or
-		if ( !x_lArrayType )
+		// Find start of array
+		str::t_size nPos = 0;
+		while ( !x_lArrayType && nPos < nLen )
 		{
-			// Figure out array type
-			switch( *x_sStr.Find( oexTT( T, "{[" ) ) )
-			{	case oexTC( T, '{' ) : x_lArrayType = 1; break;
-				case oexTC( T, '[' ) : x_lArrayType = 2; break;
-				default : return 0;
+			// Look for array start character
+			switch( *p )
+			{	case tcTC( T, '{' ) : x_lArrayType = 1; break;
+				case tcTC( T, '[' ) : x_lArrayType = 2; break;
 			} // end switch
 
-			x_sStr++;
+			// Next character
+			p++, nPos++;
 
-		} // end if
+		} // end while
 
-		oexLONG lItems = 0;
-		oexLONG lMode = 0;
-		TStr< T > sKey;
+		// Unknown type
+		if ( !x_lArrayType )
+			return nPos;
 
-		while ( x_sStr.Length() )
+		// Mark list
+		if ( 2 == x_lArrayType )
+			x_pb.is_list( true );
+
+		T_STR sKey;
+		long lMode = 0, lItems = 0;
+		while ( nPos < nLen )
 		{
-			x_sStr.SkipWhiteSpace();
+			// Skip whitespace
+			str::t_size nSkip = str::FindInRange( p, nLen - nPos, tcTC( T, '!' ), tcTC( T, '~' ) );
+			if ( 0 > nSkip || nSkip >= ( nLen - nPos ) )
+				return nPos;
+			p += nSkip, nPos += nSkip;
 
-			oexCONST T ch = x_sStr[ 0 ];
+			// The character we will deal with
+			const T ch = *p;
 
 			// Check for array
-			if ( oexTC( T, '{' ) == ch || oexTC( T, '[' ) == ch )
+			if ( tcTC( T, '{' ) == ch || tcTC( T, '[' ) == ch )
 			{
-				x_sStr++;
+				p++;
 
 				if ( !lMode )
-					sKey = lItems++;
+					sKey = str::ToString< T, T_STR >( lItems++ );
 
-				_DecodeJSON( x_sStr, x_pb[ sKey ], oexTC( T, '{' ) == ch ? 1 : 2 );
+				str::t_size sz = _DecodeJson< T, T_STR, T_PB >( p, nLen - nPos, x_pb[ sKey ], tcTC( T, '{' ) == ch ? 1 : 2 );
+				if ( 0 <= sz )
+					p += sz, nPos += sz;
 
 				lMode = 0;
 
 			} // end if
 
-			// End array
-			else if ( oexTC( T, '}' ) == ch || oexTC( T, ']' ) == ch )
-			{
-				x_sStr++;
-				return lItems;
+			// Key / Value separator
+			else if ( tcTC( T, ':' ) == ch )
+				p++, nPos++;
 
-			} // end of array?
-
-			else if ( oexTC( T, ':' ) == ch )
-			{
-				x_sStr++;
-
-			} // end else if
-
-			else if ( oexTC( T, ',' ) == ch )
+			// Value separator / end array
+			else if ( tcTC( T, ',' ) == ch || tcTC( T, '}' ) == ch || tcTC( T, ']' ) == ch )
 			{
 				if ( lMode )
 				{
-					if ( !x_lArrayType )
-						x_pb[ sKey ] = "";
+					if ( 1 == x_lArrayType )
+						x_pb[ sKey ] = tcTT( T, "" );
 					else
-						x_pb[ CStr( lItems++ ) ] = sKey;
+						x_pb[ str::ToString< T, T_STR >( lItems ) ] = sKey;
+
+					// Count an item
+					lItems++;
+
+					// Nothing read yet
+					lMode = 0;
+
 				} // end if
 
-				x_sStr++;
+				// Skip
+				p++, nPos++;
+
+				// End array
+				if ( tcTC( T, '}' ) == ch || tcTC( T, ']' ) == ch )
+					return nPos;
 
 			} // end else if
 
-			// Parse string
-			else if ( oexTC( T, '"' ) == ch )
-			{
-				if ( !lMode )
-					lMode = 1,
-					sKey = JsonDecode( x_sStr.ParseQuoted( oexTT( T, "\"" ), oexTT( T, "\"" ), oexTT( T, "\\" ) ) );
-
-				else if ( lMode )
-					lMode = ( 1 == lMode ) ? 0 : lMode,
-					x_pb[ sKey ] = JsonDecode( x_sStr.ParseQuoted( oexTT( T, "\"" ), oexTT( T, "\"" ), oexTT( T, "\\" ) ) );
-
-				lItems++;
-
-			} // end if
-
 			// Parse token
-			else
+			else if ( tcTC( T, ' ' ) < ch )
 			{
+				// Find the end of the token
+				str::t_size end = ( tcTC( T, '"' ) == ch )
+								  ? str::FindTerm( ++p, nLen - ++nPos, tcTT( T, "\"" ), 1, tcTT( T, "\\" ), 1 )
+								  : str::FindTerm( p, nLen - nPos, tcTT( T, ",:{}\r\n\t\"" ), 8, tcTT( T, "" ), 0 );
+
+				// Key?
 				if ( !lMode )
 					lMode = 1,
-					sKey = x_sStr.Parse( oexTT( T, ",:{}\r\n\t" ) ).TrimWhiteSpace();
-				else if ( lMode )
-					lMode = ( 1 == lMode ) ? 0 : lMode,
-					x_pb[ sKey ] = x_sStr.Parse( oexTT( T, ",:{}\r\n\t" ) ).TrimWhiteSpace();
+					sKey = ( 0 < end ) ? DecodeJsonStr< T, T_STR >( p, end ) : T_STR();
 
-				x_sStr++;
-				lItems++;
+				// Value?
+				else if ( lMode )
+					lItems++,
+					lMode = ( 1 == lMode ) ? 0 : lMode,
+					x_pb[ sKey ] = ( 0 < end ) ? DecodeJsonStr< T, T_STR >( p, end ) : T_STR();
+
+				// Skip string
+				p += end, nPos += end;
+
+				// Skip closing quote
+				if ( tcTC( T, '"' ) == *p )
+					p++, nPos++;
 
 			} // end if
+
+			// Skip white space
+			else
+				p++, nPos++;
 
 		} // end while
 
-		return lItems;
+		return nPos;
 	}
 
-*/
+	template< typename T, typename T_STR, typename T_PB >
+		static T_PB DecodeJson( const T_STR x_str, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
+		{	T_PB pb;
+			_DecodeJson< T, T_STR, T_PB >( x_str.data(), x_str.length(), pb, x_lArrayType, x_bMerge, x_pLast );
+			return pb;
+		}
+
+	template< typename T, typename T_STR, typename T_PB >
+		static long DecodeJson( const T_STR x_str, T_PB &x_pb, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
+		{	return _DecodeJson< T, T_STR, T_PB >( x_str.data(), x_str.length(), x_pb, x_lArrayType, x_bMerge, x_pLast ); }
+
 }; // namespace parser

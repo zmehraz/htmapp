@@ -44,6 +44,7 @@
 #define tcTC( c, s )		( 1 == sizeof( c ) ? ( ( c )( s ) ) : ( ( c )( L##s ) ) )
 #define tcTTEXT( c, s )		tcTT( c, s )
 #define tcNL8				"\n"
+#define tcNULL				(0)
 
 #if defined( __GNUC__ )
 #	define tcVaList				__builtin_va_list
@@ -71,17 +72,17 @@ namespace str
 	// char string type
 	typedef char t_char8;
 	typedef std::basic_string< t_char8 > t_string8;
-	
+
 	// wide char string type
 	typedef char t_charw;
 	typedef std::basic_string< t_charw > t_stringw;
 
 	/// Size type
 	typedef long t_size;
-	
-	/// 64 bit signed integer 
+
+	/// 64 bit signed integer
 	typedef signed long long int tc_int64;
-	
+
 	/// 64 bit unsigned integer
 	typedef unsigned long long int tc_uint64;
 
@@ -150,50 +151,50 @@ namespace str
 #endif
 
 	template< typename T, typename T_STR >
-		T_STR ToString( int n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( int n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%d" ), n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( unsigned int n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( unsigned int n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%u" ), n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( long n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( long n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%li" ), n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( unsigned long n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( unsigned long n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%lu" ), n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( tc_int64 n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( tc_int64 n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%lld" ), n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( tc_uint64 n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( tc_uint64 n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%llu" ), n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( float n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( float n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%f" ), (double)n ) );
 		}
 
 	template< typename T, typename T_STR >
-		T_STR ToString( double n ) 
-		{   T szNum[ 256 ] = { 0 }; 
+		T_STR ToString( double n )
+		{   T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%f" ), n ) );
 		}
 
@@ -202,13 +203,13 @@ namespace str
 		{
 			if ( !s1 || !s2 )
 				return 0;
-		
+
 			if ( l1 != l2 )
 				return l1 - l2;
-			
+
 			return memcmp( s1, s2, l1 * sizeof( T ) );
 		}
-		
+
 	/// Converts upper case letters to lower case
     /**
         \param [in] dst     -   String to modify
@@ -254,7 +255,7 @@ namespace str
 
 		return dst;
 	}
-		
+
 
 }; // namespace str
 
@@ -272,7 +273,7 @@ namespace zstr
 	{
 		if ( !x_pStr )
 			return 0;
-	
+
 		str::t_size l = 0;
 		while ( *x_pStr )
 			l++, x_pStr++;
@@ -311,24 +312,24 @@ namespace zstr
 		{
 			if ( !s1 || !s2 )
 				return 0;
-		
+
 			long l1 = Length( s1 ), l2 = Length( s2 );
 			if ( l1 != l2 )
 				return l1 - l2;
-			
+
 			return memcmp( s1, s2, l1 * sizeof( T ) );
 		}
-		
+
 	template < typename T >
 		long Compare( T *s1, long l1, T *s2 )
 		{
 			if ( !s1 || !s2 )
 				return 0;
-		
+
 			long l2 = Length( s2 );
 			if ( l1 != l2 )
 				return l1 - l2;
-			
+
 			return memcmp( s1, s2, l1 * sizeof( T ) );
 		}
 
@@ -352,7 +353,7 @@ namespace str
 			for ( long i = 0; i < sz; i++ )
 			{
 				// Grab a nibble
-				c = (T)( ch & 0x0f ); 
+				c = (T)( ch & 0x0f );
 				ch >>= 4;
 
 				if ( 9 >= c )
@@ -362,6 +363,36 @@ namespace str
 
 			} // end for
 
+		}
+
+	/// 'Fast' ascii to number conversion
+    /**
+        \param [out] b	-   Destination buffer
+        \param [in] ch	-   Character to serialize
+    */
+	template< typename T, typename N >
+		N aton( T *b, N *n, long sz )
+		{
+			// Initialize to zero
+			*n = 0;
+
+			// For each nibble
+			for ( long i = 0; i < sz; i++ )
+			{
+				*n <<= 4;
+
+				// Grab character
+				const T c = *b; b++;
+				if ( tcTC( T, '0' ) <= c && tcTC( T, '9' ) >= c )
+					*n |= c - tcTC( T, '0' );
+				else if ( tcTC( T, 'a' ) <= c && tcTC( T, 'f' ) >= c )
+					*n |= c - tcTC( T, 'a' ) + 10;
+				else if ( tcTC( T, 'A' ) <= c && tcTC( T, 'F' ) >= c )
+					*n |= c - tcTC( T, 'A' ) + 10;
+
+			} // end for
+
+			return *n;
 		}
 
 	/// Retuns the offset of ch
@@ -473,7 +504,7 @@ namespace str
 
         open    = "<{[(";
         close   = ">}])";
-		
+
 		@return The size of the new string
 
     */
@@ -493,7 +524,7 @@ namespace str
 			// Destination
 			T* d = s;
 			t_size o = 0;
-			
+
 			// Skip the quote character
 			s++; ln--;
 
@@ -503,12 +534,12 @@ namespace str
 				t_size e = FindCharacter( esc, ln_esc, *s );
 				if ( 0 <= e )
 				{	s++; ln--;
-					if ( 0 < ln ) 
+					if ( 0 < ln )
 						d[ o++ ] = *s, s++, ln--;
 				} // end if
 
 				// Is it the end of the quoted string?
-				else if ( *s == close[ q ] ) 
+				else if ( *s == close[ q ] )
 					ln = 0;
 
 				// Just copy the character
@@ -557,6 +588,32 @@ namespace str
 		return i;
 	}
 
+    /// Finds the first character in s within the specified range
+    /**
+        \param [in] s       -   String of characters in which to search
+        \param [in] ln      -   Length of the string in s
+        \param [in] min     -   Minimum character value
+        \param [in] max     -   Maximum character value
+    */
+	template< class T >
+		static t_size FindInRange( const T *s, t_size ln, T min, T max )
+	{
+		if ( !s )
+			return 0;
+
+		t_size i = 0;
+		while ( ln )
+		{
+			if ( *s >= min && *s <= max )
+				return i;
+
+			i++; s++; ln--;
+
+		} // end while
+
+		return -1;
+	}
+
     /// Finds the end of a quoted sub string
     /**
         \param [in] s       -   String of characters in which to search
@@ -575,10 +632,10 @@ namespace str
 
     */
 	template< typename T >
-		t_size ParseWithQuoted( const T* s, t_size ln, 
-								const T *term, t_size ln_term, 
-							    const T* open, t_size ln_open, 
-								const T *close, t_size ln_close, 
+		t_size ParseWithQuoted( const T* s, t_size ln,
+								const T *term, t_size ln_term,
+							    const T* open, t_size ln_open,
+								const T *close, t_size ln_close,
 								const T *esc = 0, t_size ln_esc = 0 )
 	{
 		if ( !s || !term || !esc )
@@ -726,23 +783,23 @@ namespace str
 		@param [in] pat			- Pattern to match
 		@param [in] ln_pat		- Length of the string in pat
 		@param [in] itnore_case	- If not zero, case will be ignored
-		
+
 		@return Returns less than zero if pattern is not matched.
-		
+
 		Examples
-		
+
 		@code
-		
+
 			// "pattern" -> "string"
-			
+
 			"" -> ""
 			"*" -> "anything"
 			"???" -> "123" "abc" "any"
 			"hi*" -> "hi, then anything"
 			"hello*world" -> "hello, then anything that ends with world"
-			
+
 		@endcode
-	
+
 	*/
 	template< class T >
 		t_size MatchPattern( const T *s, t_size ln_s, const T* pat, t_size ln_pat, bool ignore_case )
