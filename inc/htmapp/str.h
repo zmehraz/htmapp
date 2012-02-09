@@ -39,6 +39,22 @@
 #	define stdForeach( _t, _i, _o ) for ( _t _i = _o.begin(); _o.end() != _i; _i++ )
 #endif
 
+#if ( defined( UNICODE ) || defined( _UNICODE ) ) && !defined( CII_NO_WCHAR )
+#	define tcUNICODE
+#	define tcT( s )			L##s
+#	define tcStr2Mb( s )	str::ToMbs( s )
+#	define tcStr2Wc( s )	s
+#	define tcMb2Str( s )	str::ToWcs( s )
+#	define tcWc2Str( s )	s
+#else
+#	define tcMULTIBYTE
+#	define tcT( s )			s
+#	define tcStr2Mb( s )	s
+#	define tcStr2Wc( s )	str::ToWcs( s )
+#	define tcMb2Str( s )	s
+#	define tcWc2Str( s )	str::ToMbs( s )
+#endif
+
 // Anyone know a better way?
 #define tcTT( c, s )		( 1 == sizeof( c ) ? ( ( c* )( s ) ) : ( ( c* )( L##s ) ) )
 #define tcTC( c, s )		( 1 == sizeof( c ) ? ( ( c )( s ) ) : ( ( c )( L##s ) ) )
@@ -74,8 +90,15 @@ namespace str
 	typedef std::basic_string< t_char8 > t_string8;
 
 	// wide char string type
-	typedef char t_charw;
+	typedef wchar_t t_charw;
 	typedef std::basic_string< t_charw > t_stringw;
+
+#if defined( tcUNICODE )
+	typedef wchar_t t_char;
+#else
+	typedef char t_char;
+#endif
+	typedef std::basic_string< t_char > t_string;
 
 	/// Size type
 	typedef long t_size;
@@ -85,6 +108,9 @@ namespace str
 
 	/// 64 bit unsigned integer
 	typedef unsigned long long int tc_uint64;
+	
+	/// Default string size
+	const t_size DEFSIZE = 1024;
 
 	/// String format
 	long vPrint( const char *x_pFmt, tcVaList x_pArgs );
@@ -97,6 +123,69 @@ namespace str
 
 	/// String format
 	long StrFmt( char *x_pDst, unsigned long x_uMax, const char *x_pFmt, ... );
+
+	/// String format
+	template< typename T, typename T_STR >	
+		T_STR StrFmt( const T *x_pFmt, ... )
+	{
+		T_STR s;
+		long lRet;
+		t_size sz = DEFSIZE;
+		
+		do
+		{
+			// Allocate space
+			try { s.resize( sz ); }
+			catch( ... ) { return T_STR(); }
+			
+			// Attempt conversion
+			tcVaList ap; tcVaStart( ap, x_pFmt );
+			lRet = vStrFmt( &s[ 0 ], sz, x_pFmt, ap );
+			tcVaEnd( ap );
+			
+			// Try more buffer space if failed
+			if ( 0 > lRet )
+				sz <<= 1;
+			
+			// Set string size
+			else
+				s.resize( lRet );		
+			
+		} while ( sz && 0 > lRet );
+		
+		return s;		
+	}	
+	
+	/// String format
+	template< typename T, typename T_STR >	
+		long StrFmt( T_STR &s, const T *x_pFmt, ... )
+	{
+		long lRet;
+		t_size sz = DEFSIZE;
+		
+		do
+		{
+			// Allocate space
+			try { s.resize( sz ); }
+			catch( ... ) { return T_STR(); }
+			
+			// Attempt conversion
+			tcVaList ap; tcVaStart( ap, x_pFmt );
+			lRet = vStrFmt( &s[ 0 ], sz, x_pFmt, ap );
+			tcVaEnd( ap );
+			
+			// Try more buffer space if failed
+			if ( 0 > lRet )
+				sz <<= 1;
+			
+			// Set string size
+			else
+				s.resize( lRet );		
+			
+		} while ( sz && 0 > lRet );
+		
+		return lRet;		
+	}	
 
 	/// Converts to int64
 	tc_int64 StrToInt64( const char *x_pStr, long x_lRadix = 10 );
@@ -117,6 +206,12 @@ namespace str
 	double StrToDouble( const char *x_pStr );
 
 #ifndef CII_NO_WCHAR
+
+	/// Convert wc string to mb
+	t_stringw ToWcs( const t_string8 &s );	
+
+	/// Convert mb char string to wc
+	t_string8 ToMbs( const t_stringw &s );	
 
 	/// String format
 	long vPrint( const wchar_t *x_pFmt, tcVaList x_pArgs );
@@ -256,6 +351,22 @@ namespace str
 		return dst;
 	}
 
+    /// Returns the length of the null terminated string in s
+    /**
+        \param [in] s       -   Pointer to string buffer
+	*/
+	template < typename T, typename T_SIZE >
+		static str::t_size Length( const T *x_pStr, T_SIZE ln_max )
+	{
+		if ( !x_pStr )
+			return 0;
+
+		str::t_size l = 0;
+		while ( ln_max-- && *x_pStr )
+			l++, x_pStr++;
+
+		return l;
+	}
 
 }; // namespace str
 
@@ -914,4 +1025,60 @@ namespace str
 		return ( p >= ln_pat ) ? 0 : -1;
 	}
 
+	/// Appends a size formatted string ( 1.3KB, 44.75GB, etc...)
+	template< typename T, typename T_STR, typename T_NUM >
+		T_STR SizeStr( T_NUM dSize, T_NUM dDiv, long nDigits, const T ** pSuffix = tcNULL )
+	{	
+		T_STR s;
+		long i = 0;
+		static const T *sizes[] = 
+		{	tcTT( T, "" ), 			//
+			tcTT( T, "K" ), 		// Kilo				
+			tcTT( T, "M" ), 		// Mega			
+			tcTT( T, "G" ), 		// Giga
+			tcTT( T, "T" ), 		// Tera
+			tcTT( T, "P" ),			// Peta
+			tcTT( T, "E" ),			// Exa
+			tcTT( T, "Z" ),			// Zetta
+			tcTT( T, "Y" ),			// Yotta
+			tcTT( T, "B" ),			// Bronto
+			0 						// Geop, but G already taken?
+									// Segan, ...
+		};
+
+		// Use 1024 as the default divider
+		if ( 0 >= dDiv )
+			dDiv = T_NUM( 1024 );
+		
+		bool bNeg = 0 > dSize;
+		if ( bNeg ) 
+			dSize = -dSize;
+		
+		// Use default suffixes if non provided
+		if ( !pSuffix || !*pSuffix || !**pSuffix )
+			pSuffix = sizes;
+		
+		// Which size to use?
+		while ( dSize > dDiv && pSuffix[ i + 1 ] )
+			i++, dSize /= dDiv;
+
+		// Is the number negative?
+		if ( bNeg )
+			s = tcTT( T, "-" );
+			
+		// Special formating?
+		if ( 0 > nDigits )
+			s += ToString< T, T_STR >( dSize );
+		else if ( !nDigits )
+			s += ToString< T, T_STR >( (long)dSize );
+		else
+			s += StrFmt< T, T_STR >( ( T_STR( tcTT( T, "%." ) ) + ToString< T, T_STR >( nDigits ) + tcTT( T, "f" ) ).c_str(), dSize );
+			
+		// Build the string
+		s += pSuffix[ i ];
+
+		return s;
+	}
+
 }; // namespace str
+

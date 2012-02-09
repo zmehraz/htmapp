@@ -50,5 +50,21 @@
 	}
 ?>
 
-<img src="mars.jpg">
+<br>
+<pre>
+<?c
+	t_pb di;
+	disk::GetDisksInfo( di, true );
+	out += parser::EncodeJson< str::t_char, str::t_string, t_pb >( di ).c_str();
+	
+//	disk::GetDiskInfo( di, "/media/System" );
+//	stdForeach( t_pb::iterator, it, di )
+//		out += str::t_string() + it->first + " : "
+//				+ it->second->ToString()
+//				+ "<br>\r\n";
+
+?>
+</pre>
+
+<!--<img src="mars.jpg">-->
 

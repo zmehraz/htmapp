@@ -66,6 +66,8 @@ namespace disk
 #endif
 
 	const HFILE c_invalid_hfile = (HFILE)-1;
+	
+	const t_size MAXPATHLEN = 1024;
 
 	template< typename T, typename T_STR >
 		T_STR& RTrim( T_STR &s, T c )
@@ -207,6 +209,78 @@ namespace disk
 		str::tc_int64	llSize;
 		char			szName[ 1024 ];
 	};
+
+	/// Special folder id's
+	enum
+	{
+		eFidNone = 0xff00,
+
+		eFidTemp,
+
+		eFidSystem,
+
+		eFidUserOs,
+
+		eFidCurrent,
+
+		eFidRoot,
+
+		eFidDefDrive,
+
+		eFidFonts,
+		
+		eFidSettings,
+
+		eFidRecycle,
+
+		eFidDesktop,
+
+		eFidDownloads,
+
+		eFidTemplates,
+
+		eFidPublic,
+
+		eFidDocuments,
+
+		eFidMusic,
+
+		eFidPictures,
+
+		eFidVideo,
+		
+		eFidFavorites,
+
+		eFidHistory,
+
+		eFidCookies,
+
+		eFidNetwork,
+
+		eFidPrinters,
+
+		eFidStartMenu,
+
+		eFidStartup,
+
+		eFidRecent
+
+	};
+		
+	/// Returns the specified folder path
+	str::t_string8 GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength = MAXPATHLEN );
+
+	/// Returns a type/description token for the specified drive
+	str::t_string GetDriveTypeStr( const str::t_string &x_sDrive );
+	
+	/// Returns the file system type string
+	str::t_string GetFsTypeStr( unsigned long type );
+
+	/// Returns a property bag with information on the specified disk
+	long GetDiskInfo( t_pb &pb, const str::t_string &x_sDrive );
+
+	/// Returns a property bag filled with disk information
+	long GetDisksInfo( t_pb &pb, bool bInfo );
 
 	/// Find handle
 	typedef void* HFIND;

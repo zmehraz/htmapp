@@ -30,6 +30,29 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#include <stdlib.h>
+
+#include <fcntl.h>
+#include <stropts.h>
+
+#if !defined( HTM_NOSTATFS )
+#	include <sys/statfs.h>
+#elif !defined( HTM_NOSTATVFS )
+#	include <sys/statvfs.h>
+#endif
+
+#if !defined( HTM_NOPWD )
+#	include <pwd.h>
+#endif
+
+#if !defined( HTM_NOHDREG )
+#	include <linux/hdreg.h> 
+#endif
+
+#if !defined( HTM_NOMNTENT )
+#	include <mntent.h>
+#endif
+
 HFILE Open( const char *x_pFile, const char *x_pMode )
 {
 #if defined( CII_NOSTAT64 )
@@ -232,3 +255,243 @@ bool FindClose( HFIND x_hFind )
 	return closedir( (DIR*)x_hFind ) ? false : true;
 #endif
 }
+
+static str::t_string disk_GetHome()
+{
+	// First attempt to user environment
+	const char *pHome = getenv( "HOME" );
+	if ( pHome && *pHome )
+		return tcMb2Str( pHome );
+		
+#if !defined( HTM_NOPWD )
+	// Attempt to read user home directory
+	struct passwd *pw = getpwuid( getuid() );
+	if ( pw && pw->pw_dir && *pw->pw_dir )
+		return tcMb2Str( pw->pw_dir );
+#endif
+
+	return tcT( "~/" );
+}
+
+#define disk_FROMHOME( s ) disk::FilePath< str::t_char, str::t_string >( disk_GetHome(), tcT( s ) )
+
+str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength )
+{
+	// Get the folder
+	switch( x_nFolderId )
+	{
+		case eFidNone :
+			break;
+
+		case eFidTemp :
+		{
+			const char *pTmp;
+			if ( !( pTmp = getenv( "TMPDIR" ) ) 
+				 && !( pTmp = getenv( "TEMP" ) )
+				 && !( pTmp = getenv( "TMP" ) ) 
+			   )
+				return tcT( "/tmp" );
+
+			return tcMb2Str( pTmp );
+
+		} break;
+
+		case eFidSystem :
+			return disk_GetHome();
+
+		case eFidUserOs :
+			return tcT( "/sys" );
+
+		case eFidCurrent :
+		{
+			// Allocate space
+			str::t_string8 s;
+			try { s.resize( disk::MAXPATHLEN ); }
+			catch( ... ) { return str::t_string(); }
+			
+			// Ask for the current working directory
+			if ( !getcwd( &s[ 0 ], disk::MAXPATHLEN ) || !s[ 0 ] )
+				return str::t_string();
+			
+			// Set string length
+			s.resize( str::Length( s.c_str(), disk::MAXPATHLEN ) );
+
+			return tcMb2Str( s );
+
+		} break;
+
+		case eFidRoot :
+		case eFidDefDrive :
+			return tcT( "/" );
+
+		case eFidFonts :
+			return tcT( "/usr/share/fonts/truetype/msttcorefonts" );
+
+		case eFidSettings :
+			if ( x_bShared )
+				return tcT( "/var/lib" );
+			return disk_FROMHOME( ".config" );
+
+		case eFidDesktop :
+			return disk_FROMHOME( "Desktop" );
+
+		case eFidDownloads :
+			return disk_FROMHOME( "Downloads" );
+
+		case eFidTemplates :
+			return disk_FROMHOME( "Templates" );
+
+		case eFidPublic :
+			return disk_FROMHOME( "Public" );
+
+		case eFidDocuments :
+			return disk_FROMHOME( "Documents" );
+
+		case eFidMusic :
+			return disk_FROMHOME( "Music" );
+
+		case eFidPictures :
+			return disk_FROMHOME( "Pictures" );
+
+		case eFidVideo :
+			return disk_FROMHOME( "Videos" );
+
+		default :
+			break;
+
+	} // end switch
+
+	return tcT( "" );
+}
+
+str::t_string GetDriveTypeStr( const str::t_string &x_sDrive )
+{
+	if ( !x_sDrive.length() )	 			return tcT( "noroot" );
+	
+	if ( x_sDrive == tcT( "fd" ) ) 			return tcT( "removable" );
+	
+	if ( x_sDrive == tcT( "hd" ) ) 			return tcT( "fixed" );
+	if ( x_sDrive == tcT( "ext" ) ) 		return tcT( "fixed" );
+	if ( x_sDrive == tcT( "ext2" ) ) 		return tcT( "fixed" );
+	if ( x_sDrive == tcT( "ext3" ) ) 		return tcT( "fixed" );
+	if ( x_sDrive == tcT( "fuseblk" ) ) 	return tcT( "fixed" );
+	if ( x_sDrive == tcT( "ecryptfs" ) ) 	return tcT( "fixed" );	
+	
+	if ( x_sDrive == tcT( "cdrom" ) ) 		return tcT( "cdrom" );
+	
+	if ( x_sDrive == tcT( "ram" ) ) 		return tcT( "ramdisk" );
+	if ( x_sDrive == tcT( "tmpfs" ) ) 		return tcT( "ramdisk" );
+	if ( x_sDrive == tcT( "tempfs" ) ) 		return tcT( "ramdisk" );
+	if ( x_sDrive == tcT( "devtmpfs" ) ) 	return tcT( "ramdisk" );
+	
+	if ( x_sDrive == tcT( "devpts" ) )	 	return tcT( "remote" );
+	if ( x_sDrive == tcT( "subst" ) ) 		return tcT( "remote" );
+	if ( x_sDrive == tcT( "join" ) ) 		return tcT( "remote" );
+	if ( x_sDrive == tcT( "net" ) ) 		return tcT( "remote" );
+
+	return tcT( "unknown" );
+}
+
+long GetDiskInfo( t_pb &pb, const str::t_string &x_sDrive )
+{
+	// Sanity check
+	if ( !x_sDrive.length() )
+		return 0;
+
+	pb[ tcT( "drive" ) ] = x_sDrive;
+//	pb[ tcT( "drive_type" ) ] = GetDriveTypeStr( x_sDrive.c_str() );
+
+#if !defined( HTM_NOSTATFS )
+
+	struct statfs di;
+    if ( 0 > statfs( tcStr2Mb( x_sDrive ).c_str(), &di ) )
+    	return 0;
+
+	pb[ tcT( "file_system_type" ) ] = (unsigned int)di.f_type;
+	pb[ tcT( "file_system_str" ) ] = GetFsTypeStr( di.f_type );
+	pb[ tcT( "file_system_id32" ) ] = (unsigned int)di.f_fsid.__val[ 0 ];
+	pb[ tcT( "file_system_id64" ) ] = *(str::tc_uint64*)&di.f_fsid;
+	
+#elif !defined( HTM_NOSTATVFS )
+
+	struct statvfs di;
+    if ( 0 > statvfs( x_sDrive.c_str(), &di ) )
+    	return 0;
+	
+	pb[ tcT( "flags" ) ] = di.f_flag;
+	pb[ tcT( "max_filename" ) ] = di.f_namemax;
+//	pb[ tcT( "file_system_type" ) ] = di.f_type;
+//	pb[ tcT( "file_system_str" ) ] = GetFsTypeStr( di.f_type );
+	pb[ tcT( "file_system_id32" ) ] = (unsigned int)di.f_fsid;
+//	pb[ tcT( "file_system_id64" ) ] = (str::tc_uint64)di.f_fsid64;
+	
+#endif
+   	
+    // Space info
+	pb[ tcT( "bytes" ) ] = (str::tc_uint64)di.f_blocks * (str::tc_uint64)di.f_bsize;
+	pb[ tcT( "bytes_free" ) ] = (str::tc_uint64)di.f_bfree * (str::tc_uint64)di.f_bsize;
+	pb[ tcT( "bytes_used" ) ] = (str::tc_uint64)( di.f_blocks - di.f_bfree ) * (str::tc_uint64)di.f_bsize;
+	pb[ tcT( "bytes_available" ) ] = (str::tc_uint64)di.f_bavail * (str::tc_uint64)di.f_bsize;
+	pb[ tcT( "bytes_unavailable" ) ] = (str::tc_uint64)( di.f_blocks - di.f_bavail ) * (str::tc_uint64)di.f_bsize;
+	
+	pb[ tcT( "inodes" ) ] = di.f_files;	
+	pb[ tcT( "block_size" ) ] = di.f_bsize;	
+	pb[ tcT( "fragment_size" ) ] = di.f_frsize;	
+
+	// +++ Hmmmm
+	if ( di.f_blocks && di.f_bsize
+		 && pb[ tcT( "drive_type" ) ].ToString() == "unknown" 
+		 && pb[ tcT( "file_system_str" ) ].ToString() != "TMPFS" )
+		pb[ tcT( "drive_type" ) ] = tcT( "fixed" );
+
+	return 1;
+}
+
+long GetDisksInfo( t_pb &pb, bool bInfo )
+{
+	long lTotal = 0;
+#if !defined( HTM_NOMNTENT )
+
+	struct mntent *m;
+	FILE *f = setmntent( "/proc/mounts", "r" );
+	while ( ( m = getmntent( f ) ) )
+		if ( m )
+		{
+			str::t_string sPath = m->mnt_dir 
+								  ? tcMb2Str( m->mnt_dir ) 
+								  : str::ToString< str::t_char, str::t_string >( lTotal );
+			
+			
+			if ( bInfo )
+			{
+				t_pb &r = pb[ sPath ];
+				r[ tcT( "volume" ) ] = tcMb2Str( m->mnt_fsname ? m->mnt_fsname : "" );
+				r[ tcT( "drive_type" ) ] = GetDriveTypeStr( tcMb2Str( m->mnt_type ? m->mnt_type : "" ) );
+				r[ tcT( "drive_type_os" ) ] = tcMb2Str( m->mnt_type ? m->mnt_type : "" );
+				r[ tcT( "drive_path" ) ] = tcMb2Str( m->mnt_dir ? m->mnt_dir : "" );
+				r[ tcT( "drive_fs" ) ] = tcMb2Str( m->mnt_fsname ? m->mnt_fsname : "" );
+				r[ tcT( "drive_opts" ) ] = tcMb2Str( m->mnt_opts ? m->mnt_opts : "" );
+				r[ tcT( "drive_freq" ) ] = m->mnt_freq;
+				r[ tcT( "drive_passno" ) ] = m->mnt_passno;
+
+				// Get extended info				
+				GetDiskInfo( r, sPath );
+
+			} // end if
+			
+			else
+				pb[ sPath ] = GetDriveTypeStr( tcMb2Str( m->mnt_type ? m->mnt_type : "" ) );
+
+			lTotal++;
+		
+		} // end while
+	
+	endmntent( f );
+
+#endif
+
+	return lTotal;
+}
+
+
+

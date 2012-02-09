@@ -161,6 +161,46 @@ double StrToDouble( const char *x_pStr )
 
 #ifndef CII_NO_WCHAR
 
+t_stringw ToWcs( const t_string8 &s )
+{
+	if ( !s.length() )
+		return t_stringw();
+
+	// Allocate space
+	t_stringw r;
+	try { r.resize( s.length() );	}
+	catch( ... ) { return t_stringw(); }
+
+	// Attempt conversion
+	size_t sz = mbstowcs( &r[ 0 ], s.c_str(), s.length() );
+	if ( 0 >= sz ) 
+		return t_stringw();
+
+	// Set new string length	
+	r.resize( sz );
+	return r;
+}
+
+t_string8 ToMbs( const t_stringw &s )
+{
+	if ( !s.length() )
+		return t_string8();
+
+	// Allocate space
+	t_string8 r;
+	try { r.resize( s.length() );	}
+	catch( ... ) { return t_string8(); }
+
+	// Attempt conversion
+	size_t sz = wcstombs( &r[ 0 ], s.c_str(), s.length() );
+	if ( 0 >= sz ) 
+		return t_string8();
+
+	// Set new string length	
+	r.resize( sz );
+	return r;
+}
+
 long vPrint( const wchar_t *x_pFmt, tcVaList x_pArgs )
 {
 	return vwprintf( x_pFmt, (CAST_VL)x_pArgs );

@@ -30,6 +30,64 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#if defined( _MSC_VER )
+#	include <ShlObj.h>
+#	include <Shellapi.h>
+#else
+#	define OEX_USE_DYNAMIC_SHELL32
+
+#define CSIDL_ALTSTARTUP              29
+#define CSIDL_APPDATA                 26
+#define CSIDL_BITBUCKET               10
+#define CSIDL_CDBURN_AREA             59
+#define CSIDL_COMMON_ADMINTOOLS       47
+#define CSIDL_COMMON_ALTSTARTUP       30
+#define CSIDL_COMMON_APPDATA          35
+#define CSIDL_COMMON_DESKTOPDIRECTORY 25
+#define CSIDL_COMMON_DOCUMENTS        46
+#define CSIDL_COMMON_FAVORITES        31
+#define CSIDL_COMMON_MUSIC            53
+#define CSIDL_COMMON_PICTURES         54
+#define CSIDL_COMMON_PROGRAMS         23
+#define CSIDL_COMMON_STARTMENU        22
+#define CSIDL_COMMON_STARTUP          24
+#define CSIDL_COMMON_TEMPLATES        45
+#define CSIDL_COMMON_VIDEO            55
+#define CSIDL_CONTROLS                 3
+#define CSIDL_COOKIES                 33
+#define CSIDL_DESKTOP                  0
+#define CSIDL_DESKTOPDIRECTORY        16
+#define CSIDL_DRIVES                  17
+#define CSIDL_FAVORITES                6
+#define CSIDL_FONTS                   20
+#define CSIDL_HISTORY                 34
+#define CSIDL_INTERNET                 1
+#define CSIDL_INTERNET_CACHE          32
+#define CSIDL_LOCAL_APPDATA           28
+#define CSIDL_MYDOCUMENTS             12
+#define CSIDL_MYMUSIC                 13
+#define CSIDL_MYPICTURES              39
+#define CSIDL_MYVIDEO                 14
+#define CSIDL_NETHOOD                 19
+#define CSIDL_NETWORK                 18
+#define CSIDL_PERSONAL                 5
+#define CSIDL_PRINTERS                 4
+#define CSIDL_PRINTHOOD               27
+#define CSIDL_PROFILE                 40
+#define CSIDL_PROFILES                62
+#define CSIDL_PROGRAM_FILES           38
+#define CSIDL_PROGRAM_FILES_COMMON    43
+#define CSIDL_PROGRAMS                 2
+#define CSIDL_RECENT                   8
+#define CSIDL_SENDTO                   9
+#define CSIDL_STARTMENU               11
+#define CSIDL_STARTUP                  7
+#define CSIDL_SYSTEM                  37
+#define CSIDL_TEMPLATES               21
+#define CSIDL_WINDOWS                 36
+
+#endif
+
 HFILE Open( const char *x_pFile, const char *x_pMode )
 {
 	tHFILE res = fopen( x_pFile, x_pMode );
@@ -166,5 +224,323 @@ bool FindClose( HFIND x_hFind )
 	if ( c_invalid_hfind == x_hFind )
 		return false;
 	return ::FindClose( x_hFind ) ? true : false;
+}
+
+#if defined( OEX_USE_DYNAMIC_SHELL32 )
+	
+	// SH Types
+	typedef IMalloc* t_LPMALLOC;
+	typedef struct { USHORT cb; BYTE abID[ 1 ]; } t_SHITEMID;
+	typedef struct { t_SHITEMID mkid; } t_ITEMIDLIST, *t_LPITEMIDLIST;
+	
+	// SH Functions
+	typedef HRESULT (*pfn_SHGetMalloc)( t_LPMALLOC *ppMalloc );
+	typedef BOOL (*pfn_SHGetPathFromIDList)( t_LPITEMIDLIST pidl, LPTSTR pszPath );
+	typedef HRESULT (*pfn_SHGetSpecialFolderLocation)( HWND hwndOwner, int nFolder, t_LPITEMIDLIST *ppidl );
+
+#else
+
+#	define t_LPMALLOC LPMALLOC
+#	define t_LPITEMIDLIST LPITEMIDLIST
+#	define pSHGetMalloc SHGetMalloc
+#	define pSHGetPathFromIDList SHGetPathFromIDList
+#	define pSHGetSpecialFolderLocation SHGetSpecialFolderLocation
+
+#endif
+
+str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength )
+{
+	// Ensure at least MAX_PATH bytes
+	if ( MAX_PATH > x_nMaxLength )
+		x_nMaxLength = disk::MAXPATHLEN;
+
+	long trim = 0;
+	str::t_string s, sub;
+	
+	// Attempt to allocate space
+	try { s.resize( x_nMaxLength ); } 
+	catch( ... ) { return str::t_string(); }
+
+	// Get writable pointer
+	str::t_char8* pStr = &s[ 0 ];
+		
+	// Get the folder
+	switch( x_nFolderId )
+	{
+		case eFidNone :
+			return str::t_string8();
+
+		case eFidTemp :
+			s.resize( ::GetTempPath( x_nMaxLength, pStr ) );
+			return s;
+
+		case eFidSystem :
+			s.resize( ::GetSystemDirectory( pStr, x_nMaxLength ) );
+			return s;
+
+		case eFidUserOs :
+			s.resize( ::GetWindowsDirectory( pStr, x_nMaxLength ) );
+			return s;
+
+		case eFidCurrent :
+			s.resize( ::GetCurrentDirectory( x_nMaxLength, pStr ) );
+			return s;
+
+		case eFidDefDrive :
+			s.resize( cmn::Min( (UINT)3, ::GetWindowsDirectory( pStr, x_nMaxLength ) ) );
+			return s;
+
+		case eFidRoot :
+			x_nFolderId = CSIDL_DRIVES;
+			break;
+
+		case eFidSettings :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_APPDATA : CSIDL_APPDATA;
+			break;
+
+		case eFidDesktop :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_DESKTOPDIRECTORY : CSIDL_DESKTOPDIRECTORY;
+			break;
+
+		case eFidDownloads :
+			// +++ CSIDL_COMMON_DOCUMENTS is broken?
+			trim = x_bShared ? 1 : 0;
+			x_nFolderId = x_bShared ? CSIDL_COMMON_DESKTOPDIRECTORY : CSIDL_MYDOCUMENTS;
+			sub = tcT( "Downloads" );
+			break;
+
+		case eFidRecycle :
+			x_nFolderId = CSIDL_BITBUCKET;
+			break;
+
+		case eFidTemplates :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_TEMPLATES : CSIDL_TEMPLATES;
+			break;
+
+		case eFidPublic :
+			// +++ CSIDL_COMMON_DOCUMENTS is broken?
+			trim = 1; sub = tcT( "Public" );
+			x_nFolderId = x_bShared ? CSIDL_COMMON_DESKTOPDIRECTORY : CSIDL_DESKTOPDIRECTORY;
+			break;
+
+		case eFidDocuments :
+			// +++ CSIDL_COMMON_DOCUMENTS is broken?
+			if ( x_bShared ) trim = 1, sub = tcT( "Documents" );
+			x_nFolderId = x_bShared ? CSIDL_COMMON_DESKTOPDIRECTORY : CSIDL_MYDOCUMENTS;
+			break;
+
+		case eFidMusic :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_MUSIC : CSIDL_MYMUSIC;
+			break;
+
+		case eFidPictures :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_PICTURES : CSIDL_MYPICTURES;
+			break;
+
+		case eFidVideo :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_VIDEO : CSIDL_MYVIDEO;
+			break;
+
+		case eFidFavorites :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_FAVORITES : CSIDL_FAVORITES;
+			break;
+
+		case eFidStartMenu :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_STARTMENU : CSIDL_STARTMENU;
+			break;
+
+		case eFidStartup :
+			x_nFolderId = x_bShared ? CSIDL_COMMON_STARTUP : CSIDL_STARTUP;
+			break;
+
+		case eFidCookies :
+			x_nFolderId = CSIDL_COOKIES;
+			break;
+
+		case eFidNetwork :
+			x_nFolderId = CSIDL_NETWORK;
+			break;
+
+		case eFidPrinters :
+			x_nFolderId = CSIDL_PRINTERS;
+			break;
+
+		case eFidRecent :
+			x_nFolderId = CSIDL_RECENT;
+			break;
+
+		case eFidHistory :
+			x_nFolderId = CSIDL_HISTORY;
+			break;
+
+		case eFidFonts :
+			x_nFolderId = CSIDL_FONTS;
+			break;
+
+		default :
+			break;
+
+	} // end switch
+
+#if defined( OEX_USE_DYNAMIC_SHELL32 )
+
+	// Functions
+	pfn_SHGetMalloc pSHGetMalloc = tcNULL;
+	pfn_SHGetPathFromIDList pSHGetPathFromIDList = tcNULL;
+	pfn_SHGetSpecialFolderLocation pSHGetSpecialFolderLocation = tcNULL;
+
+	// Load shell32.dll
+	HMODULE hShell32 = LoadLibrary( tcT( "shell32.dll" ) );
+	if ( !hShell32 )
+		return str::t_string();
+
+	// Load functions
+	pSHGetMalloc = (pfn_SHGetMalloc)GetProcAddress( hShell32, tcT( "SHGetMalloc" ) );
+	pSHGetPathFromIDList = (pfn_SHGetPathFromIDList)GetProcAddress( hShell32, tcT( "SHGetPathFromIDList" ) );
+	pSHGetSpecialFolderLocation = (pfn_SHGetSpecialFolderLocation)GetProcAddress( hShell32, tcT( "SHGetSpecialFolderLocation" ) );
+
+	// Did we get the functions?
+	if ( !pSHGetMalloc || !pSHGetPathFromIDList || !pSHGetSpecialFolderLocation )
+	{	FreeLibrary( hShell32 );
+		return str::t_string();
+	} // end if
+
+#endif
+
+	// +++ Add support for SHGetKnownFolderPath()
+
+	t_LPITEMIDLIST pidl = tcNULL;
+	if ( pSHGetSpecialFolderLocation( tcNULL, x_nFolderId, &pidl ) == NOERROR && pidl )
+	{
+		// Get the path name
+		if ( !pSHGetPathFromIDList( pidl, pStr ) )
+			s.clear();
+
+		// Free the memory
+		t_LPMALLOC pMalloc;
+		if ( pSHGetMalloc( &pMalloc ) == NOERROR )
+			pMalloc->Free( pidl );
+
+	} // end if
+
+
+#if defined( OEX_USE_DYNAMIC_SHELL32 )
+
+	// Unload shell lib
+	FreeLibrary( hShell32 );
+
+#endif
+
+	// Ensure length is valid
+	s.resize( str::Length( pStr, x_nMaxLength ) );
+
+	// Trim path
+	while ( trim )
+		s = GetPath< str::t_char, str::t_string >( s ), trim--;
+
+	// Is there a sub directory?
+	if ( sub.length() )
+		return FilePath< str::t_char, str::t_string >( s, sub );
+
+	return s;
+}
+
+
+str::t_string GetDriveTypeStr( const str::t_string &x_sDrive )
+{
+	switch( GetDriveType( x_sDrive.c_str() ) )
+	{	case DRIVE_NO_ROOT_DIR : 	return tcT( "noroot" ); break;
+		case DRIVE_REMOVABLE : 		return tcT( "removable" ); break;
+		case DRIVE_FIXED : 			return tcT( "fixed" ); break;
+		case DRIVE_REMOTE :			return tcT( "remote" ); break;
+		case DRIVE_CDROM :			return tcT( "cdrom" ); break;
+		case DRIVE_RAMDISK :		return tcT( "ramdisk" ); break;
+		default : break;	
+	} // end switch
+
+	return tcT( "unknown" );
+}
+
+
+long GetDiskInfo( t_pb &pb, const str::t_string &x_sDrive )
+{
+	// Sanity check
+	if ( !x_sDrive.length() ) 
+		return 0;
+
+	pb[ tcT( "drive" ) ] = x_sDrive;
+	pb[ tcT( "drive_type" ) ] = GetDriveTypeStr( x_sDrive.c_str() );
+	pb[ tcT( "drive_type_os" ) ] = GetDriveTypeStr( x_sDrive.c_str() );
+	
+	// Get volume information
+	DWORD dwSn = 0, dwMax = 0, dwFlags = 0;
+	char szVolume[ 1024 * 8 ] = { 0 }, szFileSystem[ 1024 * 8 ] = { 0 };
+	if ( GetVolumeInformation(	x_sDrive.c_str(), szVolume, sizeof( szVolume ),
+								&dwSn, &dwMax, &dwFlags,
+								szFileSystem, sizeof( szFileSystem ) ) )
+	{	pb[ tcT( "volume" ) ] = tcMb2Str( szVolume );
+		pb[ tcT( "serial" ) ] = dwSn;
+		pb[ tcT( "max_filename" ) ] = dwMax;
+		pb[ tcT( "flags" ) ] = dwFlags;
+		pb[ tcT( "file_system" ) ] = tcMb2Str( szFileSystem );
+	} // end if
+
+	// More disk info
+	DWORD dwSectorsPerCluster = 0, dwBytesPerSector = 0, dwFreeClusters = 0, dwClusters = 0;
+	if ( GetDiskFreeSpace( x_sDrive.c_str(), &dwSectorsPerCluster, &dwBytesPerSector, &dwFreeClusters, &dwClusters ) )
+	{	pb[ tcT( "sectors_per_cluster" ) ] = dwSectorsPerCluster;
+		pb[ tcT( "bytes_per_sector" ) ] = dwBytesPerSector;
+		pb[ tcT( "clusters_free" ) ] = dwFreeClusters;
+		pb[ tcT( "clusters" ) ] = dwClusters;
+	} // end if
+	
+	// Get disk space
+	ULARGE_INTEGER liFreeBytesAvailable, liTotalNumberOfBytes, liTotalNumberOfBytesFree;
+	if ( GetDiskFreeSpaceEx( x_sDrive.c_str(), &liFreeBytesAvailable, &liTotalNumberOfBytes, &liTotalNumberOfBytesFree ) )
+	{	pb[ tcT( "bytes" ) ] = liTotalNumberOfBytes.QuadPart;
+		pb[ tcT( "bytes_free" ) ] = liTotalNumberOfBytesFree.QuadPart;
+		pb[ tcT( "bytes_used" ) ] = liTotalNumberOfBytes.QuadPart - liTotalNumberOfBytesFree.QuadPart;
+		pb[ tcT( "bytes_available" ) ] = liFreeBytesAvailable.QuadPart;
+		pb[ tcT( "bytes_unavailable" ) ] = liTotalNumberOfBytes.QuadPart - liFreeBytesAvailable.QuadPart;
+	} // end if
+	
+	// Get the dos name
+	TCHAR buf[ MAX_PATH ] = { 0 };
+	DWORD dw = QueryDosDevice( x_sDrive.c_str(), buf, MAX_PATH );
+	if ( dw && dw < sizeof( buf ) )
+		buf[ dw ] = 0, pb[ tcT( "dos_name" ) ] = buf;
+	
+	return 1;
+}
+
+long GetDisksInfo( t_pb &pb, bool bInfo )
+{
+	long lTotal = 0;
+	TCHAR szDrive[ 16 ] = tcT( "A:" );
+	DWORD dwDrives = GetLogicalDrives(), dw = 1;
+
+	// Build a list of drives
+	while ( dwDrives && dw && szDrive[ 0 ] <= tcT( 'Z' ) )
+	{
+		// Get info on this drive if it exists
+		if ( dwDrives & dw )
+		{
+			lTotal++;
+		
+			if ( bInfo )
+				GetDiskInfo( pb[ szDrive ], szDrive );
+			else
+				pb[ szDrive ] = GetDriveTypeStr( szDrive );
+
+		} // end if
+
+		// Next drive position
+		dwDrives &= ~dw; 
+		dw <<= 1;
+		szDrive[ 0 ]++;
+
+	} // end while
+	
+	return lTotal;
 }
 

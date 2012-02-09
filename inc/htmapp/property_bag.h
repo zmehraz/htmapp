@@ -513,3 +513,10 @@ typedef TPropertyBag< str::t_char8 > t_pb8;
 	typedef TPropertyBag< str::t_charw > t_pbw;
 #endif
 
+#if defined( tcUNICODE )
+	typedef TPropertyBag< str::t_charw > t_pb;
+#else
+	typedef TPropertyBag< str::t_char8 > t_pb;
+#endif
+
+
