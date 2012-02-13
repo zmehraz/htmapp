@@ -1,3 +1,4 @@
+
 var w = 640,
     h = 480,
     r = Math.min(w, h) / 2,
@@ -6,7 +7,7 @@ var w = 640,
 var vis = d3.select("#chart").append("svg")
     .attr("width", w)
     .attr("height", h)
-  .append("g")
+    .append("g")
     .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
 
 var partition = d3.layout.partition()
@@ -23,18 +24,30 @@ var arc = d3.svg.arc()
 d3.json("data.htm", function(json) {
   var path = vis.data([json]).selectAll("path")
       .data(partition.nodes)
-    .enter().append("path")
+      .enter().append("path")
       .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
       .attr("d", arc)
       .attr("fill-rule", "evenodd")
       .style("stroke", "#222")
       .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
       .each(stash);
+      
+   var text = vis.data([json]).selectAll("text") 
+	  .data(partition.nodes) 
+	  .enter().append("svg:text") 
+	  .attr("transform", function(d) { return "rotate(" + (d.x + d.dx / 2 - Math.PI / 2) / Math.PI * 180 + ")"; })
+	  .attr("x", r * Math.cos(d.x + d.dx/2) ) 
+      .attr("y", r * Math.sin(d.x + d.dx/2)) 
+      .attr("text-anchor", "end") 
+      .text(d.name)
+	  .on("mouseover",function(d,i) { d3.select(this).transition().duration(300).attr("fill","#00ffff"); }) 
+	  .on("mouseout",function(d,i) { d3.select(this).transition().duration(300).attr("fill","#008000"); }); 
+       
 
   d3.select("#size").on("click", function() {
-    path
+		path
         .data(partition.value(function(d) { return d.size; }))
-      .transition()
+      	.transition()
         .duration(1500)
         .attrTween("d", arcTween);
 
@@ -43,9 +56,9 @@ d3.json("data.htm", function(json) {
   });
 
   d3.select("#count").on("click", function() {
-    path
+    	path
         .data(partition.value(function(d) { return 1; }))
-      .transition()
+      	.transition()
         .duration(1500)
         .attrTween("d", arcTween);
 
@@ -70,3 +83,4 @@ function arcTween(a) {
     return arc(b);
   };
 }
+

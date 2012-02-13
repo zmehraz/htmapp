@@ -1,0 +1,30 @@
+<ul id="dlist">
+</ul>
+
+<ul id="list0" class="hidden">
+	<li data-id="macosx">Mac OS X</li>
+	<li data-id="macos9">Mac OS 9</li>
+	<li data-id="iphone">iPhone OS</li>
+</ul>
+<ul id="list1" class="hidden">
+	<li data-id="iphone">iPhone OS</li>
+	<li data-id="android">Android</li>
+	<li data-id="winmo">Windows Mobile</li>
+</ul>
+<ul id="list2" class="hidden">
+	<li data-id="vms">VMS Micro Vax</li>
+	<li data-id="as400">AS-400</li>
+	<li data-id="android">Android</li>
+	<li data-id="iphone">iPhone OS</li>
+</ul>
+
+<script type="text/javascript">
+
+	var g_list = 0;
+	function switch_list()
+	{
+		$('#dlist').quicksand( $('#list'+g_list+' li') );
+		if ( ++g_list > 2 ) g_list = 0;
+	}
+	
+</script>

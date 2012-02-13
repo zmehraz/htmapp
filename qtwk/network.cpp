@@ -108,6 +108,9 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	// Data size
 	setHeader( QNetworkRequest::ContentLengthHeader, QVariant( m_content.size() ) );
 	
+	// Access control
+	setRawHeader( "Access-Control-Allow-Origin", "*" );
+	
 	// MIME Type
 	if ( mime.length() )
 		setHeader( QNetworkRequest::ContentTypeHeader, QVariant( mime.c_str() ) );

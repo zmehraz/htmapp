@@ -82,15 +82,15 @@ void CMainWindow::Init()
 #endif
 
 	// No context menu
-#if defined( CII_NOCONTEXT )
+//#if defined( CII_NOCONTEXT )
 	m_pView->setContextMenuPolicy( Qt::PreventContextMenu );
-#endif
+//#endif
 	
 	// Enable cross scripting
-#if defined( CII_ALLOW_CROSS_SCRIPTING )
+//#if defined( CII_ALLOW_CROSS_SCRIPTING )
 	m_pView->settings()->setAttribute( QWebSettings::XSSAuditingEnabled, 0 );
 	m_pView->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, 1 );
-#endif
+//#endif
 
 	// Make the keyboard easier to use
 //	m_pView->settings()->setAttribute( QWebSettings::SpatialNavigationEnabled, 1 );

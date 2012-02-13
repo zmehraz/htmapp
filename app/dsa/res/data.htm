@@ -5,8 +5,9 @@
 	void make_array( t_pb8 &pb, long d, long &i )
 	{
 		pb[ "name" ] = ++i;
-		if ( d )
+		if ( d && d != i % 5 )
 		{	pb[ "children" ].is_list( true );
+			//pb[ "colour" ] = "#f9f0ab";
 			for( long x = 0; x < d; x++ )
 				make_array( pb[ "children" ][ x ], d - 1, i );
 		}
@@ -15,7 +16,6 @@
 	}
 
 ?>
-
 
 <?c
 	t_pb8 pb;

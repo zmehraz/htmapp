@@ -1,0 +1,10 @@
+body
+{
+	color: #ffffff;
+	background-color: #000000;
+}
+
+.hidden
+{
+	visibility: hidden;
+}
