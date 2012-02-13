@@ -1,11 +1,29 @@
+<body>
+<a href='javascript:' onclick='switch_list()'>Switch</a>
 <ul id="dlist">
 </ul>
 
+<?c
+	t_pb di;
+	disk::GetDisksInfo( di, true );
+?>
+
+<ul id="list0" class="hidden">
+<?c
+	int i = 0;
+	stdForeach( t_pb::iterator, it, di )
+		str::Print( "%s\n", it->first.c_str() ),
+		out += str::t_string() + "<li data-id='" + str::ToString< str::t_char, str::t_string>( i ) + "'>" + it->first + "</li>";
+?>
+</ul>
+
+<!--
 <ul id="list0" class="hidden">
 	<li data-id="macosx">Mac OS X</li>
 	<li data-id="macos9">Mac OS 9</li>
 	<li data-id="iphone">iPhone OS</li>
 </ul>
+-->
 <ul id="list1" class="hidden">
 	<li data-id="iphone">iPhone OS</li>
 	<li data-id="android">Android</li>
@@ -28,3 +46,4 @@
 	}
 	
 </script>
+</body>

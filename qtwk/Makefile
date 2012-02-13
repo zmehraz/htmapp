@@ -27,7 +27,7 @@ PRJ_INCS := $(PRJ_INCS) $(CFG_LIBROOT)/qtwk
 BLD_NAME := moc
 BLD_TYPE := moc
 BLD_EXTN := h
-BLD_FLST := mainwindow network
+BLD_FLST := mainwindow network web_page
 BLD_SRCDIR := $(CFG_LIBROOT)/qtwk
 include $(PRJ_LIBROOT)/mak/build.mk
 

@@ -30,68 +30,16 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#include "qtwk.h"
+#include "web_page.h"
 
-#pragma once
-
-//#ifdef Q_MOC_RUN
-#	include "qtwk.h"
-#	include "network.h"
-#	include "web_page.h"
-//#endif
-
-class CMainWindow : public QMainWindow
+CWebPage::CWebPage()
+	: QWebPage()
 {
-	Q_OBJECT
+}
 
-public:
+void CWebPage::javaScriptConsoleMessage( const QString& message, int lineNumber, const QString& sourceID )
+{
+	str::Print( "%s(%d): %s\n", sourceID.toUtf8().data(), lineNumber, message.toUtf8().data() );
+}
 
-	/// Constructor
-	CMainWindow();
-
-	/// Initializes the window
-	void Init();
-
-	/// Set the project name
-	void setName( str::t_string8 s ) { m_name = s; }
-
-	/// Set the project description
-	void setDescription( str::t_string8 s ) { m_desc = s; }
-
-	/// Set the initial url
-	void setHomeUrl( str::t_string8 s ) { m_url = s; }
-
-	/// Set the window size
-	void setWindowSize( long w, long h ) { m_width = w; m_height = h; }
-
-public slots:
-
-	// On network finished handler
-	void onFinished( QNetworkReply *reply );
-
-private:
-
-	/// Web view
-	QPointer< QWebView > 		m_pView;
-
-	/// Web page
-	QPointer< CWebPage > 		m_pPage;
-
-	/// Custom network object
-	QPointer< CNetworkMgr > 	m_pNet;
-
-	/// Initial URL
-	str::t_string8				m_url;
-
-	/// Project name
-	str::t_string8				m_name;
-
-	/// Project Description
-	str::t_string8				m_desc;
-
-	/// Initial window width
-	long						m_width;
-
-	/// Initial window height
-	long						m_height;
-
-};

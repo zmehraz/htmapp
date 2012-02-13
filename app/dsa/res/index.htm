@@ -16,13 +16,18 @@
     <script type="text/javascript" src="js/d3/d3.layout.min.js"></script>
 
   </head>
-  <body bgcolor="#000000" color="#ffffff">
-	
+  <body>
+
 	<div id='drives'>test</div>
 	<script type='text/javascript'>
-		//$.ajax({ url: "test.htm", context: document.body, success: function() { alert( 'hi' ); } });
-		$(document).ready( function(){ $.get( 'test.htm', function( data ){ $('#drives').html( 'hello world' ); } ) } );
-		//$( $('#drives').load( 'test.htm' ), function(){ alert( 'hi' ); } );		
+		//$.ajax({ url: "test.htm", 
+		//		 context: document.body, 
+		//		 success: function() { alert( 'hi' ); },
+		//		 error: function(xhr,opt,msg) { alert( xhr.status ); alert( xhr.responseText ); alert( opt ); alert( msg ); },
+		//		 beforeSend: function(xhr) { xhr.withCredentials = true; }
+		//	});
+		// $(document).ready( function(){ $.get( 'test.htm', function( data ){ $('#drives').html( 'hello world' ); } ) } );
+		$( $('#drives').load( 'drives.htm' ) );
 	</script>
 <!--
 	<a href="/drives.htm">Drives</a>

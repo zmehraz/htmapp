@@ -54,7 +54,7 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
 
 	printf( "%s(%d) : RES : %s\n", __FILE__, __LINE__, full.c_str() );
-	
+
 	// Check for linked in resources
 	CHmResources res;
 	if ( res.IsValid() )
@@ -63,54 +63,63 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 		HMRES hRes = res.FindResource( 0, full.c_str() );
 		if ( hRes )
 		{
+			// Set return type
+			setAttribute( QNetworkRequest::HttpStatusCodeAttribute, QVariant( 200 ) );
+
 			switch ( res.Type( hRes ) )
 			{
 				default :
 					break;
-			
+
 				case 1 :
-				{		
+				{
 					mime = disk::GetMimeType< str::t_char8, str::t_string8 >( full );
 					const void *ptr = res.Ptr( hRes );
 					unsigned long sz = res.Size( hRes );
-			
+
 					if ( ptr && 0 < sz )
 						m_content.append( QByteArray::fromRawData( (const char* )ptr, sz ) );
-				
+
 				} break;
-					
+
 				case 2 :
-				{	
+				{
 					mime = "text/html";
-					
+
 					// Get function pointer
 					CHmResources::t_fn pFn = res.Fn( hRes );
 					if ( pFn )
 					{
 						TPropertyBag< str::t_char8 > in;
 						std::basic_string< str::t_char8 > out;
-						
+
 						pFn( in, out );
-					
+
 						// Set the output
 						m_content.append( out.data(), out.length() );
 
 					} // end if
-					
+
 				} break;
-					
+
 			} // end switch
-			
-		} // end if		
-	
+
+		} // end if
+
+		else
+			setAttribute( QNetworkRequest::HttpStatusCodeAttribute, QVariant( 404 ) );
+
 	} // end if
+
+	else
+		setAttribute( QNetworkRequest::HttpStatusCodeAttribute, QVariant( 404 ) );
 
 	// Data size
 	setHeader( QNetworkRequest::ContentLengthHeader, QVariant( m_content.size() ) );
-	
+
 	// Access control
-	setRawHeader( "Access-Control-Allow-Origin", "*" );
-	
+	// setRawHeader( "Access-Control-Allow-Origin", "*" );
+
 	// MIME Type
 	if ( mime.length() )
 		setHeader( QNetworkRequest::ContentTypeHeader, QVariant( mime.c_str() ) );
@@ -138,7 +147,6 @@ qint64 CNetworkReply::readData( char* pData, qint64 lMaxSize )
 	// Return the number of bytes copied
 	return lCount;
 }
-
 
 CNetworkMgr::CNetworkMgr( QObject *pParent, QNetworkAccessManager *pPrev )
 	: QNetworkAccessManager( pParent )

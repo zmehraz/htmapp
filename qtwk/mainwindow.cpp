@@ -32,6 +32,7 @@
 
 #include "qtwk.h"
 #include "network.h"
+#include "web_page.h"
 #include "mainwindow.h"
 
 CMainWindow::CMainWindow()
@@ -57,13 +58,21 @@ void CMainWindow::Init()
 	if ( m_pView.isNull() )
 		throw;
 
+	// Create custom page object
+	m_pPage = new CWebPage();
+	if ( m_pPage.isNull() )
+		throw;
+
+	// Set the web page object
+	m_pView->setPage( m_pPage );
+
 	// Create custom network manager
-	m_pNet = new CNetworkMgr( this, m_pView->page()->networkAccessManager() );
+	m_pNet = new CNetworkMgr( this, m_pPage->networkAccessManager() );
 	if ( m_pNet.isNull() )
 		throw;
 
 	// Set our custom network manager
-	m_pView->page()->setNetworkAccessManager( m_pNet );
+	m_pPage->setNetworkAccessManager( m_pNet );
 
 	// Set window title
 	if ( m_desc.length() )
@@ -77,18 +86,18 @@ void CMainWindow::Init()
 
 	// No scrollbars
 #if defined( CII_NOSCROLL )
-	m_pView->page()->mainFrame()->setScrollBarPolicy( Qt::Vertical,Qt::ScrollBarAlwaysOff );
-	m_pView->page()->mainFrame()->setScrollBarPolicy( Qt::Horizontal,Qt::ScrollBarAlwaysOff );
+	m_pPage->mainFrame()->setScrollBarPolicy( Qt::Vertical,Qt::ScrollBarAlwaysOff );
+	m_pPage->mainFrame()->setScrollBarPolicy( Qt::Horizontal,Qt::ScrollBarAlwaysOff );
 #endif
 
 	// No context menu
 //#if defined( CII_NOCONTEXT )
 	m_pView->setContextMenuPolicy( Qt::PreventContextMenu );
 //#endif
-	
+
 	// Enable cross scripting
 //#if defined( CII_ALLOW_CROSS_SCRIPTING )
-	m_pView->settings()->setAttribute( QWebSettings::XSSAuditingEnabled, 0 );
+//	m_pView->settings()->setAttribute( QWebSettings::XSSAuditingEnabled, 0 );
 	m_pView->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, 1 );
 //#endif
 
@@ -98,7 +107,27 @@ void CMainWindow::Init()
 	// Start the web view
 	setCentralWidget( m_pView );
 
+	// Connect slots
+	connect( m_pNet, SIGNAL( finished(QNetworkReply*) ),
+					 this, SLOT( onFinished(QNetworkReply*) ) );
+
 	// Load the home page
 	m_pView->load( QUrl( m_url.c_str() ) );
 }
 
+void CMainWindow::onFinished( QNetworkReply *reply )
+{
+	// Was there an error?
+	if ( QNetworkReply::NoError == reply->error() )
+		return;
+
+	// Show network error
+	str::Print( "\n--- Network error ---\n"
+				" URL      : %s\n"
+				" Status   : %d\n"
+				" Message : %s\n\n"
+				, reply->url().path().toUtf8().data()
+				, (int)reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt()
+				, (int)reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toByteArray().data()
+			);
+}
