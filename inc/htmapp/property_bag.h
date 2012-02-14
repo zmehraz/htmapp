@@ -172,8 +172,7 @@ public:
         \param [in] r    - Reference to property bag to be copied
     */
     TPropertyBag( const TPropertyBag &r )
-    {	m_flags = 0;
-    	merge( r ); 
+    {  	merge( r ); 
     }
 
     //==============================================================
@@ -196,6 +195,9 @@ public:
 	{
 		// Copy string value
 		m_str = r.m_str;
+
+		// Copy flags
+		m_flags = r.m_flags;
 
 		// Copy array
 		stdForeach( const_iterator, it, r )
@@ -390,6 +392,18 @@ public:
     {   return m_str = str::ToString< T, t_String >( n ); }
 
     //==============================================================
+    // setFlags()
+    //==============================================================
+    /// Sets the flags
+    void setFlags( long f ) { m_flags = f; }    
+
+    //==============================================================
+    // getFlags()
+    //==============================================================
+    /// Returns the flags
+    long getFlags() const { return m_flags; }    
+
+    //==============================================================
     // is_list()
     //==============================================================
     /// Returns non-zero if this is the list flag is set
@@ -405,7 +419,7 @@ public:
 			m_flags |= efList;
 		else
 			m_flags &= ~efList;
-	}		
+	}
 
     //==============================================================
     // T*()
