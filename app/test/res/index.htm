@@ -51,7 +51,16 @@
 ?>
 
 <br>
+<?c
+	const char *ps[] = { "hello world", "hola world" };
+	out += str::ToString< str::t_char8, str::t_string8 >
+				( str::levstr< str::t_char8, str::t_string8 >( ps[ 0 ], ps[ 1 ] ) )
+			+ " : " + ps[ 0 ] + " -> " + ps[ 1 ];
+?>
+
+<br>
 <pre>
+
 <?c
 	t_pb di;
 	disk::GetDisksInfo( di, true );

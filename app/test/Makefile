@@ -30,7 +30,7 @@ PRJ_LIBS := htmapp
 PRJ_FWRK := qtwk
 
 # Homepage
-PRJ_HOME := http://embedded/index.htm
+CII_HOME := http://embedded/index.htm
 
 #-------------------------------------------------------------------
 #Configure

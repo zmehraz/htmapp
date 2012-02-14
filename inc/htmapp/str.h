@@ -33,6 +33,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <string.h>
 
 #ifndef stdForeach
@@ -1079,6 +1080,53 @@ namespace str
 
 		return s;
 	}
+	
+	/// Returns the Levenshtein distance between the specified strings
+	template < typename T, typename T_STR > 
+		typename T_STR::size_type levstr(const T_STR &s1, const T_STR &s2)
+	{
+		typename T_STR::size_type l1 = s1.length(), l2 = s2.length();
+		std::vector< typename T_STR::size_type > d( ( l1 + 1 ) * ( l2 + 1 ) );
+
+		typename T_STR::size_type i, j;
+		for ( i = 0; i <= l1; i++ )
+		    d[ i * l2 ] = i;
+
+		for ( i = 0; i <= l2; i++ )
+		    d[ i ] = i;
+
+		for ( i = 1; i <= l1; i++ )
+		    for ( j = 1; j <= l2; j++ )
+		        d[ i * l2 + j ] = cmn::Min( cmn::Min( d[ ( i - 1 ) * l2 + j ] + 1, d[ i * l2 + ( j - 1 ) ] + 1 ),
+		                                  	d[ ( i - 1 ) * l2 + ( j - 1 ) ] + ( s1[ i - 1 ] == s2[ j - 1 ] ? 0 : 1 ) 
+			                              );
+
+		return d[ ( l1 * l2 ) + l2 ];       
+	}
+
+	/// Returns the Levenshtein distance between the specified split paths
+	template < typename T, typename T_STR, typename T_LST > 
+		typename T_STR::size_type levpath(const T_LST &lst1, const T_LST &lst2)
+	{
+		typename T_STR::size_type l1 = lst1.size(), l2 = lst2.size();
+		std::vector< typename T_STR::size_type > d( ( l1 + 1 ) * ( l2 + 1 ) );
+
+		typename T_STR::size_type i, j;
+		for ( i = 0; i <= l1; i++ )
+		    d[ i * l2 ] = i;
+
+		for ( i = 0; i <= l2; i++ )
+		    d[ i ] = i;
+
+		for ( i = 1; i <= l1; i++ )
+		    for ( j = 1; j <= l2; j++ )
+		        d[ i * l2 + j ] = cmn::Min( cmn::Min( d[ ( i - 1 ) * l2 + j ] + 1, d[ i * l2 + ( j - 1 ) ] + 1 ),
+											d[ ( i - 1 ) * l2 + ( j - 1 ) ] + levstr< T, T_STR>( lst1[ i - 1 ], lst2[ j - 1 ] )
+										  );
+
+		return d[ ( l1 * l2 ) + l2 ];       
+	}
+	
 
 }; // namespace str
 

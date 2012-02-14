@@ -1,49 +1,70 @@
 <body>
-<a href='javascript:' onclick='switch_list()'>Switch</a>
-<ul id="dlist">
-</ul>
-
-<?c
-	t_pb di;
-	disk::GetDisksInfo( di, true );
-?>
-
-<ul id="list0" class="hidden">
-<?c
-	int i = 0;
-	stdForeach( t_pb::iterator, it, di )
-		str::Print( "%s\n", it->first.c_str() ),
-		out += str::t_string() + "<li data-id='" + str::ToString< str::t_char, str::t_string>( i ) + "'>" + it->first + "</li>";
-?>
-</ul>
-
-<!--
-<ul id="list0" class="hidden">
-	<li data-id="macosx">Mac OS X</li>
-	<li data-id="macos9">Mac OS 9</li>
-	<li data-id="iphone">iPhone OS</li>
-</ul>
--->
-<ul id="list1" class="hidden">
-	<li data-id="iphone">iPhone OS</li>
-	<li data-id="android">Android</li>
-	<li data-id="winmo">Windows Mobile</li>
-</ul>
-<ul id="list2" class="hidden">
-	<li data-id="vms">VMS Micro Vax</li>
-	<li data-id="as400">AS-400</li>
-	<li data-id="android">Android</li>
-	<li data-id="iphone">iPhone OS</li>
-</ul>
-
-<script type="text/javascript">
-
-	var g_list = 0;
-	function switch_list()
-	{
-		$('#dlist').quicksand( $('#list'+g_list+' li') );
-		if ( ++g_list > 2 ) g_list = 0;
-	}
+	<button onclick='switch_list("#list_all")'>All</button>
+	<button onclick='switch_list("#list_fixed")'>Fixed</button>
+	<button onclick='switch_list("#list_ramdisk")'>Ramdisk</button>
+	<button onclick='switch_list("#list_remote")'>Remote</button>
 	
-</script>
+	<ul id="dlist">
+	</ul>
+
+	<?global
+		str::t_string mkitem( t_pb::iterator &it, str::t_string id )
+		{
+			return str::t_string() 
+					+ "<li data-id='iid_" + id + "'>" + it->first + "</li>\n";
+		}
+	?>
+
+	<?c
+		t_pb di;
+		disk::GetDisksInfo( di, true );
+	?>
+
+	<ul id="list_all" class="hidden">
+	<?c
+		int i = 0;
+		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
+			out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+	?>
+	</ul>
+
+	<ul id="list_fixed" class="hidden">
+	<?c
+		i = 0;
+		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
+			if ( (*it->second)[ tcT( "drive_type" ) ].ToString() == "fixed" )
+				out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+	?>
+	</ul>
+
+	<ul id="list_ramdisk" class="hidden">
+	<?c
+		i = 0;
+		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
+			if ( (*it->second)[ tcT( "drive_type" ) ].ToString() == "ramdisk" )
+				out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+	?>
+	</ul>
+
+	<ul id="list_remote" class="hidden">
+	<?c
+		i = 0;
+		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
+			if ( (*it->second)[ tcT( "drive_type" ) ].ToString() == "remote" )
+				out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+	?>
+	</ul>
+
+	<script type="text/javascript">
+
+		var g_list = 0;
+		function switch_list( id )
+		{
+			$('#dlist').quicksand( $(id+' li') );
+			if ( ++g_list > 3 ) g_list = 0;
+		}
+		
+		switch_list("#list_all");
+	
+	</script>
 </body>
