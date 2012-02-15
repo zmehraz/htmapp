@@ -4,7 +4,7 @@
 	<button id='btn_fixed' onclick='switch_list("fixed")'>Fixed</button>
 	<button id='btn_ramdisk' onclick='switch_list("ramdisk")'>Ramdisk</button>
 	<button id='btn_remote' onclick='switch_list("remote")' class="last">Remote</button>
-	
+
 	<ul id="dlist">
 	</ul>
 
@@ -37,7 +37,7 @@
 				out += mkitem( "fixed", it, str::ToString< str::t_char, str::t_string>( i ) );
 	?>
 	</ul>
-	
+
 	<ul id="list_ramdisk" class="hidden">
 	<?c
 		i = 0;
@@ -65,7 +65,7 @@
 			$('#dlist').quicksand( $('#list_'+id+' li') );			
 			if ( ++g_list > 3 ) g_list = 0;
 		}
-		
+
 		function selDrive(id)
 		{	var pos = $('#'+id).offset(), w = $('#'+id).width(), h = $('#'+id).height();
 			$('#highlight').html( $('#'+id).html() );
@@ -73,9 +73,9 @@
 			$('#highlight').show().animate( { left: 60, top: 10 }, 500 );
 			selPage( 'graph' );
 		}
-		
+
 		switch_list("all");
-	
+
 	</script>
 </body>
 

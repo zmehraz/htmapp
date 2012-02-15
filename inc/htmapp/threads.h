@@ -134,8 +134,7 @@ public:
 	static void InitException();
 
 	/// Error value
-	volatile static long s_last_error;
-
+	// volatile static long s_last_error;
 
 public:
 
@@ -325,24 +324,24 @@ public:
 	static t_HANDLE getThreadId();
 
 	//==============================================================
-	// IsValid()
+	// isValid()
 	//==============================================================
 	/// Returns the os dependent handle for the resource
-    bool IsValid()
+    bool isValid()
     {
     	return ( cInvalid() != m_hHandle );
 	}
 
 	//==============================================================
-	// GetHandle()
+	// getHandle()
 	//==============================================================
 	/// Returns the os dependent handle for the resource
-    t_HANDLE GetHandle()
+    t_HANDLE getHandle()
     {	return m_hHandle;
 	}
 
 	//==============================================================
-	// GetOwner()
+	// getOwner()
 	//==============================================================
 	/// Returns the thread id of the resource owner
 	/**
@@ -353,20 +352,20 @@ public:
 		For Events, it is the thread that last signaled it
 
 	*/
-    void* GetOwner();
+    void* getOwner();
 
 	//==============================================================
 	// GetRi()
 	//==============================================================
 	/// Returns m_hHandle as SResourceInfo pointer
-	SThreadResourceInfo* GetRi()
+	SThreadResourceInfo* getRi()
 	{	return (SThreadResourceInfo*)m_hHandle; }
 
 	//==============================================================
 	// SetHandle()
 	//==============================================================
 	/// Sets the os dependent handle for the resource
-    void SetHandle( void* x_hHandle, E_RESOURCE_TYPE x_eType )
+    void setHandle( void* x_hHandle, E_RESOURCE_TYPE x_eType )
     {
     	m_hHandle = x_hHandle;
 		m_eType = x_eType;
@@ -376,7 +375,7 @@ public:
 	// GetType()
 	//==============================================================
 	/// Returns the type of the os dependent resource
-    E_RESOURCE_TYPE GetType()
+    E_RESOURCE_TYPE getType()
     {
     	return m_eType;
 	}
@@ -385,7 +384,7 @@ public:
 	// SetType()
 	//==============================================================
 	/// Sets the type of the os dependent resource
-    void SetType( E_RESOURCE_TYPE x_eType )
+    void setType( E_RESOURCE_TYPE x_eType )
     {
     	m_eType = x_eType;
 	}
@@ -611,15 +610,15 @@ public:
     }
 
 	//==============================================================
-	// IsLocked()
+	// isLocked()
 	//==============================================================
 	/// Returns true if the local object is locked
-	bool IsLocked( void* x_uWho = CThreadResource::getThreadId() )
+	bool isLocked( void* x_uWho = CThreadResource::getThreadId() )
     {
 		if ( !m_ptr )
 			return false;
 
-		return m_ptr->GetOwner() == x_uWho;
+		return m_ptr->getOwner() == x_uWho;
 
     }
 
@@ -791,14 +790,6 @@ private:
 //==================================================================
 class CThread : public CThreadResource
 {
-
-	enum
-	{
-		/// Default amount of time thread sleeps between calls to DoThread()
-		eDefaultSleepTime = 15
-	};
-
-
 public:
 
 	/// Default Constructor
@@ -822,7 +813,7 @@ public:
 
 		\see
 	*/
-	virtual long Start( void* x_pData = tcNULL, unsigned long x_uSleep = eDefaultSleepTime );
+	virtual long Start( void* x_pData = tcNULL );
 
 	//==============================================================
 	// Stop()
@@ -918,16 +909,13 @@ protected:
 public:
 
     /// Returns the running state of the thread
-    bool IsRunning();
+    bool isRunning();
 
     /// Returns the user value passed to Start()
-    void* GetUserData() { return m_pData; }
-
-    /// Returns the injected thread sleep time
-    unsigned long GetSleepTime() { return m_uSleep; }
+    void* getUserData() { return m_pData; }
 
 	//==============================================================
-	// GetThreadCount()
+	// getThreadCount()
 	//==============================================================
 	/// Returns the total number of threads started using this class
 	/**
@@ -938,10 +926,10 @@ public:
 
 		\see
 	*/
-	static unsigned long GetThreadCount();
+	static long getThreadCount();
 
 	//==============================================================
-	// GetRunningThreadCount()
+	// getRunningThreadCount()
 	//==============================================================
 	/// Returns the total number of threads running using this class
 	/**
@@ -952,20 +940,20 @@ public:
 
 		\see
 	*/
-	static unsigned long GetRunningThreadCount();
+	static long getRunningThreadCount();
 
     /// Waits for thread to initialize
     bool WaitThreadExit( unsigned long x_uTimeout = CThreadResource::eDefaultWaitTime );
 
 	/// Returns a reference to the stop event
-	CThreadResource& GetStopEvent() { return m_evStop; }
+	CThreadResource& getStopEvent() { return m_evStop; }
 
 	/// Returns a reference to the init event
-	CThreadResource& GetInitEvent() { return m_evInit; }
+	CThreadResource& getInitEvent() { return m_evInit; }
 
 	/// Return value of InitThread()
 	/// call GetInitEvent().Wait() to ensure it's valid
-	bool GetInitStatus() { return m_bInitStatus; }
+	bool getInitStatus() { return m_bInitStatus; }
 
 	/// Force an exception in the thread
 	unsigned long InjectException( long nCode );
@@ -1002,9 +990,6 @@ private:
 
     /// Users data
     void*	                                m_pData;
-
-    /// Inject sleep
-    unsigned long                           m_uSleep;
 
 	/// Return value of InitThread()
 	bool									m_bInitStatus;

@@ -507,6 +507,44 @@ public:
     bool IsSet( const t_String &k ) 
 	{	return ( m_lstSub.end() == m_lstSub.find( k ) ) ? false : true; }
 
+public:
+
+	//==============================================================
+	// at
+	//==============================================================
+	/// Parses string path
+	/**
+		\param [in] x_key	-	Index key
+
+		pb.at( "k1.k2.k3", "." ).ToString()
+
+		is equiv to
+
+		pb[ "k1" ][ "k2" ][ "k3" ].ToString()
+
+		\return Reference to sub class.
+
+		\see
+	*/
+	TPropertyBag& at( const t_String &k, const t_String &sep )
+	{
+		// Null length or no sep?
+		if ( !k.length() || !sep.length() )
+			return *this;
+
+		// If no sub key
+		typename t_String::size_type p = k.find_first_of( sep );
+		if ( t_String::npos == p )
+			return m_lstSub[ k ];
+
+		// Null key is still us
+		if ( !p )
+			return at( t_String( k, p + sep.length() ), sep );
+
+		// Sub key
+		return m_lstSub[ t_String( k, 0, p ) ]->at( t_String( k, p + sep.length() ), sep );
+	}
+
 private:
 
 	/// Array flags

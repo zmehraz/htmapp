@@ -12,6 +12,32 @@
 <br>
 
 <?c
+	tq::set( "a", "12345" );
+	out += tq::get( "a" );
+?>
+
+<br>
+
+<?global
+
+	void mythread()
+	{
+		str::Print( "hi\n" );
+		tq::set( "b", "98765" );
+	}
+
+?>
+<?c
+	tq::start( mythread );
+tcM;
+	sys::sleep( 1000 );
+tcM;
+	out += tq::get( "b" );
+?>
+
+<br>
+
+<?c
 	t_pb8 pb;
 	pb[ "A" ][ "AA" ] = "Hello World!";
 	pb[ "A" ][ "AB" ] = (long)444;

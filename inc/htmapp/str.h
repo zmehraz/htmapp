@@ -84,6 +84,9 @@
 #	define tcVaArg				va_arg
 #endif
 
+#define tcM			( str::Print( "%s(%lu): MARKER", __FILE__, __LINE__ ) )
+#define tcS( s )	( str::Print( "%s(%lu): %s = %s", __FILE__, __LINE__, #s, str::t_string( s ).c_str() ) )
+
 namespace str
 {
 	// char string type
@@ -1126,7 +1129,7 @@ namespace str
 
 		return d[ ( l1 * l2 ) + l2 ];       
 	}
-	
+
 
 }; // namespace str
 

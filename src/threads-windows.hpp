@@ -77,7 +77,11 @@ public:
     static DWORD WINAPI ThreadProc( LPVOID x_pData )
     {
 		// Do the thread stuff
+#if defined( _WIN64 )
+		return (DWORD)(str::tc_uint64)CThreadResource::ThreadProc( x_pData );
+#else
 		return (DWORD)CThreadResource::ThreadProc( x_pData );
+#endif
 	}
 };
 
@@ -273,7 +277,7 @@ unsigned long CThreadResource::InjectException( void* hThread, long nError )
 }
 
 
-void* CThreadResource::GetOwner()
+void* CThreadResource::getOwner()
 {
 	SThreadResourceInfo *pRi = (SThreadResourceInfo*)m_hHandle;
 	if ( !pRi )
@@ -367,16 +371,16 @@ void* CThreadResource::ThreadProc( void* x_pData )
 
 	// Initialize COM
 #if defined( _WIN32_WCE )
-	CoInitializeEx( NULL, COINIT_MULTITHREADED );
+//	CoInitializeEx( NULL, COINIT_MULTITHREADED );
 #else
-	CoInitialize( NULL );
+//	CoInitialize( NULL );
 #endif
 
 	// Call user thread
 	void* pRet = pRi->fnCallback( pRi->pData );
 
 	// Uninitialize COM
-	CoUninitialize();
+//	CoUninitialize();
 
 	return pRet;
 }
@@ -560,11 +564,11 @@ long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResource
 	// Loop through the handles
 	for( long i = 0; i < x_nCount && nNumHandles < MAXIMUM_WAIT_OBJECTS; i++ )
 	{
-		if ( !x_pResources[ i ]->IsValid() )
+		if ( !x_pResources[ i ]->isValid() )
 			; //( 0, tcT( "Invalid handle specified to WaitMultiple()" ) );
 		else
 		{
-			SThreadResourceInfo *pRi = (SThreadResourceInfo*)x_pResources[ i ]->GetHandle();
+			SThreadResourceInfo *pRi = (SThreadResourceInfo*)x_pResources[ i ]->getHandle();
 
 			// +++ Should this be INVALID_HANDLE_VALUE?
 			if ( !pRi )

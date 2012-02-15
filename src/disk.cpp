@@ -30,6 +30,11 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#include <stdio.h>
+#include <string>
+#include <string.h>
+#include "htmapp.h"
+
 #if defined( _WIN32 )
 #	include <windows.h>
 #else
@@ -40,11 +45,6 @@
 #		include <dirent.h>
 #	endif
 #endif
-
-#include <stdio.h>
-#include <string>
-#include <string.h>
-#include "htmapp.h"
 
 namespace disk
 {

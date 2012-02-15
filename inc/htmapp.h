@@ -32,10 +32,13 @@
 
 #include "htmapp/cmn.h"
 #include "htmapp/str.h"
+#include "htmapp/property_bag.h"
 #include "htmapp/cmd_line.h"
+#include "htmapp/sys.h"
 #include "htmapp/disk.h"
 #include "htmapp/resources.h"
 #include "htmapp/parser.h"
 #include "htmapp/threads.h"
+#include "htmapp/thread_queue.h"
 
 
