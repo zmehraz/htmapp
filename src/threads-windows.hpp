@@ -552,7 +552,7 @@ long CThreadResource::Reset( unsigned long x_uTimeout )
 	return -1;
 }
 
-long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResources, unsigned long x_uTimeout, bool x_nMin )
+long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResources, unsigned long x_uTimeout, long x_nMin )
 {
 	long nNumHandles = 0;
 	HANDLE hHandles[ MAXIMUM_WAIT_OBJECTS ];
