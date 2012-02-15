@@ -17,8 +17,13 @@
 
   </head>
   <body>
-
-	<div id='drives'>test</div>
+    <div class='header' onclick='selPage( "drives" )'><img src='imgs/pie2.png' onclick='selPage( "drives" )'></div>
+    
+	<div id="highlight" class="highlight"></div>
+	
+	<div id='drives' class='page'></div>
+	<div id='graph' class='page hidden'></div>
+	
 	<script type='text/javascript'>
 		//$.ajax({ url: "test.htm", 
 		//		 context: document.body, 
@@ -28,6 +33,29 @@
 		//	});
 		// $(document).ready( function(){ $.get( 'test.htm', function( data ){ $('#drives').html( 'hello world' ); } ) } );
 		$( $('#drives').load( 'drives.htm' ) );
+		$( $('#graph').load( 'graph.htm' ) );
+		
+		function showPage( id, page, dir )
+		{
+			if ( page == id )
+				$('#'+id).show().animate( { left:'10px', opacity:1 }, 500 );
+			else
+				$('#'+id).animate( { left: dir, opacity: 0 }, 500 ),
+				setTimeout( function() { $('#'+id).hide(); }, 500 );
+		}
+		
+		function selPage( page )
+		{
+			showPage( "drives", page, -1000 );
+			showPage( "graph", page, 1000 );
+			if ( "graph" != page ) $('#highlight').animate( { opacity: 0 }, 500 );
+		}
+		
+//	$('#do-list').animate( { left:'-1000px', opacity:0 }, 500 );
+//	setTimeout( function() { $('#do-list').animate( { left:'0px', opacity:0 }, 0 ); }, 500 );
+//	$('#do-info').animate( { left:'1000px', opacity:0 }, 0 );
+//	$('#do-info').show().animate( { left:'0px', opacity:1 }, 500 );
+		
 	</script>
 <!--
 	<a href="/drives.htm">Drives</a>

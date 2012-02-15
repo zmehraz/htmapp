@@ -13,7 +13,6 @@ BUILDDIRS := $(BUILDDIRS) qtwk
 BUILDDIRS := $(BUILDDIRS) \
 							app/dsa \
 							app/test \
-							app/lev \
 							
 
 endif

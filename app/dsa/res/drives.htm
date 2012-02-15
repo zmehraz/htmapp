@@ -1,17 +1,18 @@
 <body>
-	<button onclick='switch_list("#list_all")'>All</button>
-	<button onclick='switch_list("#list_fixed")'>Fixed</button>
-	<button onclick='switch_list("#list_ramdisk")'>Ramdisk</button>
-	<button onclick='switch_list("#list_remote")'>Remote</button>
+
+	<button id='btn_all' onclick='switch_list("all")' class="first">All</button>
+	<button id='btn_fixed' onclick='switch_list("fixed")'>Fixed</button>
+	<button id='btn_ramdisk' onclick='switch_list("ramdisk")'>Ramdisk</button>
+	<button id='btn_remote' onclick='switch_list("remote")' class="last">Remote</button>
 	
 	<ul id="dlist">
 	</ul>
 
 	<?global
-		str::t_string mkitem( t_pb::iterator &it, str::t_string id )
+		str::t_string mkitem( str::t_string grp, t_pb::iterator &it, str::t_string id )
 		{
 			return str::t_string() 
-					+ "<li data-id='iid_" + id + "'>" + it->first + "</li>\n";
+					+ "<li id='iid_" + grp + "_" + id +"' class='drive-item' data-id='did_" + id + "' onclick='selDrive( \"iid_" + grp + "_" + id +"\" )'>" + it->first + "</li>\n";
 		}
 	?>
 
@@ -24,7 +25,7 @@
 	<?c
 		int i = 0;
 		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
-			out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+			out += mkitem( "all", it, str::ToString< str::t_char, str::t_string>( i ) );
 	?>
 	</ul>
 
@@ -33,16 +34,16 @@
 		i = 0;
 		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
 			if ( (*it->second)[ tcT( "drive_type" ) ].ToString() == "fixed" )
-				out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+				out += mkitem( "fixed", it, str::ToString< str::t_char, str::t_string>( i ) );
 	?>
 	</ul>
-
+	
 	<ul id="list_ramdisk" class="hidden">
 	<?c
 		i = 0;
 		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
 			if ( (*it->second)[ tcT( "drive_type" ) ].ToString() == "ramdisk" )
-				out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+				out += mkitem( "ramdisk", it, str::ToString< str::t_char, str::t_string>( i ) );
 	?>
 	</ul>
 
@@ -51,7 +52,7 @@
 		i = 0;
 		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
 			if ( (*it->second)[ tcT( "drive_type" ) ].ToString() == "remote" )
-				out += mkitem( it, str::ToString< str::t_char, str::t_string>( i ) );
+				out += mkitem( "remote", it, str::ToString< str::t_char, str::t_string>( i ) );
 	?>
 	</ul>
 
@@ -59,12 +60,22 @@
 
 		var g_list = 0;
 		function switch_list( id )
-		{
-			$('#dlist').quicksand( $(id+' li') );
+		{	$('button').removeClass( 'active' );
+			$('#btn_'+id).addClass( 'active' );
+			$('#dlist').quicksand( $('#list_'+id+' li') );			
 			if ( ++g_list > 3 ) g_list = 0;
 		}
 		
-		switch_list("#list_all");
+		function selDrive(id)
+		{	var pos = $('#'+id).offset(), w = $('#'+id).width(), h = $('#'+id).height();
+			$('#highlight').html( $('#'+id).html() );
+			$('#highlight').css( { opacity: 1, left: pos.left, top: pos.top, width: w, height: h } );
+			$('#highlight').show().animate( { left: 60, top: 10 }, 500 );
+			selPage( 'graph' );
+		}
+		
+		switch_list("all");
 	
 	</script>
 </body>
+

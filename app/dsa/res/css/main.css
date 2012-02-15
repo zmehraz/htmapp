@@ -1,10 +1,37 @@
 body
 {
-	color: #ffffff;
-	background-color: #404040;
+	color: 				#ffffff;
+	background-color:	#404040;
 }
 
 .hidden
 {
-	visibility: hidden;
+	display: 			none;
+}
+
+.transparent
+{
+	opacity: 0;
+}
+
+.header
+{
+	height: 40px;
+	width: 100%;
+}
+
+.page
+{
+	position:			absolute;
+	left: 				10px;
+	top: 				50px;
+}
+
+.highlight
+{
+	position:			absolute;
+	border-left:		2px solid #ff000;
+	border-top:		2px solid #ff000;
+	border-right:		2px solid #ff000;
+	border-bottom:		2px solid #ff000;
 }

@@ -85,10 +85,10 @@ void CMainWindow::Init()
 		setFixedSize( m_width, m_height );
 
 	// No scrollbars
-#if defined( CII_NOSCROLL )
+//#if defined( CII_NOSCROLL )
 	m_pPage->mainFrame()->setScrollBarPolicy( Qt::Vertical,Qt::ScrollBarAlwaysOff );
 	m_pPage->mainFrame()->setScrollBarPolicy( Qt::Horizontal,Qt::ScrollBarAlwaysOff );
-#endif
+//#endif
 
 	// No context menu
 //#if defined( CII_NOCONTEXT )
