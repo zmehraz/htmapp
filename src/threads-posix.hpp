@@ -275,7 +275,7 @@ unsigned long CThreadResource::InjectException( void* hThread, long nError )
 	return -1;
 }
 
-void* CThreadResource::GetOwner()
+void* CThreadResource::getOwner()
 {
 	SThreadResourceInfo *pRi = (SThreadResourceInfo*)m_hHandle;
 	if ( !pRi )
@@ -582,7 +582,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 
 			// Lock the mutex
 			CScopeLock sl( pRi->cSync, x_uTimeout );
-			if ( !sl.IsLocked() )
+			if ( !sl.isLocked() )
 				return waitFailed;
 
 
@@ -712,7 +712,7 @@ long CThreadResource::Signal( unsigned long x_uTimeout )
 			{
 				// Lock the mutex
 				CScopeLock sl( pRi->cSync, x_uTimeout );
-				if ( !sl.IsLocked() )
+				if ( !sl.isLocked() )
 					return waitTimeout;
 
 				// Set signal
@@ -813,7 +813,7 @@ long CThreadResource::Reset( unsigned long x_uTimeout )
 	return nErr;
 }
 
-long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResources, unsigned long x_uTimeout, bool x_nMin )
+long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResources, unsigned long x_uTimeout, long x_nMin )
 {
 	long nNumHandles = 0;
 	long nNumSignaled = 0;
@@ -829,7 +829,7 @@ long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResource
 	for( long i = 0; i < x_nCount && nNumHandles < MAXIMUM_WAIT_OBJECTS; i++ )
 	{
 		// Valid?
-		if ( !x_pResources[ i ] || !x_pResources[ i ]->IsValid() )
+		if ( !x_pResources[ i ] || !x_pResources[ i ]->isValid() )
 			; //( 0, tcT( "Invalid handle specified to WaitMultiple()" ) );
 
 		// Add to wait chain
@@ -865,7 +865,7 @@ long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResource
 
 	} // end for
 
-	unsigned long uDelay = 0;
+	unsigned long uDelay = 0, uRes = eWaitResolution / 1000;
 
 	// Forever
 	for( ; ; )
@@ -907,11 +907,11 @@ long CThreadResource::WaitMultiple( long x_nCount, CThreadResource **x_pResource
 			return waitFailed;
 
 		// Timed out?
-		if ( x_uTimeout < eWaitResolution )
+		if ( x_uTimeout < uRes )
 			return waitTimeout;
 
 		// How long to wait
-		uDelay = eWaitResolution / 1000;
+		uDelay = uRes;
 
 		// Subtract from total
 		x_uTimeout -= uDelay;

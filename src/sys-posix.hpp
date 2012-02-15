@@ -32,7 +32,7 @@
 
 void sleep( long lMSec )
 {
-	Sleep( lMSec );
+	sleep( lMSec );
 }
 
 void usleep( long lUSec )

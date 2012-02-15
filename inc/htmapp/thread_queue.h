@@ -57,18 +57,28 @@ namespace tq
 	/// Sets the specified string
 	str::t_string get( const str::t_string &sKey, const str::t_string &sep = str::t_string() );
 
+	/// Wait pool type
+	typedef std::map< str::t_string, CEvent > t_waitpool;
+
+	/// Wait pool object
+	extern t_waitpool g_htmapp_wp;
+
+	/// Wait for key to change
+	bool wait( const str::t_string &sKey, unsigned long uTimeout );
+
 //------------------------------------------------------------------
 // Thread pool
 //------------------------------------------------------------------
 
 	/// Thread function type
-	typedef void (*t_tqfunc)();
+	typedef long (*t_tqfunc)();
 
 	/// Worker thread type
 	struct CWorkerThread : public CThread
-	{	CWorkerThread() { m_f = 0; }
-		void Run( t_tqfunc f, bool bStart ) { m_f = f; if ( bStart ) Start(); }
-		virtual long DoThread( void* x_pData ) { if ( m_f ) m_f(); return 0; }
+	{	CWorkerThread();
+		~CWorkerThread();
+		void Run( t_tqfunc f, bool bStart );
+		virtual long DoThread( void* x_pData ); 
 		t_tqfunc m_f;
 	};
 

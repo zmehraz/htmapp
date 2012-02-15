@@ -84,8 +84,8 @@
 #	define tcVaArg				va_arg
 #endif
 
-#define tcM			( str::Print( "%s(%lu): MARKER", __FILE__, __LINE__ ) )
-#define tcS( s )	( str::Print( "%s(%lu): %s = %s", __FILE__, __LINE__, #s, str::t_string( s ).c_str() ) )
+#define tcM			( str::Print( "%s(%lu): MARKER\n", __FILE__, __LINE__ ) )
+#define tcS( s )	( str::Print( "%s(%lu): %s = %s\n", __FILE__, __LINE__, #s, str::ToString< str::t_char8, str::t_string8>( s ).c_str() ) )
 
 namespace str
 {

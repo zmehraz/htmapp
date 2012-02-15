@@ -20,18 +20,17 @@
 
 <?global
 
-	void mythread()
+	long mythread()
 	{
-		str::Print( "hi\n" );
 		tq::set( "b", "98765" );
+		return -1;
 	}
 
 ?>
+
 <?c
 	tq::start( mythread );
-tcM;
-	sys::sleep( 1000 );
-tcM;
+	tq::wait( "b", 3000 );
 	out += tq::get( "b" );
 ?>
 
@@ -44,6 +43,12 @@ tcM;
 	pb[ "A" ][ "AC" ] = (long)999;
 	pb[ "B" ][ "BA" ] = (double)3.14159;
 
+	out += str::t_string() + "A.AA = " + pb.at( "A.AA", "." ).str();
+?>
+
+<br>
+
+<?c
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 ?>
 
@@ -87,17 +92,11 @@ tcM;
 <br>
 <pre>
 
+
 <?c
 	t_pb di;
 	disk::GetDisksInfo( di, true );
 	out += parser::EncodeJson< str::t_char, str::t_string, t_pb >( di ).c_str();
-	
-//	disk::GetDiskInfo( di, "/media/System" );
-//	stdForeach( t_pb::iterator, it, di )
-//		out += str::t_string() + it->first + " : "
-//				+ it->second->ToString()
-//				+ "<br>\r\n";
-
 ?>
 </pre>
 

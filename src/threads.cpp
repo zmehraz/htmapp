@@ -74,7 +74,7 @@ void* CThread::ThreadProc( void* x_pData )
     CThread::IncRunningThreadCount();
 
     // Get user params
-    unsigned long uSleep = 0;
+    long nSleep = 0;
     void* pData = pThread->getUserData();
 
 	try
@@ -111,7 +111,7 @@ void* CThread::ThreadProc( void* x_pData )
 					InitException();
 
 					// Call do thread
-					uSleep = pThread->DoThread( pData );
+					nSleep = pThread->DoThread( pData );
 
 				} // end try
 
@@ -122,7 +122,7 @@ void* CThread::ThreadProc( void* x_pData )
 				} // end catch
 
 				// Check for stop signal
-				if ( 0 > uSleep || !pThread->m_evStop.Wait( uSleep ) )
+				if ( 0 > nSleep || !pThread->m_evStop.Wait( nSleep ) )
 					nDone = true;
 
 			} // end while

@@ -419,66 +419,67 @@ public:
 	*/
 	static long WaitMultiple( long x_nCount, CThreadResource **x_pResources,
 			   	  			  unsigned long x_uTimeout = eDefaultWaitTime,
-			   	  			  bool x_nMin = false );
+			   	  			  long x_nMin = 0 );
 
 
 	/// Waits for the specified events or the stop signal
-	long Wait( CThreadResource& rRes1, unsigned long x_uTimeout = eDefaultWaitTime )
+	long Wait( CThreadResource& rRes1, unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1 };
-		return CThreadResource::WaitMultiple( 2, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 2, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2,
-				unsigned long x_uTimeout = eDefaultWaitTime )
+				unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2 };
-		return CThreadResource::WaitMultiple( 3, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 3, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2, CThreadResource& rRes3,
-				unsigned long x_uTimeout = eDefaultWaitTime )
+				unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2, &rRes3 };
-		return CThreadResource::WaitMultiple( 4, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 4, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2, CThreadResource& rRes3,
-				CThreadResource& rRes4, unsigned long x_uTimeout = eDefaultWaitTime )
+				CThreadResource& rRes4, unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2, &rRes3, &rRes4 };
-		return CThreadResource::WaitMultiple( 5, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 5, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2, CThreadResource& rRes3,
 				CThreadResource& rRes4, CThreadResource& rRes5,
-					unsigned long x_uTimeout = eDefaultWaitTime )
+					unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2, &rRes3, &rRes4, &rRes5 };
-		return CThreadResource::WaitMultiple( 6, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 6, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2, CThreadResource& rRes3,
 				CThreadResource& rRes4, CThreadResource& rRes5, CThreadResource &rRes6,
-					unsigned long x_uTimeout = eDefaultWaitTime )
+					unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2, &rRes3, &rRes4, &rRes5, &rRes6 };
-		return CThreadResource::WaitMultiple( 7, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 7, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2, CThreadResource& rRes3,
 				CThreadResource& rRes4, CThreadResource& rRes5, CThreadResource &rRes6,
-				CThreadResource& rRes7, unsigned long x_uTimeout = eDefaultWaitTime )
+				CThreadResource& rRes7, unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2, &rRes3, &rRes4, &rRes5, &rRes6, &rRes7 };
-		return CThreadResource::WaitMultiple( 8, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 8, p, x_uTimeout, x_nMin );
 	}
 
 	/// Waits for the specified events or the stop signal
 	long Wait( CThreadResource& rRes1, CThreadResource& rRes2, CThreadResource& rRes3,
 				CThreadResource& rRes4, CThreadResource& rRes5, CThreadResource &rRes6,
-				CThreadResource& rRes7, CThreadResource& rRes8, unsigned long x_uTimeout = eDefaultWaitTime )
+				CThreadResource& rRes7, CThreadResource& rRes8, 
+				unsigned long x_uTimeout = eDefaultWaitTime, long x_nMin = 0 )
 	{	CThreadResource* p[] = { this, &rRes1, &rRes2, &rRes3, &rRes4, &rRes5, &rRes6, &rRes7, &rRes8 };
-		return CThreadResource::WaitMultiple( 9, p, x_uTimeout );
+		return CThreadResource::WaitMultiple( 9, p, x_uTimeout, x_nMin );
 	}
 
 private:

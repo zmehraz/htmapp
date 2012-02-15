@@ -60,6 +60,11 @@ namespace tq
 		else
 			g_htmapp_pb[ sKey ] = sValue;
 
+		// See if someone was waiting for a change
+		t_waitpool::iterator it = g_htmapp_wp.find( sKey );
+		if ( g_htmapp_wp.end() != it )
+			it->second.Signal();
+
 		return true;
 	}
 
@@ -74,19 +79,92 @@ namespace tq
 
 		return g_htmapp_pb[ sKey ].str();
 	}
+	
+	t_waitpool g_htmapp_wp;
+
+	bool wait( const str::t_string &sKey, unsigned long uTimeout )
+	{
+		CEvent *w = tcNULL;
+		
+		// Sanity check
+		if ( !sKey.length() || 0 >= uTimeout )
+			return false;
+		
+		{ // Scope lock
+		
+			// Add wait
+			CScopeLock sl( g_htmapp_pb_lock );
+			if ( !sl.isLocked() )
+				return false;
+
+			t_waitpool::iterator it = g_htmapp_wp.find( sKey );
+			if ( g_htmapp_wp.end() == it )
+				w = &g_htmapp_wp[ sKey ];
+			else
+				w = &it->second, w->AddRef();
+				
+		} // end scope lock
+		
+		if ( !w )
+			return false;
+		
+		bool bRet = w->Wait( uTimeout );
+		
+		{ // Scope lock
+		
+			// Acquire lock
+			CScopeLock sl( g_htmapp_pb_lock );
+			if ( !sl.isLocked() )
+				return false;
+
+			// Remove wait
+			t_waitpool::iterator it = g_htmapp_wp.find( sKey );
+			if ( g_htmapp_wp.end() != it )
+				if ( 0 <= it->second.Destroy() )
+				{
+					g_htmapp_wp.erase( it );
+
+				} // end if
+				
+		} // end scope lock
+
+		return bRet;
+	}
+	
 
 //------------------------------------------------------------------
 
 	CThreadPool g_htmapp_tp;
 
 	long start( t_tqfunc f )
-	{
-tcM;
-		return g_htmapp_tp.start( f ); 
-	}
+	{	return g_htmapp_tp.start( f ); }
 
 	bool stop( long id )
 	{	return g_htmapp_tp.stop( id ); }
+	
+	CWorkerThread::CWorkerThread() 
+	{
+		m_f = 0; 
+	}
+
+	CWorkerThread::~CWorkerThread() 
+	{
+		m_f = 0; 
+	}
+	
+	void CWorkerThread::Run( t_tqfunc f, bool bStart ) 
+	{
+		m_f = f; 
+		if ( bStart ) 
+			Start(); 
+	}
+	long CWorkerThread::DoThread( void* x_pData ) 
+	{
+		if ( m_f ) 
+			return m_f(); 
+		return -1; 
+	}
+	
 
 	CThreadPool::CThreadPool()
 	{	m_id = 0; 
@@ -102,27 +180,28 @@ tcM;
 	long CThreadPool::DoThread( void* x_pData )
 	{
 		// While not stopped
-		while( getStopEvent().Wait( m_event, 1000 ) )
+		getStopEvent().Wait( m_event, 1000 );
+		
+		// Command waiting?
+		if ( !m_event.Wait( 0 ) )
 		{
 			// Function
 			long id = -1;
 			t_tqfunc f = 0;
 
-tcM;
-			// Command waiting?
-			if ( m_event.Wait( 0 ) )
-			{
-tcM;
+			{ // Scope lock
+			
 				// Grab first command
 				CScopeLock sl( m_lock );
 				if ( sl.isLocked() )
 				{
-tcM;
-					// Grab waiting command
-					if ( m_cmds.size() )
-						id = m_cmds.begin()->first,
-						f = m_cmds.begin()->second,
+					t_threadcmds::iterator it = m_cmds.begin();
+					if ( m_cmds.end() != it )
+					{
+						id = m_cmds.begin()->first;
+						f = m_cmds.begin()->second;
 						m_cmds.erase( m_cmds.begin() );
+					} // end if
 
 					// Reset the event
 					else
@@ -130,15 +209,17 @@ tcM;
 
 				} // end scope locked
 
-			} // end if
+			} // end scope lock
 
 			// Command?
 			if ( 0 <= id )
 			{
-tcM;
 				// New thread?
 				if ( f )
-					m_tp[ id ].Run( f, true );
+				{
+					CWorkerThread &r = m_tp[ id ];
+					r.Run( f, true );
+				} // end if
 
 				// Kill thread if that id exists
 				else 
@@ -153,7 +234,7 @@ tcM;
 
 		// Cleanup expired thread objects
 		for( t_threadpool::iterator it = m_tp.begin(); m_tp.end() != it; )
-			if ( it->second.isRunning() )
+			if ( !it->second.getInitEvent().Wait( 0 ) && !it->second.isRunning() )
 				m_tp.erase( it++ );
 			else
 				it++;
@@ -171,16 +252,13 @@ tcM;
 
 	long CThreadPool::start( t_tqfunc f )
 	{
-tcM;
 		if ( !m_enable )
 			return -1;
 
-tcM;
 		CScopeLock sl( m_lock );
 		if ( !sl.isLocked() )
 			return -1;
 
-tcM;
 		// Create a new thread object and start it
 		long id = m_id++;
 
