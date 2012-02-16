@@ -11,6 +11,7 @@
     <link type="text/css" rel="stylesheet" href="css/button.css"/>
 
     <script type="text/javascript" src="js/jquery.min.js"></script>
+    <!--<script type="text/javascript" src="js/jquery.sparkline.min.js"></script>-->
     <script type="text/javascript" src="js/jquery.quicksand.js"></script>
     <script type="text/javascript" src="js/d3/d3.min.js"></script>
     <script type="text/javascript" src="js/d3/d3.layout.min.js"></script>
@@ -19,11 +20,10 @@
   <body>
     <div class='header' onclick='selPage( "drives" )'><img src='imgs/pie2.png' onclick='selPage( "drives" )'></div>
     
-	<div id="highlight" class="highlight"></div>
-	
+	<div class='highlight'></div>	
 	<div id='drives' class='page'></div>
 	<div id='graph' class='page hidden'></div>
-	
+
 	<script type='text/javascript'>
 		//$.ajax({ url: "test.htm", 
 		//		 context: document.body, 
@@ -34,40 +34,26 @@
 		// $(document).ready( function(){ $.get( 'test.htm', function( data ){ $('#drives').html( 'hello world' ); } ) } );
 		$( $('#drives').load( 'drives.htm' ) );
 		$( $('#graph').load( 'graph.htm' ) );
-		
+			
 		function showPage( id, page, dir )
 		{
 			if ( page == id )
-				$('#'+id).show().animate( { left:'10px', opacity:1 }, 500 );
+				$('#'+id).hide().animate( { left: dir/*, opacity:0*/ }, 0 ),
+				$('#'+id).show().animate( { left:'20px'/*, opacity:1*/ }, 500 );
 			else
-				$('#'+id).animate( { left: dir, opacity: 0 }, 500 ),
+				$('#'+id).animate( { left: dir/*, opacity: 0*/ }, 500 ),
 				setTimeout( function() { $('#'+id).hide(); }, 500 );
 		}
 		
+		var g_sel = '';
 		function selPage( page )
-		{
+		{	if ( g_sel == page ) return;
+			g_sel = page;
 			showPage( "drives", page, -1000 );
 			showPage( "graph", page, 1000 );
-			if ( "graph" != page ) $('#highlight').animate( { opacity: 0 }, 500 );
+			if ( "graph" != page ) $('.highlight').animate( { opacity: 0 }, 500 );
 		}
 		
-//	$('#do-list').animate( { left:'-1000px', opacity:0 }, 500 );
-//	setTimeout( function() { $('#do-list').animate( { left:'0px', opacity:0 }, 0 ); }, 500 );
-//	$('#do-info').animate( { left:'1000px', opacity:0 }, 0 );
-//	$('#do-info').show().animate( { left:'0px', opacity:1 }, 500 );
-		
 	</script>
-<!--
-	<a href="/drives.htm">Drives</a>
-    <div id="chart">
-      <button id="size" class="first">
-        Size
-      </button
-      ><button id="count" class="active last">
-        Count
-      </button><p>
-    </div>
-    <script type="text/javascript" src="filetree.js"></script>
--->
   </body>
 </html>

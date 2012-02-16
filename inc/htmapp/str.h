@@ -297,6 +297,14 @@ namespace str
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%f" ), n ) );
 		}
 
+	template< typename T, typename T_STR >
+		T_STR ToString( const T_STR &s )
+		{	return s; }
+
+	template< typename T, typename T_STR >
+		T_STR ToString( const T *s )
+		{	return T_STR( s ); }
+
 	template < typename T >
 		long Compare( T *s1, long l1, T *s2, long l2 )
 		{

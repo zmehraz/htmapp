@@ -31,7 +31,7 @@ d3.json("data.htm", function(json) {
       .style("stroke", "#222")
       .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
       .each(stash);
-      
+/*      
    var text = vis.data([json]).selectAll("text") 
 	  .data(partition.nodes) 
 	  .enter().append("svg:text") 
@@ -42,7 +42,7 @@ d3.json("data.htm", function(json) {
       .text(d.name)
 	  .on("mouseover",function(d,i) { d3.select(this).transition().duration(300).attr("fill","#00ffff"); }) 
 	  .on("mouseout",function(d,i) { d3.select(this).transition().duration(300).attr("fill","#008000"); }); 
-       
+*/       
 
   d3.select("#size").on("click", function() {
 		path

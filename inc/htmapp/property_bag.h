@@ -234,8 +234,21 @@ public:
     
         \see 
     */
-    TPropertyBag& operator []( t_String sKey ) { return m_lstSub[ sKey.c_str() ]; }
+    TPropertyBag& operator []( const t_String &sKey ) { return m_lstSub[ sKey.c_str() ]; }
 
+    //==============================================================
+    // get()
+    //==============================================================
+    /// Indexes into sub array
+    /**
+        \param [in] sKey    -   Index key
+        
+        \return Reference to sub class.
+    
+        \see 
+    */
+    TPropertyBag& get( const t_String &sKey ) { return m_lstSub[ sKey.c_str() ]; }
+	
     //==============================================================
     // operator []()
     //==============================================================

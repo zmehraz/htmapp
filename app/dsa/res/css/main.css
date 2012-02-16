@@ -30,8 +30,10 @@ body
 .highlight
 {
 	position:			absolute;
-	border-left:		2px solid #ff000;
-	border-top:		2px solid #ff000;
-	border-right:		2px solid #ff000;
-	border-bottom:		2px solid #ff000;
+}
+
+.usechart
+{
+	width: 32px;
+	height: 32px;
 }
