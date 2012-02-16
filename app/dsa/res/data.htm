@@ -1,4 +1,4 @@
-<meta http-equiv="refresh" content="10">
+<meta http-equiv="refresh" content="3">
 <pre>
 <?global
 
@@ -17,17 +17,70 @@
 	}
 */
 
+#include <time.h>
 #include "cpp/file_index.h"
 
 	static long g_lThreadId = -1;
 	static long g_lCancel = 0;
+	static unsigned long g_lLastUpdate = 0;
+	
+	long add_items( t_pb &pb, CFileIndex::SBlockItem *p, long lDepth )
+	{
+		if ( !p || !lDepth )
+			return 0;
+		
+		// This is a list
+		pb.is_list( true );
+		
+		long i = 0;
+		while ( p )
+		{
+			// Create a new entry
+			t_pb &r = pb[ i++ ];
+			
+			// Set our name
+			r[ "name" ] = p->name ? p->name : "<empty>";
+			
+			str::Print( "%s\n", p->name ? p->name : "<empty>" );
+
+			// Add children
+			if ( p->child )
+				add_items( r[ "children" ], p->child, lDepth - 1 );
+		
+			// Next sibling
+			p = p->next;
+
+		} // end while
+
+		return i;
+	}
+	
+	bool index_callback( CFileIndex *pFi, void *p )
+	{
+//		str::Print( "%s\n", p->name ? p->name : "<empty>" );
+
+		// Update once per second
+		const unsigned long t = (const unsigned long)time( 0 );
+		if ( t == g_lLastUpdate )
+			return g_lCancel;
+		g_lLastUpdate = t;
+
+		// Lock the global property bag
+		CScopeLock sl( tq::lock() );
+		if ( sl.isLocked() )
+			add_items( tq::pb().at( "indexer.out", "." ), pFi->getRoot(), 32 );
+		
+		return g_lCancel;
+	}
+
 	static long index_thread( CThread *t, void *p )
 	{
 		// Cancel flag
 		long *pCancel = (long*)p;
 
 		// Indexing object
-		CFileIndex fi;
+		CFileIndex fi( 1024 * 1024 );
+		fi.setCallback( index_callback, 0 );
 		
 		bool bOnce = true;
 
@@ -44,7 +97,11 @@
 				// Clear run flag
 				tq::set( "indexer.run", "", "." );
 
-				fi.Index( "C:\\Temp", 0 );
+				// Index the file system
+				fi.Index( "/tmp", 32 );
+				
+				// Final update
+				index_callback( &fi, 0 );
 
 			} // end if
 
@@ -60,7 +117,7 @@
 		g_lThreadId = tq::start( index_thread, &g_lCancel );
 
 	// Send back output status
-	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( tq::get( "indexer.out" ) ).c_str();
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( tq::get( "indexer.out", "." ) ).c_str();
 
 /*
 	t_pb8 pb;

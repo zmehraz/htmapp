@@ -3,6 +3,10 @@
 
 class CFileIndex
 {
+private:
+	CFileIndex( const CFileIndex & ) {}
+	CFileIndex& operator = ( const CFileIndex & ) { return *this; }
+	
 public:
 
 	typedef long long	t_size;
@@ -11,6 +15,9 @@ public:
 
 	/// String type
 	typedef std::basic_string< t_char >	t_string;
+	
+	/// Update callback type
+	typedef bool (*fn_callback)( CFileIndex*, void* );
 
 public:
 
@@ -35,7 +42,7 @@ public:
 public:
 
 	/// Default constructor
-	CFileIndex();
+	CFileIndex( t_size nBlock = 0, t_size nBlob = 0 );
 
 	/// Destructor
 	virtual ~CFileIndex();
@@ -44,7 +51,7 @@ public:
 	void Destroy();
 
 	/// Allocate initial storage for indexing
-	bool Init( t_size nBlock, t_size nBlob );
+	bool Init( t_size nBlock, t_size nBlob = 0 );
 
 	/// Initializes the specified block
 	void InitBlock( SBlockItem *p );
@@ -74,9 +81,18 @@ public:
 	SBlockItem* AddChild( SBlockItem *pBlock, t_char *name, t_size sz_name, t_size size );
 
 	/// Indexes the specified root folder
-	long Index( const t_string &sRoot, long lDepth, SBlockItem *p = 0 );
+	long Index( const t_string &sRoot, long lMaxDepth, long *plCancel = 0, SBlockItem *p = 0 );
 
+	/// Sets the output key
+	void setCallback( fn_callback p, void* u ) { m_f = p; m_user = u; }
+	
 private:
+
+	// Callback function
+	fn_callback				m_f;
+	
+	/// User data passed to callback function
+	void					*m_user;
 
 	/// Root block
 	SBlockItem				m_root;

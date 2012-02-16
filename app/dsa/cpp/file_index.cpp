@@ -7,12 +7,18 @@
 #include "htmapp.h"
 #include "file_index.h"
 
-CFileIndex::CFileIndex()
+/// Initialize space constructor
+CFileIndex::CFileIndex( t_size nBlock, t_size nBlob )
 {
+	m_f = 0;
+	m_user = 0;
 	m_deleted = 0;
 	m_blob_offset = 0;
 	m_block_offset = 0;
 	memset( &m_root, 0, sizeof( m_root ) );
+
+	if ( nBlock )
+		Init( nBlock, nBlob );
 }
 
 CFileIndex::~CFileIndex()
@@ -23,6 +29,8 @@ CFileIndex::~CFileIndex()
 void CFileIndex::Destroy()
 {
 	// Clear data
+	m_f = 0;
+	m_user = 0;
 	m_deleted = 0;
 	m_blob_offset = 0;
 	m_block_offset = 0;
@@ -38,6 +46,10 @@ bool CFileIndex::Init( t_size nBlock, t_size nBlob )
 	// Out with the old
 	Destroy();
 
+	// Assume user wants them the same
+	if ( !nBlob )
+		nBlob = nBlock;
+	
 	// Impose reasonable minimums
 	nBlob = std::max( nBlob, (t_size)1024 );
 	nBlock = std::max( nBlock, (t_size)1024 );
@@ -61,7 +73,7 @@ CFileIndex::SBlockItem* CFileIndex::NewBlock()
 	} // end if
 
 	// Ensure space
-	if ( ( m_block_offset + sizeof( SBlockItem ) ) < m_blocks.size() )
+	if ( ( m_block_offset + sizeof( SBlockItem ) ) > m_blocks.size() )
 	{
 		// Are we at least initialized?
 		if ( 0 >= m_blocks.size() )
@@ -181,7 +193,7 @@ void* CFileIndex::NewBlob( const void* p, t_size size )
 	t_size asize = size + 1;
 	
 	// Ensure space
-	if ( ( m_blob_offset + asize ) < m_blobs.size() )
+	if ( ( m_blob_offset + asize ) > m_blobs.size() )
 	{
 		// Are we at least initialized?
 		if ( 0 >= m_blobs.size() )
@@ -219,16 +231,17 @@ void* CFileIndex::NewBlob( const void* p, t_size size )
 CFileIndex::SBlockItem* CFileIndex::AddSibling( SBlockItem *pBlock, const t_char *name, t_size sz_name, t_size size )
 {
 	// Note, the root node can't have siblings
-	if ( !pBlock || pBlock == &m_root )
+	if ( !pBlock || !pBlock->parent )
 		return 0;
 
 	SBlockItem *p = NewBlock();
 	if ( !p )
 		return 0;
 
-	// Add as sibling
-	pBlock->next = p;
-
+	// Add us into the list
+	p->next = pBlock->parent->child;
+	pBlock->parent->child = p;
+		
 	// Initialize block
 	p->parent = pBlock->parent;
 	p->next = 0;
@@ -260,7 +273,6 @@ CFileIndex::SBlockItem* CFileIndex::AddChild( SBlockItem *pBlock, t_char *name, 
 
 	// Initialize block
 	p->parent = pBlock;
-	p->next = 0;
 	p->child = 0;
 	p->size =- size;
 	p->name = name  ? (const t_char*)NewBlob( name, sz_name ) : 0;
@@ -272,8 +284,20 @@ CFileIndex::SBlockItem* CFileIndex::AddChild( SBlockItem *pBlock, t_char *name, 
 	return p;
 }
 
-long CFileIndex::Index( const t_string &sRoot, long lDepth, SBlockItem *p )
+long CFileIndex::Index( const t_string &sRoot, long lMaxDepth, long *plCancel, SBlockItem *p )
 {
+	if ( 0 >= lMaxDepth )
+		return 0;
+
+	// Do we need a cancel variable?
+	long lCancel = 0;
+	if ( !plCancel )
+		plCancel = &lCancel;
+
+	// Check for cancel signal
+	if ( *plCancel )
+		return 0;
+	
 	// Start with root if needed
 	if ( !p )
 		p = &m_root;
@@ -281,47 +305,42 @@ long CFileIndex::Index( const t_string &sRoot, long lDepth, SBlockItem *p )
 	// Assume no additions
 	long lAdded = 0;
 
-	str::Print( "%s\n", sRoot.c_str() );
-
-	// Is this our working depth?
-	if ( !lDepth )
+	SBlockItem *it = 0;
+	disk::SFindData fd; disk::HFIND hFind;
+	if ( disk::c_invalid_hfind != ( hFind = disk::FindFirst( sRoot.c_str(), "*", &fd ) ) )
 	{
-		disk::SFindData fd; disk::HFIND hFind;
-		if ( disk::c_invalid_hfind != ( hFind = disk::FindFirst( sRoot.c_str(), "*", &fd ) ) )
+		do 
 		{
-			do { 
-
+			// Dot check
+			if ( fd.szName[ 0 ] != '.'
+				 || ( fd.szName[ 1 ] && ( fd.szName[ 1 ] != '.' || fd.szName[ 2 ] ) ) )
+			{
 				lAdded++;
 
-				str::Print( "%s\n", disk::FilePath< t_char, t_string >( sRoot, fd.szName ).c_str() );
-				// AddChild( p, fd.szName, 0, fd.llSize );
+				t_string sFull = disk::FilePath< t_char, t_string >( sRoot, fd.szName );
+				str::Print( "%s\n", sFull.c_str() );
 
-			} while ( disk::FindNext( hFind, &fd ) );
+				// Directory
+				if ( 0 != ( fd.uFileAttributes & disk::eFileAttribDirectory ) )
+					Index( sFull, lMaxDepth - 1, plCancel, AddChild( p, fd.szName, 0, 0 ) );
 
-			disk::FindClose( hFind );
+				// File
+				else
+					AddChild( p, fd.szName, 0, fd.llSize );
 
-		} // end if
+			} // end if
+
+		} while ( disk::FindNext( hFind, &fd ) );
+
+		disk::FindClose( hFind );
 
 	} // end if
 
-	// Keep digging
-	else
-	{
-		// For every child
-		p = p->child;
-		while ( p )
-		{
-			// Process this item if it has a valid name
-			if ( p->name )
-				lAdded += Index( disk::FilePath< t_char, t_string >( sRoot, p->name ), lDepth - 1, p );
-
-			// Next item
-			p = p->next;
-
-		} // end while
-
-	} // end else
+	// Callback function
+	if ( m_f )
+		*plCancel = m_f( this, m_user );
 
 	return lAdded;
+	
 }
 

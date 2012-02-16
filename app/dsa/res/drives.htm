@@ -24,7 +24,7 @@
 		}
 		
 		// Make buttons and drive lists
-		bool listitems( t_pb &di, const str::t_string &sName, const str::t_string &sType,
+		void listitems( t_pb &di, const str::t_string &sName, const str::t_string &sType,
 						str::t_string &btns, str::t_string &lists, str::t_string &last )
 		{
 			int i = 0;
@@ -36,7 +36,7 @@
 						ret += mkitem( sType, it, str::ToString< str::t_char, str::t_string>( i ) );
 
 			if ( !ret.length() )
-				return false;
+				return;
 				
 			last = sType;
 				
