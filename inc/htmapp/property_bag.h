@@ -155,13 +155,32 @@ public:
     //==============================================================
     // TPropertyBag()
     //==============================================================
-    /// Constructos object from encoded string
+    /// Constructos object from string pointer
     /**
-        \param [in] sStr    -   Encoded array
+        \param [in] pStr    -   string pointer
     */
-    TPropertyBag( t_String sStr )
+    TPropertyBag( const T *pStr, typename t_String::size_type len = 0 )
+    {
+		m_flags = 0;
+
+		// Assign string if needed
+		if ( pStr )
+		{	if ( 0 >= len )
+				len = zstr::Length( pStr );
+			m_str.assign( pStr, len );
+		} // end if
+    }
+
+    //==============================================================
+    // TPropertyBag()
+    //==============================================================
+    /// Constructos object from string reference
+    /**
+        \param [in] sStr    -   string reference
+    */
+    TPropertyBag( const t_String &sStr )
     {   m_flags = 0;
-    	deserialize( sStr );
+    	m_str = sStr;
     }
 
     //==============================================================

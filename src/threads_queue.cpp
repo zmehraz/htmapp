@@ -49,16 +49,16 @@ namespace tq
 		return g_htmapp_pb_lock; 
 	}
 
-	bool set( const str::t_string &sKey, const str::t_string &sValue, const str::t_string &sep )
+	bool set( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep )
 	{
 		CScopeLock sl( g_htmapp_pb_lock );
 		if ( !sl.isLocked() )
 			return false;
 
 		if ( sep.length() )
-			g_htmapp_pb.at( sKey, sep ) = sValue;
+			g_htmapp_pb.at( sKey, sep ) = pbValue;
 		else
-			g_htmapp_pb[ sKey ] = sValue;
+			g_htmapp_pb[ sKey ] = pbValue;
 
 		// See if someone was waiting for a change
 		t_waitpool::iterator it = g_htmapp_wp.find( sKey );
@@ -68,16 +68,16 @@ namespace tq
 		return true;
 	}
 
-	str::t_string get( const str::t_string &sKey, const str::t_string &sep )
+	t_pb get( const str::t_string &sKey, const str::t_string &sep )
 	{
 		CScopeLock sl( g_htmapp_pb_lock );
 		if ( !sl.isLocked() )
-			return str::t_string();
+			return t_pb();
 
 		if ( sep.length() )
-			return g_htmapp_pb.at( sKey, sep ).str();
+			return g_htmapp_pb.at( sKey, sep );
 
-		return g_htmapp_pb[ sKey ].str();
+		return g_htmapp_pb[ sKey ];
 	}
 	
 	t_waitpool g_htmapp_wp;
@@ -136,8 +136,8 @@ namespace tq
 
 	CThreadPool g_htmapp_tp;
 
-	long start( t_tqfunc f )
-	{	return g_htmapp_tp.start( f ); }
+	long start( t_tqfunc f, void *p )
+	{	return g_htmapp_tp.start( f, p ); }
 
 	bool stop( long id )
 	{	return g_htmapp_tp.stop( id ); }
@@ -145,23 +145,27 @@ namespace tq
 	CWorkerThread::CWorkerThread() 
 	{
 		m_f = 0; 
+		m_p = 0;
 	}
 
 	CWorkerThread::~CWorkerThread() 
 	{
 		m_f = 0; 
+		m_p = 0;
 	}
-	
-	void CWorkerThread::Run( t_tqfunc f, bool bStart ) 
+
+	void CWorkerThread::Run( t_tqfunc f, void *p, bool bStart ) 
 	{
-		m_f = f; 
+		m_f = f;
+		m_p = p;
 		if ( bStart ) 
 			Start(); 
 	}
 	long CWorkerThread::DoThread( void* x_pData ) 
 	{
 		if ( m_f ) 
-			return m_f(); 
+			return m_f( this, m_p ); 
+
 		return -1; 
 	}
 	
@@ -188,6 +192,7 @@ namespace tq
 			// Function
 			long id = -1;
 			t_tqfunc f = 0;
+			void *p = 0;
 
 			{ // Scope lock
 			
@@ -199,7 +204,8 @@ namespace tq
 					if ( m_cmds.end() != it )
 					{
 						id = m_cmds.begin()->first;
-						f = m_cmds.begin()->second;
+						f = m_cmds.begin()->second.f;
+						p = m_cmds.begin()->second.p;
 						m_cmds.erase( m_cmds.begin() );
 					} // end if
 
@@ -218,7 +224,7 @@ namespace tq
 				if ( f )
 				{
 					CWorkerThread &r = m_tp[ id ];
-					r.Run( f, true );
+					r.Run( f, p, true );
 				} // end if
 
 				// Kill thread if that id exists
@@ -250,7 +256,7 @@ namespace tq
 		return 0;
 	}
 
-	long CThreadPool::start( t_tqfunc f )
+	long CThreadPool::start( t_tqfunc f, void *p )
 	{
 		if ( !m_enable )
 			return -1;
@@ -263,7 +269,7 @@ namespace tq
 		long id = m_id++;
 
 		// Send start thread command
-		m_cmds[ id ] = f;
+		m_cmds[ id ] = SCmdInfo( f, p );
 
 		// New command waiting
 		m_event.Signal();
@@ -286,7 +292,7 @@ namespace tq
 			return false;
 
 		// Stop signal
-		m_cmds[ id ] = 0;
+		m_cmds[ id ] = SCmdInfo();
 
 		// New command waiting
 		m_event.Signal();

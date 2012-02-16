@@ -35,10 +35,10 @@
 
 namespace sys
 {
-	// Sleeps for the specified time in milli seconds
+	/// Sleeps for the specified time in milli seconds
 	void sleep( long lMSec );
 
-	// Sleeps the thread for the specified time in micro seconds
+	/// Sleeps the thread for the specified time in micro seconds
 	void usleep( long lUSec );
 
 }; // namespace sys

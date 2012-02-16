@@ -35,6 +35,8 @@
 #else
 #endif
 
+#include "stdio.h"
+
 namespace sys
 {
 #if defined( _WIN32 )
@@ -42,5 +44,6 @@ namespace sys
 #else
 #	include "sys-posix.hpp"
 #endif
+
 }; // namespace sys
 

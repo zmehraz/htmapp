@@ -42,13 +42,13 @@
 
 		const char *pRoot = "c:\\Temp";
 
-		ff::SFindData fd; ff::HFIND hFind;
-		if ( ff::c_invalid_hfind != ( hFind = ff::FindFirst( pRoot, "*", &fd ) ) )
+		disk::SFindData fd; disk::HFIND hFind;
+		if ( disk::c_invalid_hfind != ( hFind = disk::FindFirst( pRoot, "*", &fd ) ) )
 		{
-			do { printf( "%s\n", ff::FilePath< char, std::basic_string< char > >( pRoot, fd.szName ).c_str() );
-			} while ( ff::FindNext( hFind, &fd ) );
+			do { printf( "%s\n", disk::FilePath< char, std::basic_string< char > >( pRoot, fd.szName ).c_str() );
+			} while ( disk::FindNext( hFind, &fd ) );
 
-			ff::FindClose( hFind );
+			disk::FindClose( hFind );
 
 		} // end if
 

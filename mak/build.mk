@@ -91,3 +91,6 @@ $(BLD_PRJROOT)/%.o : $(BLD_SRCDIR)/%.$(BLD_EXTN) $(BLDOUT)
 	
 endif
 
+# Clear source directory
+BLD_SRCDIR := 
+

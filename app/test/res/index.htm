@@ -20,7 +20,7 @@
 
 <?global
 
-	long mythread()
+	long mythread( CThread*, void* )
 	{
 		tq::set( "b", "98765" );
 		return -1;

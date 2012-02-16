@@ -51,11 +51,11 @@ namespace tq
 	/// Returns a reference to the thread pb
 	CLock& lock();
 
-	/// Sets the specified string
-	bool set( const str::t_string &sKey, const str::t_string &sValue, const str::t_string &sep = str::t_string() );
+	/// Sets the specified property value
+	bool set( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep = str::t_string() );
 
-	/// Sets the specified string
-	str::t_string get( const str::t_string &sKey, const str::t_string &sep = str::t_string() );
+	/// Returns the specified property value
+	t_pb get( const str::t_string &sKey, const str::t_string &sep = str::t_string() );
 
 	/// Wait pool type
 	typedef std::map< str::t_string, CEvent > t_waitpool;
@@ -64,6 +64,10 @@ namespace tq
 	extern t_waitpool g_htmapp_wp;
 
 	/// Wait for key to change
+	/**
+		Returns after uTimeout milliseconds or when ts::set() 
+		is called with exact match for sKey.
+	*/
 	bool wait( const str::t_string &sKey, unsigned long uTimeout );
 
 //------------------------------------------------------------------
@@ -71,15 +75,16 @@ namespace tq
 //------------------------------------------------------------------
 
 	/// Thread function type
-	typedef long (*t_tqfunc)();
+	typedef long (*t_tqfunc)( CThread*, void* );
 
 	/// Worker thread type
 	struct CWorkerThread : public CThread
 	{	CWorkerThread();
 		~CWorkerThread();
-		void Run( t_tqfunc f, bool bStart );
+		void Run( t_tqfunc f, void *p, bool bStart );
 		virtual long DoThread( void* x_pData ); 
 		t_tqfunc m_f;
+		void *m_p;
 	};
 
 	/// Thread pool class
@@ -87,11 +92,25 @@ namespace tq
 	{
 	public:
 
+		struct SCmdInfo
+		{
+			// Constructors
+			SCmdInfo() { f = 0; p = 0; }
+			SCmdInfo( t_tqfunc x_f, void *x_p ) { f = x_f; p = x_p; }
+			SCmdInfo( const SCmdInfo &r ) { f = r.f; p = r.p; }
+
+			/// Function pointer
+			t_tqfunc 	f;
+
+			/// User data pointer
+			void		*p;
+		};
+
 		/// Thread pool map type
 		typedef std::map< long, CWorkerThread > t_threadpool;
 
 		/// Thread command map type
-		typedef std::map< long, t_tqfunc >	t_threadcmds;
+		typedef std::map< long, SCmdInfo >		t_threadcmds;
 
 	public:
 
@@ -105,7 +124,7 @@ namespace tq
 		/**
 			@return Thread id or less than zero if failure
 		*/
-		long start( t_tqfunc f );
+		long start( t_tqfunc f, void *p = 0 );
 
 		/// Stops the specified thread
 		bool stop( long id );
@@ -146,7 +165,7 @@ namespace tq
 	/**
 		@return Thread id or less than zero if failure
 	*/
-	long start( t_tqfunc f );
+	long start( t_tqfunc f, void *p = 0 );
 
 	/// Stops the specified thread
 	bool stop( long id );

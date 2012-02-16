@@ -30,7 +30,8 @@ PRJ_LIBS := htmapp
 PRJ_FWRK := qtwk
 
 # Homepage
-CII_HOME := http://embedded/index.htm
+#CII_HOME := http://embedded/index.htm
+CII_HOME := http://embedded/data.htm
 
 # Window width
 CII_WIDTH := 800
@@ -52,7 +53,8 @@ endif
 #-------------------------------------------------------------------
 # Build dependencies
 #-------------------------------------------------------------------
-#include $(PRJ_LIBROOT)/mak/build.mk
+BLD_SRCDIR := cpp
+include $(PRJ_LIBROOT)/mak/build.mk
 
 
 #-------------------------------------------------------------------

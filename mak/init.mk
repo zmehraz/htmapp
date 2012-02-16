@@ -15,10 +15,20 @@ CFG_MAKROOT := $(CFG_LIBROOT)/mak
 # Parse target
 #-------------------------------------------------------------------
 include $(CFG_MAKROOT)/init/tgt.mk
+include $(CFG_MAKROOT)/init/bld.mk
 
 #-------------------------------------------------------------------
 # Configure output paths
 #-------------------------------------------------------------------
+
+# Current working directory
+#ifneq ($(CYGBLD),)
+#	CFG_CUR_ROOT := $(subst \,/,$(shell cmd /c cd))
+#else
+	CFG_CUR_ROOT := $(shell pwd)
+#endif
+
+# Output root
 ifneq ($(BINROOT),)
 	CFG_BINROOT := $(BINROOT)
 else
@@ -61,6 +71,9 @@ endif
 $(info =======================================================)
 $(info = $(PRJ_NAME) - $(PRJ_DESC) )
 $(info =======================================================)
+
+# Add current directory to the list of includes
+PRJ_INCS := $(CFG_CUR_ROOT) $(PRJ_INCS)
 
 # Ensure directories
 include $(CFG_MAKROOT)/init/dir.mk

@@ -1,7 +1,8 @@
+<meta http-equiv="refresh" content="10">
+<pre>
 <?global
 
-	#include "stdio.h"
-
+/*
 	void make_array( t_pb8 &pb, long d, long &i )
 	{
 		pb[ "name" ] = ++i;
@@ -14,13 +15,58 @@
 		else
 			pb[ "size" ] = ++i;		
 	}
+*/
 
-?>
+#include "cpp/file_index.h"
 
-<?c
+	static long g_lThreadId = -1;
+	static long g_lCancel = 0;
+	static long index_thread( CThread *t, void *p )
+	{
+		// Cancel flag
+		long *pCancel = (long*)p;
+
+		// Indexing object
+		CFileIndex fi;
+		
+		bool bOnce = true;
+
+		// Until we get the kill signal
+		while ( t->getStopEvent().Wait( 1000 ) )
+		{
+			// Do we want to run
+//			t_pb job = tq::get( "indexer.job", "." );
+//			if ( job[ "run" ].ToLong() )
+			if ( bOnce )
+			{
+				bOnce = false;
+
+				// Clear run flag
+				tq::set( "indexer.run", "", "." );
+
+				fi.Index( "C:\\Temp", 0 );
+
+			} // end if
+
+		} // end while
+
+		return 0;
+	}
+
+?><?c
+
+	// Start the thread
+	if ( 0 > g_lThreadId )
+		g_lThreadId = tq::start( index_thread, &g_lCancel );
+
+	// Send back output status
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( tq::get( "indexer.out" ) ).c_str();
+
+/*
 	t_pb8 pb;
 	long i = 0;
 	make_array( pb, 3, i );
-	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 	return 0;
+*/
 ?>
+</pre>
