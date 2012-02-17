@@ -1,8 +1,5 @@
-<meta http-equiv="refresh" content="3">
-<pre>
 <?global
 
-/*
 	void make_array( t_pb8 &pb, long d, long &i )
 	{
 		pb[ "name" ] = ++i;
@@ -15,7 +12,7 @@
 		else
 			pb[ "size" ] = ++i;		
 	}
-*/
+
 
 #include <time.h>
 #include "cpp/file_index.h"
@@ -24,13 +21,18 @@
 	static long g_lCancel = 0;
 	static unsigned long g_lLastUpdate = 0;
 	
-	long add_items( t_pb &pb, CFileIndex::SBlockItem *p, long lDepth )
+	long add_items( t_pb &pb, CFileIndex::SBlockItem *p, long lDepth = 0 )
 	{
-		if ( !p || !lDepth )
+		if ( !p || 32 < lDepth )
 			return 0;
 		
-		// This is a list
-		pb.is_list( true );
+		// If it's the root
+		if ( 0 >= lDepth )
+		{	pb[ "name" ] = "<root>";
+			return add_items( pb[ "children" ], p->child, lDepth + 1 );
+		} // end if
+		else
+			pb.is_list( true );
 		
 		long i = 0;
 		while ( p )
@@ -40,12 +42,14 @@
 			
 			// Set our name
 			r[ "name" ] = p->name ? p->name : "<empty>";
-			
-			str::Print( "%s\n", p->name ? p->name : "<empty>" );
+	
+//			str::Print( "%s\n", p->name ? p->name : "<empty>" );
 
 			// Add children
 			if ( p->child )
-				add_items( r[ "children" ], p->child, lDepth - 1 );
+				add_items( r[ "children" ], p->child, lDepth + 1 );
+			else
+				r[ "size" ] = p->size;
 		
 			// Next sibling
 			p = p->next;
@@ -66,9 +70,9 @@
 		g_lLastUpdate = t;
 
 		// Lock the global property bag
-		CScopeLock sl( tq::lock() );
-		if ( sl.isLocked() )
-			add_items( tq::pb().at( "indexer.out", "." ), pFi->getRoot(), 32 );
+		t_pb pb;
+		add_items( pb, pFi->getRoot() );
+		tq::set( "indexer.out", pb, "." );
 		
 		return g_lCancel;
 	}
@@ -98,9 +102,11 @@
 				tq::set( "indexer.run", "", "." );
 
 				// Index the file system
-				fi.Index( "/tmp", 32 );
+//				fi.Index( fi.getRoot(), "/tmp", 32 );
+				fi.Index( fi.getRoot(), "/build", 32 );
 				
 				// Final update
+				g_lLastUpdate = 0;
 				index_callback( &fi, 0 );
 
 			} // end if
@@ -111,6 +117,13 @@
 	}
 
 ?><?c
+/*
+	t_pb8 pb;
+	long i = 0;
+	make_array( pb, 3, i );
+	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
+	return 0;
+*/
 
 	// Start the thread
 	if ( 0 > g_lThreadId )
@@ -119,11 +132,5 @@
 	// Send back output status
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( tq::get( "indexer.out", "." ) ).c_str();
 
-/*
-	t_pb8 pb;
-	long i = 0;
-	make_array( pb, 3, i );
 	return 0;
-*/
 ?>
-</pre>

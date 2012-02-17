@@ -177,7 +177,7 @@ str::tc_int64 Size( HFILE x_hFile )
 
 
 static void disk_InitFindData( SFindData *x_pFd )
-{   x_pFd->llSize = 0;
+{	x_pFd->llSize = 0;
     *x_pFd->szName = 0;
     x_pFd->uFileAttributes = 0;
     x_pFd->ftCreated = 0;
@@ -199,9 +199,24 @@ static void disk_SetFindData( SFindData *x_pFd, const dirent *x_pD )
 	// Is it a directory?
 	if ( DT_DIR & x_pD->d_type )
 		x_pFd->uFileAttributes |= disk::eFileAttribDirectory;
+		
+	// If size is required
+	if ( x_pFd->orgPath )
+	{
+		// Doing this instead of str::FilePath() for speed, 
+		// Not happy size isn't in dirent anyway :(
+		char path[ 1024 ] = { 0 };
+		t_size sz = zstr::Copy( path, sizeof( path ), x_pFd->orgPath );
+		path[ sz++ ] = '/';
+		if ( sz < sizeof( path ) )
+		{	zstr::Copy( &path[ sz ], sizeof( path ), x_pD->d_name );
+			x_pFd->llSize = Size( path );
+		} // end if
+
+	} // end if
 }
 
-HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd )
+HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd, unsigned long x_uReqFlags )
 {
 #if defined( CII_NODIRENT )
 	return c_invalid_hfind;
@@ -211,19 +226,28 @@ HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd )
     if ( !x_pPath || ! x_pMask || ! x_pFd )
         return c_invalid_hfind;
 
+	// Open find
 	DIR *hDir = opendir( x_pPath );
 	if ( !hDir )
 		return c_invalid_hfind;
 
-	errno = 0;
-	struct dirent *pD = readdir( hDir );
-	if ( !pD || errno )
-	{	closedir( hDir );
-		return c_invalid_hfind;
-	} // end if
+	// Skip . and ..
+	struct dirent *pD;
+	do
+	{	errno = 0;
+		pD = readdir( hDir );
+		if ( !pD || errno )
+		{	closedir( hDir );
+			return c_invalid_hfind;
+		} // end if
+
+	} while ( isDotPath( pD->d_name ) );
 
 	// Set file data
 	disk_SetFindData( x_pFd, pD );
+
+	// +++ Hack to get file size
+	x_pFd->orgPath = ( 0 != ( x_uReqFlags & eReqSize ) ) ? x_pPath : 0;
 
     return (HFIND)hDir;
 #endif
@@ -236,11 +260,16 @@ bool FindNext( HFIND x_hFind, SFindData *x_pFd )
 #else
 	DIR *hDir = (DIR*)x_hFind;
 
-	errno = 0;
-	struct dirent *pD = readdir( hDir );
-	if ( !pD || errno )
-		return false;
+	struct dirent *pD;
+	do
+	{
+		errno = 0;
+		pD = readdir( hDir );
+		if ( !pD || errno )
+			return false;
 
+	} while ( isDotPath( pD->d_name ) );
+		
 	disk_SetFindData( x_pFd, pD );
 
     return true;

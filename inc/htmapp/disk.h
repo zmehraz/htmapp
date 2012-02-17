@@ -208,6 +208,9 @@ namespace disk
 		str::tc_int64	ftLastModified;
 		str::tc_int64	llSize;
 		char			szName[ 1024 ];
+		
+		/// This is just a hack for linux atm
+		const char		*orgPath;
 	};
 
 	/// Special folder id's
@@ -267,6 +270,13 @@ namespace disk
 
 	};
 		
+	enum
+	{
+		/// Set if size field is required
+		eReqSize = 0x00000001
+	
+	};
+	
 	/// Returns the specified folder path
 	str::t_string8 GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength = MAXPATHLEN );
 
@@ -288,6 +298,9 @@ namespace disk
 	/// Invalid find handle value
 	const HFIND c_invalid_hfind = (HFIND)-1;
 
+	/// Returns non-zero if specified string is not a dot path
+	bool isDotPath(  const char *p );
+	
 	/// Finds the first file matching the specified requirements
 	/**
 		@param[in]	x_pPath		- Root path for search
@@ -296,7 +309,7 @@ namespace disk
 		
 		@return Returns a handle to an open find
 	*/
-	HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd );
+	HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd, unsigned long x_uReqFlags = 0 );
 
 	/// Finds the next file matching the specified requirements
 	/**

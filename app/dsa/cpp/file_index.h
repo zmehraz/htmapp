@@ -9,9 +9,9 @@ private:
 	
 public:
 
-	typedef long long	t_size;
-	typedef long		t_offset;
-	typedef char		t_char;
+	typedef long long int	t_size;
+	typedef long			t_offset;
+	typedef char			t_char;
 
 	/// String type
 	typedef std::basic_string< t_char >	t_string;
@@ -81,7 +81,7 @@ public:
 	SBlockItem* AddChild( SBlockItem *pBlock, t_char *name, t_size sz_name, t_size size );
 
 	/// Indexes the specified root folder
-	long Index( const t_string &sRoot, long lMaxDepth, long *plCancel = 0, SBlockItem *p = 0 );
+	long Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, long *plCancel = 0 );
 
 	/// Sets the output key
 	void setCallback( fn_callback p, void* u ) { m_f = p; m_user = u; }

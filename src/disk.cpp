@@ -56,6 +56,11 @@ namespace disk
 #	include "disk-posix.hpp"
 #endif
 
+bool isDotPath(  const char *p )
+{
+	return p[ 0 ] == '.' && ( !p[ 1 ] || ( p[ 1 ] == '.' && !p[ 2 ] ) );
+}
+
 str::t_string GetFsTypeStr( unsigned long type )
 {
 	switch( type )

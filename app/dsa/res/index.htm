@@ -25,6 +25,7 @@
 	<div id='graph' class='page hidden'></div>
 
 	<script type='text/javascript'>
+
 		//$.ajax({ url: "test.htm", 
 		//		 context: document.body, 
 		//		 success: function() { alert( 'hi' ); },
@@ -34,9 +35,15 @@
 		// $(document).ready( function(){ $.get( 'test.htm', function( data ){ $('#drives').html( 'hello world' ); } ) } );
 		$( $('#drives').load( 'drives.htm' ) );
 		$( $('#graph').load( 'graph.htm' ) );
-			
+
+		var g_sel = '';
 		function showPage( id, page, dir )
 		{
+//			if ( page == 'graph' )
+//				$( $('#'+id).load( id+'.htm' ) );
+//			else
+//				setTimeout( function(){ $('#graph').html( '' ); }, 1000 );
+
 			if ( page == id )
 				$('#'+id).hide().animate( { left: dir/*, opacity:0*/ }, 0 ),
 				$('#'+id).show().animate( { left:'20px'/*, opacity:1*/ }, 500 );
@@ -45,7 +52,6 @@
 				setTimeout( function() { $('#'+id).hide(); }, 500 );
 		}
 		
-		var g_sel = '';
 		function selPage( page )
 		{	if ( g_sel == page ) return;
 			g_sel = page;

@@ -274,7 +274,7 @@ CFileIndex::SBlockItem* CFileIndex::AddChild( SBlockItem *pBlock, t_char *name, 
 	// Initialize block
 	p->parent = pBlock;
 	p->child = 0;
-	p->size =- size;
+	p->size = size;
 	p->name = name  ? (const t_char*)NewBlob( name, sz_name ) : 0;
 
 	// Update sizes
@@ -284,9 +284,10 @@ CFileIndex::SBlockItem* CFileIndex::AddChild( SBlockItem *pBlock, t_char *name, 
 	return p;
 }
 
-long CFileIndex::Index( const t_string &sRoot, long lMaxDepth, long *plCancel, SBlockItem *p )
+long CFileIndex::Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, long *plCancel )
 {
-	if ( 0 >= lMaxDepth )
+	// Sanity check
+	if ( !p || 0 >= lMaxDepth )
 		return 0;
 
 	// Do we need a cancel variable?
@@ -298,16 +299,11 @@ long CFileIndex::Index( const t_string &sRoot, long lMaxDepth, long *plCancel, S
 	if ( *plCancel )
 		return 0;
 	
-	// Start with root if needed
-	if ( !p )
-		p = &m_root;
-
 	// Assume no additions
 	long lAdded = 0;
 
-	SBlockItem *it = 0;
 	disk::SFindData fd; disk::HFIND hFind;
-	if ( disk::c_invalid_hfind != ( hFind = disk::FindFirst( sRoot.c_str(), "*", &fd ) ) )
+	if ( disk::c_invalid_hfind != ( hFind = disk::FindFirst( sRoot.c_str(), "*", &fd, disk::eReqSize ) ) )
 	{
 		do 
 		{
@@ -318,11 +314,11 @@ long CFileIndex::Index( const t_string &sRoot, long lMaxDepth, long *plCancel, S
 				lAdded++;
 
 				t_string sFull = disk::FilePath< t_char, t_string >( sRoot, fd.szName );
-				str::Print( "%s\n", sFull.c_str() );
+				// str::Print( "%s\n", sFull.c_str() );
 
 				// Directory
 				if ( 0 != ( fd.uFileAttributes & disk::eFileAttribDirectory ) )
-					Index( sFull, lMaxDepth - 1, plCancel, AddChild( p, fd.szName, 0, 0 ) );
+					Index( AddChild( p, fd.szName, 0, 0 ), sFull, lMaxDepth - 1, plCancel );
 
 				// File
 				else
@@ -332,6 +328,7 @@ long CFileIndex::Index( const t_string &sRoot, long lMaxDepth, long *plCancel, S
 
 		} while ( disk::FindNext( hFind, &fd ) );
 
+		// Close the find
 		disk::FindClose( hFind );
 
 	} // end if

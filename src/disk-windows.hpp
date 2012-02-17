@@ -166,7 +166,7 @@ str::tc_int64 Size( HFILE hFile )
 }
 
 
-HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd )
+HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd, unsigned long x_uReqFlags )
 {
 	// Sanity checks
 	if ( !x_pPath || !x_pMask || !x_pFd )
@@ -182,6 +182,16 @@ HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd )
 	HANDLE hFind = ::FindFirstFile( sRoot.c_str(), &wfd );
 	if ( INVALID_HANDLE_VALUE == hFind )
 		return c_invalid_hfind;
+	
+	// Ignore . and ..
+	while ( isDotPath( wfd.cFileName ) )
+		if ( !::FindNextFile( x_hFind, &wfd ) )
+		{	::FindClose( hFind );
+			return c_invalid_hfind;
+		} // end if
+
+	// +++ Linux hack
+	x_pFd->orgPath = 0;
 
 	// Copy over data
 	x_pFd->uFileAttributes = wfd.dwFileAttributes;
@@ -189,7 +199,7 @@ HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd )
 	x_pFd->ftLastAccess = (str::tc_int64)wfd.ftLastAccessTime.dwLowDateTime | ( (str::tc_int64)wfd.ftLastAccessTime.dwHighDateTime << 32 );
 	x_pFd->ftLastModified = (str::tc_int64)wfd.ftLastWriteTime.dwLowDateTime | ( (str::tc_int64)wfd.ftLastWriteTime.dwHighDateTime << 32 );
 	x_pFd->llSize = (str::tc_int64)wfd.nFileSizeLow | ( (str::tc_int64)wfd.nFileSizeHigh << 32 );
-	zstr::Copy( x_pFd->szName, sizeof( x_pFd->szName ), wfd.cFileName );
+	zstr::Copy( x_pFd->szName, sizeof( x_pFd->szName ), wfd.cFileName );	
 
 	// Return the file handle
 	return (HFIND)hFind;
@@ -204,9 +214,13 @@ bool FindNext( HFIND x_hFind, SFindData *x_pFd )
 	WIN32_FIND_DATA wfd;
 	ZeroMemory( &wfd, sizeof( wfd ) );
 
-	// Attempt to find the next file
-	if ( !::FindNextFile( x_hFind, &wfd ) )
-		return false;
+	do
+	{
+		// Attempt to find the next file
+		if ( !::FindNextFile( x_hFind, &wfd ) )
+			return false;
+
+	} while ( isDotPath( wfd.cFileName ) );
 
 	// Copy over data
 	x_pFd->uFileAttributes = wfd.dwFileAttributes;
