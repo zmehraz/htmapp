@@ -1,6 +1,8 @@
 
 #pragma once
 
+#define tcDECLARE_HANDLE( h ) struct h##_htmapp_handle; typedef struct h##_htmapp_handle *h
+
 class CFileIndex
 {
 private:
@@ -12,31 +14,42 @@ public:
 	typedef long long int	t_size;
 	typedef long			t_offset;
 	typedef char			t_char;
-
+	
 	/// String type
 	typedef std::basic_string< t_char >	t_string;
 	
 	/// Update callback type
-	typedef bool (*fn_callback)( CFileIndex*, void* );
+	typedef long (*fn_callback)( CFileIndex*, void* );
+	
+	/// Block handle type
+	tcDECLARE_HANDLE( t_block );
+//	typedef void*			t_block;
+	
+	/// Blob handle
+	tcDECLARE_HANDLE( t_blob );
+//	typedef void*			t_blob;
 
 public:
 
 	struct SBlockItem
 	{
 		/// Offset to parent block item
-		SBlockItem		*parent;
+		t_block			parent;
 
 		/// Offset to next block item
-		SBlockItem		*next;
+		t_block			next;
 
 		/// Offset to child item
-		SBlockItem		*child;
+		t_block			child;
+
+		/// Item name
+		t_blob			name;
 
 		/// Item size
 		t_size			size;
-
-		/// Item name
-		const t_char	*name;
+		
+		/// Flags
+		long			flags;
 	};
 
 public:
@@ -49,39 +62,60 @@ public:
 
 	/// Releases all resources
 	void Destroy();
+	
+	/// Empties the list without releasing memory
+	void clear();
 
 	/// Allocate initial storage for indexing
 	bool Init( t_size nBlock, t_size nBlob = 0 );
 
 	/// Initializes the specified block
-	void InitBlock( SBlockItem *p );
+//	void InitBlock( SBlockItem *p );
 
-	/// Returns a pointer to the root block
-	SBlockItem* getRoot() { return &m_root; }
+	/// Returns the root node
+	t_block getRoot() { return m_root; }
 
+	/// Returns a pointer to the specified item
+	SBlockItem* getItem( t_block offset ) 
+	{	if ( (t_size)offset + sizeof( SBlockItem ) < m_blocks.size() ) 
+			return (SBlockItem*)&m_blocks[ (t_size)offset ]; 
+		return 0;
+	}
+	
+	/// Returns a pointer to the specified blob data
+	const char* getBlob( t_blob offset, t_size *pSz = 0 ) 
+	{	if ( (t_size)offset + sizeof( t_size ) < m_blobs.size() ) 
+		{	t_size sz = *((t_size*)&m_blobs[ (t_size)offset ]);
+			if ( (t_size)offset + sizeof( t_size ) + sz > m_blobs.size() )
+				return 0;
+			return (const char*)&m_blobs[ (t_size)offset + sizeof( t_size ) ]; 
+		} // end if
+		return 0;
+	}
+	
 	/// Returns a new uninitialized block
-	SBlockItem* NewBlock();
+	t_block NewBlock();
 
 	/// Returns a new blob, blobs cannot be deleted
-	void* NewBlob( const void* p, t_size size );
+	t_blob NewBlob( const void* p, t_size size );
 
 	/// Removes a blocks size from the parent chain counts
-	void RemoveCount( SBlockItem *pBlock );
+	void RemoveCount( SBlockItem *p );
 
 	/// Removes a blocks children
-	void RemoveChildren( SBlockItem *pBlock );
+	void RemoveChildren( SBlockItem *p );
 
 	/// Removes the specified block, the block is not released, but can be reused
-	void RemoveBlock( SBlockItem *pBlock );
+	void RemoveBlock( t_block hBlock );
 
 	/// Add a sibling to the specified block
-	SBlockItem* AddSibling( SBlockItem *pBlock, const t_char *name, t_size sz_name, t_size size );
+	t_block AddSibling( t_block hBlock, const t_char *name, t_size sz_name, t_size size, long flags );
 
 	/// Adds a child item to the specified block
-	SBlockItem* AddChild( SBlockItem *pBlock, t_char *name, t_size sz_name, t_size size );
+	t_block AddChild( t_block hBlock, t_char *name, t_size sz_name, t_size size, long flags );
 
 	/// Indexes the specified root folder
-	long Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, long *plCancel = 0 );
+	long Index( t_block p, const t_string &sRoot, long lMinDepth, long lMaxDepth, volatile long *plCancel = 0 );
 
 	/// Sets the output key
 	void setCallback( fn_callback p, void* u ) { m_f = p; m_user = u; }
@@ -94,11 +128,11 @@ private:
 	/// User data passed to callback function
 	void					*m_user;
 
-	/// Root block
-	SBlockItem				m_root;
-
+	/// Root node
+	t_block					m_root;
+	
 	/// Deleted block chain
-	SBlockItem				*m_deleted;
+	t_block					m_deleted;
 
 	/// Block array
 	std::vector< char >		m_blocks;

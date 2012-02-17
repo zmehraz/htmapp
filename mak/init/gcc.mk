@@ -46,6 +46,12 @@ else
 	endif
 endif
 
+# debug build
+ifneq ($(DBG),)
+	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -g -DDEBUG -D_DEBUG
+	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -g
+endif
+
 # Shared library
 ifeq ($(PRJ_TYPE),dll)
 	ifeq ($(TGT_PLATFORM),windows)
@@ -74,6 +80,4 @@ else
 		endif
 	endif
 endif
-
-
 

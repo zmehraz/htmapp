@@ -1,3 +1,5 @@
+<meta http-equiv="refresh" content="3" />
+<pre>
 <?global
 
 	void make_array( t_pb8 &pb, long d, long &i )
@@ -14,54 +16,123 @@
 	}
 
 
+#include <string.h>
 #include <time.h>
 #include "cpp/file_index.h"
 
-	static long g_lThreadId = -1;
-	static long g_lCancel = 0;
-	static unsigned long g_lLastUpdate = 0;
+	static volatile long g_topmax = 5;
+	static volatile long g_depthmax = 1;
 	
-	long add_items( t_pb &pb, CFileIndex::SBlockItem *p, long lDepth = 0 )
+	static volatile long g_lThreadId = -1;
+	static volatile long g_lCancel = 0;
+	static volatile unsigned long g_lLastUpdate = 0;
+	
+	bool replace_smallest( CFileIndex::SBlockItem *p, CFileIndex::SBlockItem **lst, long sz_lst )
 	{
-		if ( !p || 32 < lDepth )
+		long smallest = 0;
+		for ( long i = 0; i < sz_lst; i++ )
+		{
+			// Empty slot?
+			if ( !lst[ i ] )
+			{	lst[ i ] = p;
+				return true;
+			} // end if
+			
+			// Track the smallest item
+			if ( smallest != i && lst[ i ]->size < lst[ smallest ]->size )
+				smallest = i;
+		
+		} // end for
+		
+		// Punt if new item is smaller than the smallest
+		if ( p->size <= lst[ smallest ]->size )
+			return false;
+
+		// Replace smallest
+		lst[ smallest ] = p;
+		
+		return true;		
+	}
+	
+	void add_item( t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p );
+	long add_items( t_pb &pb, CFileIndex &fi, CFileIndex::t_block b, long lDepth = 0 )
+	{
+		if ( !b || g_depthmax < lDepth )
+			return 0;
+
+		CFileIndex::SBlockItem *p = fi.getItem( b );
+		if ( !p )
 			return 0;
 		
 		// If it's the root
 		if ( 0 >= lDepth )
 		{	pb[ "name" ] = "<root>";
-			return add_items( pb[ "children" ], p->child, lDepth + 1 );
+			pb[ "size" ] = p->size;
+			return add_items( pb[ "children" ], fi, p->child, lDepth + 1 );
 		} // end if
-		else
-			pb.is_list( true );
-		
-		long i = 0;
-		while ( p )
-		{
-			// Create a new entry
-			t_pb &r = pb[ i++ ];
+
+		// This will be a list
+		pb.is_list( true );
 			
-			// Set our name
-			r[ "name" ] = p->name ? p->name : "<empty>";
-	
-//			str::Print( "%s\n", p->name ? p->name : "<empty>" );
-
-			// Add children
-			if ( p->child )
-				add_items( r[ "children" ], p->child, lDepth + 1 );
-			else
-				r[ "size" ] = p->size;
+		// Top array
+		g_topmax = cmn::Min( g_topmax, 256l );
+		CFileIndex::SBlockItem *tdir[ 256 ], *tfile[ 256 ];
+		memset( tdir, 0, sizeof( CFileIndex::SBlockItem ) * g_topmax );
+		memset( tfile, 0, sizeof( CFileIndex::SBlockItem ) * g_topmax );
 		
+		// Find the top 'g_topmax' items
+		CFileIndex::SBlockItem *it = fi.getItem( b );
+		while ( it )
+		{
+			// Tree?
+			if ( it->child )
+				replace_smallest( it, tdir, g_topmax );
+			else
+				replace_smallest( it, tfile, g_topmax );
+				
 			// Next sibling
-			p = p->next;
-
+			it = it->next ? fi.getItem( it->next ) : 0;
+		
 		} // end while
 
-		return i;
+		long idx = 0;
+
+		// Add top directories
+		for ( long i = 0; i < g_topmax && tdir[ i ]; i++ )
+		{	t_pb &r = pb[ idx++ ];
+			add_item( r, fi, tdir[ i ] );
+			add_items( r[ "children" ], fi, tdir[ i ]->child, lDepth + 1 );
+		} // end for
+			
+		// Add top files
+		for ( long i = 0; i < g_topmax && tfile[ i ]; i++ )		
+			add_item( pb[ idx++ ], fi, tfile[ i ] );
+
+		return idx;
 	}
 	
-	bool index_callback( CFileIndex *pFi, void *p )
+	void add_item( t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
+	{
+//		CFileIndex::SBlockItem *p = fi.getItem( b );
+		if ( !p )
+			return;
+		
+		// Set our name
+		pb[ "name" ] = fi.getBlob( p->name );
+
+//		str::Print( "%s\n", fi.getBlob( p->name ) );
+
+		// Add size if no children
+//		if ( !p->child )
+			pb[ "size" ] = p->size;
+	}
+	
+	
+	long index_callback( CFileIndex *pFi, void *p )
 	{
 //		str::Print( "%s\n", p->name ? p->name : "<empty>" );
+		if ( !pFi )
+			return g_lCancel;
 
 		// Update once per second
 		const unsigned long t = (const unsigned long)time( 0 );
@@ -71,7 +142,7 @@
 
 		// Lock the global property bag
 		t_pb pb;
-		add_items( pb, pFi->getRoot() );
+		add_items( pb, *pFi, pFi->getRoot() );
 		tq::set( "indexer.out", pb, "." );
 		
 		return g_lCancel;
@@ -80,11 +151,12 @@
 	static long index_thread( CThread *t, void *p )
 	{
 		// Cancel flag
-		long *pCancel = (long*)p;
+		// long *pCancel = (long*)p;
 
 		// Indexing object
-		CFileIndex fi( 1024 * 1024 );
-		fi.setCallback( index_callback, 0 );
+//		CFileIndex fi( 1024 * 1024 );
+		CFileIndex fi( 1024 );
+		fi.setCallback( index_callback, p );
 		
 		bool bOnce = true;
 
@@ -101,9 +173,9 @@
 				// Clear run flag
 				tq::set( "indexer.run", "", "." );
 
-				// Index the file system
-//				fi.Index( fi.getRoot(), "/tmp", 32 );
-				fi.Index( fi.getRoot(), "/build", 32 );
+				long lMin = 0;
+				while ( 0 < fi.Index( fi.getRoot(), "/", lMin, lMin + 1, t->getStopFlag() ) ) 
+					lMin++;
 				
 				// Final update
 				g_lLastUpdate = 0;
@@ -127,10 +199,11 @@
 
 	// Start the thread
 	if ( 0 > g_lThreadId )
-		g_lThreadId = tq::start( index_thread, &g_lCancel );
+		g_lThreadId = tq::start( index_thread );
 
 	// Send back output status
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( tq::get( "indexer.out", "." ) ).c_str();
 
 	return 0;
 ?>
+</pre>

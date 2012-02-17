@@ -951,6 +951,9 @@ public:
 
 	/// Returns a reference to the init event
 	CThreadResource& getInitEvent() { return m_evInit; }
+	
+	/// Returns a pointer to the stop flag
+	volatile long* getStopFlag() { return &m_lStopFlag; }
 
 	/// Return value of InitThread()
 	/// call GetInitEvent().Wait() to ensure it's valid
@@ -995,12 +998,15 @@ private:
 	/// Return value of InitThread()
 	bool									m_bInitStatus;
 
+	/// Stop flag, non-zero if thread should stop
+	volatile long							m_lStopFlag;
+
     /// Count of all threads that were created
     static long                             m_lThreadCount;
 
     /// Number of threads still running
     static long                             m_lRunningThreadCount;
-
+	
 protected:
 
     /// Quit signal

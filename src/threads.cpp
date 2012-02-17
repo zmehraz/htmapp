@@ -41,6 +41,7 @@
 CThread::CThread()
 {
     m_pData = 0;
+	m_lStopFlag = 0;
 	m_bInitStatus = false;
 }
 
@@ -100,34 +101,32 @@ void* CThread::ThreadProc( void* x_pData )
 	if ( pThread->m_bInitStatus )
 	{
 		// Loop while we're not supposed to stop
-		if ( pThread->m_evStop.Wait( 0 ) )
+		bool nDone = false;
+		while ( !nDone )
 		{
-			bool nDone = false;
-			while ( !nDone )
+			try
 			{
-				try
-				{
-					// Init our exception injector
-					InitException();
+				// Init our exception injector
+				InitException();
 
-					// Call do thread
-					nSleep = pThread->DoThread( pData );
+				// Call do thread
+				nSleep = pThread->DoThread( pData );
 
-				} // end try
+			} // end try
 
-				catch( ... )
-				{
-					// +++ Should probably report error here
+			catch( ... )
+			{
+				// +++ Should probably report error here
 
-				} // end catch
+			} // end catch
 
-				// Check for stop signal
-				if ( 0 > nSleep || !pThread->m_evStop.Wait( nSleep ) )
-					nDone = true;
+			// Check for stop signal
+			if ( 0 > nSleep 
+				 || *pThread->getStopFlag()
+				 || !pThread->m_evStop.Wait( nSleep ) )
+				nDone = true;
 
-			} // end while
-
-		} // end if
+		} // end while
 
 		try
 		{
@@ -142,6 +141,7 @@ void* CThread::ThreadProc( void* x_pData )
 		catch( ... )
 		{
 			pThread->m_bInitStatus = 0;
+
 		} // end catch
 
 	} // end if
@@ -165,6 +165,9 @@ long CThread::Start( void* x_pData )
     // Give the thread a fighting chance
     m_evStop.Reset();
     m_evInit.Reset();
+	
+	// Clear stop flag
+	m_lStopFlag = 0;
 
 	// Attempt to create the thread
 	if ( CThreadResource::NewThread( CThread::ThreadProc, this ) )
@@ -175,6 +178,8 @@ long CThread::Start( void* x_pData )
 
 long CThread::Stop( unsigned long x_uWait, bool x_bKill )
 {
+	// Set the stop flag
+	m_lStopFlag = 1;
 
 	// Signal that the thread should exit
 	m_evStop.Signal();

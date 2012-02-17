@@ -12,10 +12,10 @@ CFileIndex::CFileIndex( t_size nBlock, t_size nBlob )
 {
 	m_f = 0;
 	m_user = 0;
+	m_root = 0;
 	m_deleted = 0;
 	m_blob_offset = 0;
 	m_block_offset = 0;
-	memset( &m_root, 0, sizeof( m_root ) );
 
 	if ( nBlock )
 		Init( nBlock, nBlob );
@@ -23,22 +23,37 @@ CFileIndex::CFileIndex( t_size nBlock, t_size nBlob )
 
 CFileIndex::~CFileIndex()
 {
+	m_f = 0;
+	m_user = 0;
 	Destroy();
 }
 
 void CFileIndex::Destroy()
 {
-	// Clear data
-	m_f = 0;
-	m_user = 0;
-	m_deleted = 0;
-	m_blob_offset = 0;
-	m_block_offset = 0;
-	memset( &m_root, 0, sizeof( m_root ) );
+	// Reset blocks
+	clear();
+
+	// Dump the root node
+	m_root = 0;
 
 	// Release memory
 	m_blocks.clear();
 	m_blobs.clear();
+}
+
+void CFileIndex::clear()
+{
+	// Clear data
+	m_deleted = 0;
+	m_blob_offset = 0;
+	m_block_offset = 0;
+	
+	// Clear the root node
+	if ( m_root )
+	{	SBlockItem *pRoot = getItem( m_root );
+		memset( pRoot, 0, sizeof( SBlockItem ) );
+	} // end if
+	
 }
 
 bool CFileIndex::Init( t_size nBlock, t_size nBlob )
@@ -59,17 +74,46 @@ bool CFileIndex::Init( t_size nBlock, t_size nBlob )
 
 	try { m_blobs.resize( nBlob ); }
 	catch ( ... ) { Destroy(); return false; }
+	
+	// Allocate NULL Block and Blob
+	if ( !getBlob( NewBlob( "<<NULL>>", 4 ) ) || !getItem( NewBlock() ) )
+	{	Destroy(); return false; }
+
+	// Allocate a root block
+	m_root = NewBlock();
+	if ( !m_root )
+	{	Destroy(); return false; }
+	
+	// Allocate root item
+	SBlockItem *root = getItem( m_root );
+	if ( !root ) 
+	{	Destroy(); return false; }
+	
+	// Initialize root item
+	memset( root, 0, sizeof( SBlockItem ) );
 
 	return true;
 }
 
-CFileIndex::SBlockItem* CFileIndex::NewBlock()
+CFileIndex::t_block CFileIndex::NewBlock()
 {
 	// Is there a deleted block we can use?
 	if ( m_deleted )
-	{	SBlockItem *p = m_deleted;
-		m_deleted = p->next;
-		return p;
+	{	
+		// Save away the block we want to use
+		t_block t = m_deleted;
+		
+		// Is the deleted block valid?
+		SBlockItem *p = getItem( m_deleted );
+		if ( p )
+		{	m_deleted = p ? p->next : 0;
+			return t; 
+		} // end if
+		
+		// !!! Reset deleted chain
+		else
+			m_deleted = 0;
+
 	} // end if
 
 	// Ensure space
@@ -86,101 +130,123 @@ CFileIndex::SBlockItem* CFileIndex::NewBlock()
 	} // end if
 
 	// Allocate a block
-	SBlockItem *p = (SBlockItem*)&m_blocks[ m_block_offset ];
+	t_block p = (t_block)m_block_offset;
 	m_block_offset += sizeof( SBlockItem );
 
 	return p;
 }
 
-void CFileIndex::RemoveCount( SBlockItem *pBlock )
+void CFileIndex::RemoveCount( SBlockItem *p )
 {
-	if ( !pBlock || !pBlock->size )
+	if ( !p )
 		return;
 
 	// Remove size from the parent chain
-	t_size size = pBlock->size;
-	while ( pBlock->parent )
-		pBlock->parent -= size,
-		pBlock = pBlock->parent;
+	t_size size = p->size;
+	while ( p->parent )
+		p = getItem( p->parent ), p->size -= size;
 }
 
-void CFileIndex::RemoveChildren( SBlockItem *pBlock )
+void CFileIndex::RemoveChildren( SBlockItem *p )
 {
-	// Remove all children
-	if ( !pBlock || !pBlock->child )
+	/// Sanity check
+	if ( !p || !p->child )
 		return;
 
-	// Remove children of the children
-	if ( pBlock->child->child )
-		RemoveCount( pBlock->child ),
-		RemoveChildren( pBlock->child );
+	// Get child item
+	SBlockItem *pChild = getItem( p->child );
+	if ( !pChild )
+		return;
 
 	// Remove children in the list
-	SBlockItem *p = pBlock->child;
-	while ( p->next ) 
-		RemoveCount( p->child ),
-		RemoveChildren( p = p->next );
+	while ( pChild->next ) 
+		RemoveCount( pChild ),
+		RemoveChildren( pChild ),
+		pChild = getItem( pChild->next );
+
+	// Remove children of the children
+	RemoveCount( pChild );
+	RemoveChildren( pChild );
 
 	// Put this list in the deleted items
-	p = m_deleted;
-	m_deleted = pBlock->child;
-	pBlock->child = 0;
+	pChild->next = m_deleted;
+	m_deleted = p->child;
+	p->child = 0;
+
 }
 
-void CFileIndex::RemoveBlock( SBlockItem *pBlock )
+void CFileIndex::RemoveBlock( t_block hBlock )
 {
-	if ( !pBlock )
+	// Can't remove the root block
+	if ( !hBlock || getRoot() == hBlock )
+		return;
+
+	// Get block info
+	SBlockItem *p = getItem( hBlock );
+	if ( !p )
 		return;
 
 	// Remove children
-	RemoveChildren( pBlock );
+	RemoveChildren( p );
 
 	// Update parent
-	if ( pBlock->parent )
+	if ( p->parent )
 	{
-		// Are we the first in the list?
-		if ( pBlock->parent->child == pBlock )
-			pBlock->parent->child = pBlock->next;
+		// Get parent pointer
+		SBlockItem *pParent = getItem( p->parent );
+		if ( pParent )
+		{
+			// Are we the first in the list?
+			if ( pParent->child == hBlock )
+				pParent->child = p->next;
 
-		// Find us in the sibling list
-		else
-		{	SBlockItem *p = pBlock->parent->child;
-			while ( p )
+			// If there are children
+			else if ( pParent->child )
 			{
-				// Is this the previous node?
-				if ( p->next == pBlock )
-				{	p->next = pBlock->next;
-					break;
-				} // end if
+				// Find us in the sibling list
+				SBlockItem *pSib = getItem( pParent->child );
+				while ( pSib )
+				{
+					// Is this the previous node?
+					if ( pSib->next == hBlock )
+					{	pSib->next = p->next;
+						break;
+					} // end if
 
-				// Next sibling
-				p = p->next;
+					// Next sibling
+					pSib = getItem( pSib->next );
 
-			} // end while
+				} // end while
 
-		} // end else
+			} // end else
+			
+			// !!! This shouldn't happen
+			else
+				;
+
+		} // end if
 
 	} // end if
 
 	// Update counts
-	RemoveCount( pBlock->child ),
+	RemoveCount( p ),
 
 	// Add us to the deleted chain
-	pBlock->next = m_deleted;
-	m_deleted = pBlock;
+	p->next = m_deleted;
+	m_deleted = hBlock;
 }
 
-void* CFileIndex::NewBlob( const void* p, t_size size )
+CFileIndex::t_blob CFileIndex::NewBlob( const void* pInit, t_size size )
 {
 	if ( 0 >= size )
 	{
 		// Must have valid pointer if no size
-		if ( !p )
+		if ( !pInit )
 			return 0;
 
 		// NULL terminiated
 		size = 0;
-		while ( ((char*)p)[ size ] )
+		while ( ((char*)pInit)[ size ] )
 			size++;
 
 		// Non-zero size?
@@ -190,7 +256,7 @@ void* CFileIndex::NewBlob( const void* p, t_size size )
 	} // end if
 
 	// We're allocating an implicit null character
-	t_size asize = size + 1;
+	t_size asize = sizeof( t_size ) + size + 1;
 	
 	// Ensure space
 	if ( ( m_blob_offset + asize ) > m_blobs.size() )
@@ -201,7 +267,7 @@ void* CFileIndex::NewBlob( const void* p, t_size size )
 
 		// Increase size / we're allocating an implicit null character
 		t_size newsize = m_blobs.size();
-		while ( newsize && newsize < asize )
+		while ( newsize && newsize < ( m_blob_offset + asize ) )
 			newsize <<= 1;
 
 		// Did it overflow?
@@ -213,81 +279,117 @@ void* CFileIndex::NewBlob( const void* p, t_size size )
 		catch( ... ) { return 0; }
 
 	} // end if
+	
+	// Get block pointer
+	char *p = (char*)&m_blobs[ m_blob_offset ];
+	if ( !p )
+		return 0;
 
-	// Allocate a block
-	void *pBlob = (void*)&m_blobs[ m_blob_offset ];
+	// Allocate the block
+	t_blob b =(t_blob)m_blob_offset;
 	m_blob_offset += asize;
 
-	// Copy data if needed
-	if ( p )
-		memcpy( pBlob, p, size );
+	// Set the blob size
+	*((t_size*)p) = size;
+	p += sizeof( t_size );
+		
+	// Copy blob data if needed
+	if ( pInit )
+		memcpy( p, pInit, size );
 	
 	// Null terminate
-	((char*)pBlob)[ size ] = 0;
+	p[ size ] = 0;
 
-	return pBlob;
+	// Return blob offset
+	return b;
 }
 
-CFileIndex::SBlockItem* CFileIndex::AddSibling( SBlockItem *pBlock, const t_char *name, t_size sz_name, t_size size )
+CFileIndex::t_block CFileIndex::AddSibling( t_block hBlock, const t_char *name, t_size sz_name, t_size size, long flags )
 {
 	// Note, the root node can't have siblings
-	if ( !pBlock || !pBlock->parent )
+	if ( !hBlock || getRoot() == hBlock )
+		return 0;
+		
+	// Allocate new block, this could invalidate all pointers
+	t_block hNew = NewBlock();
+	if ( !hNew )
+		return 0;
+		
+	SBlockItem *pNew = getItem( hNew );
+	if ( !pNew )
 		return 0;
 
-	SBlockItem *p = NewBlock();
-	if ( !p )
+	SBlockItem *p = getItem( hBlock );
+	if ( !p || !p->parent )		
 		return 0;
 
+	SBlockItem *pParent = getItem( p->parent );
+	if ( !pParent )
+		return 0;
+	
 	// Add us into the list
-	p->next = pBlock->parent->child;
-	pBlock->parent->child = p;
+	pNew->next = pParent->child;
+	pParent->child = hNew;
 		
 	// Initialize block
-	p->parent = pBlock->parent;
-	p->next = 0;
-	p->child = 0;
-	p->size = size;
-	p->name = name  ? (const t_char*)NewBlob( name, sz_name ) : 0;
+	pNew->parent = p->parent;
+	pNew->child = 0;
+	pNew->size = size;
+	pNew->flags = flags;
+	pNew->name = NewBlob( name, sz_name );
 
 	// Update sizes
-	pBlock = p->parent;
-	while ( pBlock )
-		pBlock->size += size, pBlock = pBlock->parent;
+	while ( pParent )
+		pParent->size += size,
+		pParent = pParent->parent ? getItem( pParent->parent ) : 0;
 
-	return p;
+	return hNew;
 }
 
-CFileIndex::SBlockItem* CFileIndex::AddChild( SBlockItem *pBlock, t_char *name, t_size sz_name, t_size size )
+CFileIndex::t_block CFileIndex::AddChild( t_block hBlock, t_char *name, t_size sz_name, t_size size, long flags )
 {
-	// NULL means child of the root
-	if ( !pBlock )
-		return pBlock = &m_root;
+	// Allocate a new block, this could invalidate all pointers
+	t_block hNew = NewBlock();
+	if ( !hNew )
+		return 0;
+		
+	// Get new block structure
+	SBlockItem *pNew = getItem( hNew );
+	if ( !pNew )
+		return 0;
 
-	SBlockItem *p = NewBlock();
-	if ( !p )
+	// Zero means root
+	if ( !hBlock )
+		hBlock = getRoot();
+
+	// Get block info
+	SBlockItem *p = getItem( hBlock );
+	if ( !p )		
 		return 0;
 
 	// Add as child
-	p->next = pBlock->child;
-	pBlock->child = p;
+	pNew->next = p->child;
+	p->child = hNew;
 
 	// Initialize block
-	p->parent = pBlock;
-	p->child = 0;
-	p->size = size;
-	p->name = name  ? (const t_char*)NewBlob( name, sz_name ) : 0;
+	pNew->parent = hBlock;
+	pNew->child = 0;
+	pNew->size = size;
+	pNew->flags = flags;
+	pNew->name = NewBlob( name, sz_name );
 
 	// Update sizes
-	while ( pBlock )
-		pBlock->size += size, pBlock = pBlock->parent;
+	while ( p )
+		p->size += size,
+		p = p->parent ? getItem( p->parent ) : 0;
 
-	return p;
+	return hNew;
 }
 
-long CFileIndex::Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, long *plCancel )
+long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, long lMaxDepth, volatile long *plCancel )
 {
 	// Sanity check
-	if ( !p || 0 >= lMaxDepth )
+	if ( !hBlock || 0 >= lMaxDepth )
 		return 0;
 
 	// Do we need a cancel variable?
@@ -295,18 +397,52 @@ long CFileIndex::Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, lo
 	if ( !plCancel )
 		plCancel = &lCancel;
 
-	// Check for cancel signal
-	if ( *plCancel )
-		return 0;
-	
 	// Assume no additions
 	long lAdded = 0;
+	
+	// Are we at the minimum depth?
+	if ( 0 < lMinDepth )
+	{
+		// Skip the root item
+		if ( hBlock == getRoot() )
+			lMinDepth++, lMaxDepth++;
+	
+		// Just pass on down to the next level
+		while ( hBlock )
+		{	
+			// Check for cancel signal
+			if ( plCancel && *plCancel )
+				return 0;
+		
+			// Get block information
+			SBlockItem *p = getItem( hBlock );
+			
+			// Go ahead and point to next block, 
+			// pointer may not be good after Index() returns
+			hBlock = p->next;
+			
+			// Process this block if directory
+			if ( p && p->name && 0 != ( p->flags & disk::eFileAttribDirectory ) )
+				lAdded += Index( p->child, disk::FilePath< t_char, t_string >( sRoot, getBlob( p->name ) ),
+								 lMinDepth - 1, lMaxDepth - 1, plCancel );
+
+		} // end while		
+
+		return lAdded;
+		
+	} // end if
 
 	disk::SFindData fd; disk::HFIND hFind;
 	if ( disk::c_invalid_hfind != ( hFind = disk::FindFirst( sRoot.c_str(), "*", &fd, disk::eReqSize ) ) )
 	{
 		do 
 		{
+			// Check for cancel signal
+			if ( plCancel && *plCancel )
+			{	disk::FindClose( hFind );			
+				return 0;
+			} // end if
+		
 			// Dot check
 			if ( fd.szName[ 0 ] != '.'
 				 || ( fd.szName[ 1 ] && ( fd.szName[ 1 ] != '.' || fd.szName[ 2 ] ) ) )
@@ -318,14 +454,16 @@ long CFileIndex::Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, lo
 
 				// Directory
 				if ( 0 != ( fd.uFileAttributes & disk::eFileAttribDirectory ) )
-					Index( AddChild( p, fd.szName, 0, 0 ), sFull, lMaxDepth - 1, plCancel );
+						lAdded += Index( AddChild( hBlock, fd.szName, 0, 0, fd.uFileAttributes ), 
+										 sFull, lMinDepth - 1, lMaxDepth - 1, plCancel );
 
 				// File
 				else
-					AddChild( p, fd.szName, 0, fd.llSize );
+					AddChild( hBlock, fd.szName, 0, fd.llSize, fd.uFileAttributes );
 
 			} // end if
 
+		// For each directory item
 		} while ( disk::FindNext( hFind, &fd ) );
 
 		// Close the find
@@ -334,8 +472,9 @@ long CFileIndex::Index( SBlockItem *p, const t_string &sRoot, long lMaxDepth, lo
 	} // end if
 
 	// Callback function
-	if ( m_f )
-		*plCancel = m_f( this, m_user );
+	if ( m_f && plCancel )
+		if ( m_f( this, m_user ) )
+			*plCancel = 1;
 
 	return lAdded;
 	

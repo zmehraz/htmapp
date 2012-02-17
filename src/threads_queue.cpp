@@ -149,7 +149,7 @@ namespace tq
 	}
 
 	CWorkerThread::~CWorkerThread() 
-	{
+	{	Stop();
 		m_f = 0; 
 		m_p = 0;
 	}

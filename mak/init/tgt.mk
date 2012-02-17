@@ -37,3 +37,9 @@ endif
 # Create a type string
 TTYPE := $(TGT_PLATFORM)-$(TGT_PROC)-$(TGT_LINK)
 
+# debug
+ifneq ($(findstring debug,$(TGT)),)
+	DBG := 1
+	TTYPE := $(TTYPE)-debug
+endif
+
