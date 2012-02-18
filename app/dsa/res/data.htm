@@ -21,8 +21,8 @@
 			pb[ "size" ] = rand() % 10;		
 	}
 
-	static volatile long g_topmax = 5;
-	static volatile long g_depthmax = 3;
+	static volatile long g_topmax = 10;
+	static volatile long g_depthmax = 2;
 	
 	static volatile long g_lThreadId = -1;
 	static volatile long g_lCancel = 0;
@@ -55,8 +55,8 @@
 		return true;		
 	}
 	
-	void add_item( t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p );
-	long add_items( t_pb &pb, CFileIndex &fi, CFileIndex::t_block b, long lDepth = 0 )
+	void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p );
+	long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_block b, long lDepth = 0 )
 	{
 		if ( !b || g_depthmax < lDepth )
 			return 0;
@@ -69,7 +69,7 @@
 		if ( 0 >= lDepth )
 		{	pb[ "name" ] = "<root>";
 			// pb[ "size" ] = p->size;
-			return add_items( pb[ "children" ], fi, p->child, lDepth + 1 );
+			return add_items( "/", pb[ "children" ], fi, p->child, lDepth + 1 );
 		} // end if
 
 		// This will be a list
@@ -101,18 +101,19 @@
 		// Add top directories
 		for ( long i = 0; i < g_topmax && tdir[ i ]; i++ )
 		{	t_pb &r = pb[ idx++ ];
-			add_item( r, fi, tdir[ i ] );
-			add_items( r[ "children" ], fi, tdir[ i ]->child, lDepth + 1 );
+			add_item( sRoot, r, fi, tdir[ i ] );
+			add_items( disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( tdir[ i ]->name ) ),
+					   r[ "children" ], fi, tdir[ i ]->child, lDepth + 1 );
 		} // end for
 			
 		// Add top files
 		for ( long i = 0; i < g_topmax && tfile[ i ]; i++ )		
-			add_item( pb[ idx++ ], fi, tfile[ i ] );
+			add_item( sRoot, pb[ idx++ ], fi, tfile[ i ] );
 
 		return idx;
 	}
 	
-	void add_item( t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
+	void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
 	{
 //		CFileIndex::SBlockItem *p = fi.getItem( b );
 		if ( !p )
@@ -120,6 +121,20 @@
 		
 		// Set our name
 		pb[ "name" ] = fi.getBlob( p->name );
+		pb[ "hrd" ] = str::t_string()
+					  + "<b>" + str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B"
+					  + "</b><br>&nbsp;&nbsp;"
+					  + disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( p->name ) );
+		
+		if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
+//		if ( p->child )
+			pb[ "colour" ] = "#804000";
+		else
+			pb[ "colour" ] = "#004080";
+		
+		
+//					  disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( p->name ) )
+//					  + " - " + str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B";
 
 //		str::Print( "%s\n", fi.getBlob( p->name ) );
 
@@ -143,7 +158,7 @@
 
 		// Lock the global property bag
 		t_pb pb;
-		add_items( pb, *pFi, pFi->getRoot() );
+		add_items( "", pb, *pFi, pFi->getRoot() );
 		tq::set( "indexer.out", pb, "." );
 		
 		return g_lCancel;
@@ -190,13 +205,13 @@
 	}
 
 ?><?c
-
+/*
 	t_pb8 pb;
 	long i = 0;
 	make_array( pb, 3, i );
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 	return 0;
-
+*/
 
 	// Start the thread
 	if ( 0 > g_lThreadId )

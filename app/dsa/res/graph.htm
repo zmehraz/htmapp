@@ -31,14 +31,6 @@
 			return false;
 		}
 
-			function doAnimation()
-			{
-				vis.select(this)
-					//.transition()
-					//.duration(1000)
-					;
-			}
-			
 		function poll_data()
 		{
 			$.ajax({ url: "data.htm", 
@@ -50,34 +42,41 @@
 							var path = vis
 							   .data([json])
 							   .selectAll("path")
-//							   .transition()
-//							   .duration(500)
 							   .data(partition.nodes)
-							   .on("mousedown", function()
-							   { 
-									path
-										.transition()
-										.duration(1000)
-										.style("stroke","#F22"); 
-							   })
-					   
-//							   .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
+							   .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
 							   .attr("d", arc)
 //							   .attr("fill-rule", "evenodd")
+//							   .style("stroke", "#222")
+							   .style("fill", function(d) { return d.colour; })
+//							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+								;
+/*
+							path
+							   .style("stroke", "#F00")
+							   .transition()
+							   .duration(2000)
 							   .style("stroke", "#222")
-							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
-//							   .transition()
-//							   .duration(500)
 //							   .attrTween("d", arcTween)
 								;
-								
+*/								
 							path
 							   .enter().append("path")
 //							   .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
 							   .attr("d", arc)
 //							   .attr("fill-rule", "evenodd")
 							   .style("stroke", "#222")
-							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+							   .style("fill", function(d) { return d.colour; })
+//							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+							   .on("mouseover", function(d)
+							   {
+									d3.select(this).style("stroke", "#0FF");
+									$('.highlight').html( d.hrd );
+//									alert( d.hrd );
+							   })
+							   .on("mouseout", function(d)
+							   {
+									d3.select(this).style("stroke", "#222");
+							   })
 							   .each(stash)
 							   ;
 							   
@@ -88,13 +87,13 @@
 								
 						} // end if
 						
-						setTimeout( poll_data, 3000 );
+						setTimeout( poll_data, 1000 );
 					 },
 					 error: function(xhr,opt,msg) { setTimeout( poll_data, 1000 ); },
 				});
 		}
 			
-		setTimeout( poll_data, 3000 );
+		setTimeout( poll_data, 1000 );
 
 		// Stash the old values for transition.
 		function stash(d) {

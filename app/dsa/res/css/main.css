@@ -1,7 +1,10 @@
 body
 {
+	width:				100%;
+	height:				100%;
 	color: 				#ffffff;
-	background-color:	#404040;
+	/*background-color:	#404040;*/
+	background-image: -webkit-linear-gradient(#aad, #556);
 }
 
 .hidden
@@ -30,6 +33,7 @@ body
 .highlight
 {
 	position:			absolute;
+	width:				640px;
 }
 
 .usechart
