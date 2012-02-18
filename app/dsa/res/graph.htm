@@ -15,7 +15,8 @@
 		var partition = d3.layout.partition()
 			.sort(null)
 			.size([2 * Math.PI, r * r])
-			.value(function(d) { return 1; });
+			//.value(function(d) { return 1; });
+			.value(function(d) { return d.size; });
 
 		var arc = d3.svg.arc()
 			.startAngle(function(d) { return d.x; })
@@ -29,82 +30,71 @@
 				return true;
 			return false;
 		}
+
+			function doAnimation()
+			{
+				vis.select(this)
+					//.transition()
+					//.duration(1000)
+					;
+			}
 			
-		var g_init = 0;
 		function poll_data()
 		{
 			$.ajax({ url: "data.htm", 
 					 dataType: "json",
-					 success: function(data) 
+					 success: function(json) 
 					 {	
-						if ( notzero( data ) )
-							if ( !g_init )
-								data_response(data);
-							else
-								vis.data([data])
-								   .selectAll("path")
-								   .attr("d", arc);
-
-						setTimeout( poll_data, 1000 );
+						if ( notzero( json ) )
+						{
+							var path = vis
+							   .data([json])
+							   .selectAll("path")
+//							   .transition()
+//							   .duration(500)
+							   .data(partition.nodes)
+							   .on("mousedown", function()
+							   { 
+									path
+										.transition()
+										.duration(1000)
+										.style("stroke","#F22"); 
+							   })
+					   
+//							   .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
+							   .attr("d", arc)
+//							   .attr("fill-rule", "evenodd")
+							   .style("stroke", "#222")
+							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+//							   .transition()
+//							   .duration(500)
+//							   .attrTween("d", arcTween)
+								;
+								
+							path
+							   .enter().append("path")
+//							   .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
+							   .attr("d", arc)
+//							   .attr("fill-rule", "evenodd")
+							   .style("stroke", "#222")
+							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+							   .each(stash)
+							   ;
+							   
+							path
+								.exit()
+								.remove()
+								;
+								
+						} // end if
+						
+						setTimeout( poll_data, 3000 );
 					 },
-					 error: function(xhr,opt,msg) { setTimeout( poll_data, 3000 ); },
+					 error: function(xhr,opt,msg) { setTimeout( poll_data, 1000 ); },
 				});
 		}
 			
-		setTimeout( poll_data, 1000 );
-		// d3.json("data.htm", function(json){ /*if ( data.length ) data_response(json);*/ poll_data(); } );
-
-		function data_response(json){
-
-		  g_init = 1;
-
-		  var path = vis.data([json]).selectAll("path")
-			  .data(partition.nodes)
-			  .enter().append("path")
-			  .attr("display", function(d) { return d.depth ? null : "none"; }) // hide inner ring
-			  .attr("d", arc)
-			  .attr("fill-rule", "evenodd")
-			  .style("stroke", "#222")
-			  .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
-			  .each(stash);
-		  
-		/*      
-		   var text = vis.data([json]).selectAll("text") 
-			  .data(partition.nodes) 
-			  .enter().append("svg:text") 
-			  .attr("transform", function(d) { return "rotate(" + (d.x + d.dx / 2 - Math.PI / 2) / Math.PI * 180 + ")"; })
-			  .attr("x", r * Math.cos(d.x + d.dx/2) ) 
-			  .attr("y", r * Math.sin(d.x + d.dx/2)) 
-			  .attr("text-anchor", "end") 
-			  .text(d.name)
-			  .on("mouseover",function(d,i) { d3.select(this).transition().duration(300).attr("fill","#00ffff"); }) 
-			  .on("mouseout",function(d,i) { d3.select(this).transition().duration(300).attr("fill","#008000"); }); 
-		*/       
-
-		  d3.select("#size").on("click", function() {
-				path
-				.data(partition.value(function(d) { return d.size; }))
-				.transition()
-				.duration(1500)
-				.attrTween("d", arcTween);
-
-			d3.select("#size").classed("active", true);
-			d3.select("#count").classed("active", false);
-			
-		  });
-
-		  d3.select("#count").on("click", function() {
-				path
-				.data(partition.value(function(d) { return 1; }))
-				.transition()
-				.duration(1500)
-				.attrTween("d", arcTween);
-
-			d3.select("#size").classed("active", false);
-			d3.select("#count").classed("active", true);
-		  });
-		  
-		}
+		setTimeout( poll_data, 3000 );
 
 		// Stash the old values for transition.
 		function stash(d) {

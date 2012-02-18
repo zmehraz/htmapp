@@ -30,8 +30,8 @@ PRJ_LIBS := htmapp
 PRJ_FWRK := qtwk
 
 # Homepage
-#CII_HOME := http://embedded/index.htm
-CII_HOME := http://embedded/data.htm
+CII_HOME := http://embedded/index.htm
+#CII_HOME := http://embedded/data.htm
 
 # Window width
 CII_WIDTH := 800

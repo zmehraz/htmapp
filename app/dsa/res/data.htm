@@ -1,27 +1,28 @@
-<meta http-equiv="refresh" content="3" />
-<pre>
 <?global
-
-	void make_array( t_pb8 &pb, long d, long &i )
-	{
-		pb[ "name" ] = ++i;
-		if ( d && d != i % 5 )
-		{	pb[ "children" ].is_list( true );
-			//pb[ "colour" ] = "#f9f0ab";
-			for( long x = 0; x < d; x++ )
-				make_array( pb[ "children" ][ x ], d - 1, i );
-		}
-		else
-			pb[ "size" ] = ++i;		
-	}
-
+//<meta http-equiv="refresh" content="3" />
+//<pre>
+ 
+#include <stdlib.h>
 
 #include <string.h>
 #include <time.h>
 #include "cpp/file_index.h"
 
+	void make_array( t_pb8 &pb, long d, long &i )
+	{
+		pb[ "name" ] = ++i;
+		if ( d ) //&& d != i % 5 )
+		{	pb[ "children" ].is_list( true );
+			//pb[ "colour" ] = "#f9f0ab";
+			for( long x = 0; x < 3; x++ )
+				make_array( pb[ "children" ][ x ], d - 1, i );
+		}
+		else
+			pb[ "size" ] = rand() % 10;		
+	}
+
 	static volatile long g_topmax = 5;
-	static volatile long g_depthmax = 1;
+	static volatile long g_depthmax = 3;
 	
 	static volatile long g_lThreadId = -1;
 	static volatile long g_lCancel = 0;
@@ -67,7 +68,7 @@
 		// If it's the root
 		if ( 0 >= lDepth )
 		{	pb[ "name" ] = "<root>";
-			pb[ "size" ] = p->size;
+			// pb[ "size" ] = p->size;
 			return add_items( pb[ "children" ], fi, p->child, lDepth + 1 );
 		} // end if
 
@@ -189,13 +190,13 @@
 	}
 
 ?><?c
-/*
+
 	t_pb8 pb;
 	long i = 0;
 	make_array( pb, 3, i );
 	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 	return 0;
-*/
+
 
 	// Start the thread
 	if ( 0 > g_lThreadId )
@@ -206,4 +207,3 @@
 
 	return 0;
 ?>
-</pre>

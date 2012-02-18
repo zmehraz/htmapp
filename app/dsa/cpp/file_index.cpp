@@ -404,10 +404,18 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 	if ( 0 < lMinDepth )
 	{
 		// Skip the root item
-		if ( hBlock == getRoot() )
-			lMinDepth++, lMaxDepth++;
+//		if ( hBlock == getRoot() )
+//			lMinDepth++, lMaxDepth++;
 	
-		// Just pass on down to the next level
+		// Get child
+		SBlockItem *p = getItem( hBlock );
+		if ( !p->child )
+			return 0;
+		
+		// Step down one level
+		hBlock = p->child;
+	
+		// Proces all blocks at this level
 		while ( hBlock )
 		{	
 			// Check for cancel signal
@@ -415,7 +423,7 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 				return 0;
 		
 			// Get block information
-			SBlockItem *p = getItem( hBlock );
+			p = getItem( hBlock );
 			
 			// Go ahead and point to next block, 
 			// pointer may not be good after Index() returns
@@ -423,7 +431,7 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 			
 			// Process this block if directory
 			if ( p && p->name && 0 != ( p->flags & disk::eFileAttribDirectory ) )
-				lAdded += Index( p->child, disk::FilePath< t_char, t_string >( sRoot, getBlob( p->name ) ),
+				lAdded += Index( hBlock, disk::FilePath< t_char, t_string >( sRoot, getBlob( p->name ) ),
 								 lMinDepth - 1, lMaxDepth - 1, plCancel );
 
 		} // end while		

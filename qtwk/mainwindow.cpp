@@ -81,8 +81,8 @@ void CMainWindow::Init()
 		setWindowTitle( m_name.c_str() );
 
 	// Check for fixed size window
-	if ( 0 < m_width && 0 < m_height )
-		setFixedSize( m_width, m_height );
+//	if ( 0 < m_width && 0 < m_height )
+//		setFixedSize( m_width, m_height );
 
 	// No scrollbars
 #if defined( CII_NOSCROLL )
