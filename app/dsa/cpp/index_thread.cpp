@@ -117,7 +117,7 @@
 			pb[ "hi_colour" ] = "#ffa000";
 		else
 			pb[ "colour" ] = "#004080",
-			pb[ "hi_colour" ] = "#00a0FF";
+			pb[ "hi_colour" ] = "#00a0FF",
 
 			// Item size
 			pb[ "size" ] = p->size;

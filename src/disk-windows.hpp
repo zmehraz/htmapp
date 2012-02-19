@@ -185,7 +185,7 @@ HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd, uns
 	
 	// Ignore . and ..
 	while ( isDotPath( wfd.cFileName ) )
-		if ( !::FindNextFile( x_hFind, &wfd ) )
+		if ( !::FindNextFile( hFind, &wfd ) )
 		{	::FindClose( hFind );
 			return c_invalid_hfind;
 		} // end if

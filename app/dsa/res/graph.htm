@@ -4,7 +4,7 @@
 
 ?><?c
 
-	// Start the indexer thread if we got a root
+	// Start the indexer thread if we got root
 	str::t_string sRoot = in[ "GET" ][ "root" ].str();
 	if ( sRoot.length() )	
 	{
@@ -32,6 +32,7 @@
 <body>
     <div id="chart"></div>
 	<script type="text/javascript">
+
 		var w = 640,
 			h = 480,
 			r = Math.min(w, h) / 2,
@@ -78,8 +79,7 @@
 							   .selectAll("path")
 							   .data(partition.nodes)
 							   .attr("d", arc)
-//							   .attr("fill-rule", "evenodd")
-//							   .style("stroke", "#222")
+							   .style("stroke", "#222")
 							   .style("fill", function(d) 
 							   { 	if ( d.path == $('.highlight').html() )
 									{	$('.highlight').html( d.path );
@@ -89,25 +89,14 @@
 									else
 										return d.colour; 
 							   })
-//							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
 								;
-/*
-							path
-							   .style("stroke", "#F00")
-							   .transition()
-							   .duration(2000)
-							   .style("stroke", "#222")
-//							   .attrTween("d", arcTween)
-								;
-*/								
+
 							path
 							   .enter().append("path")
 							   .attr("display", function(d) { return d.depth ? null : "none"; })
 							   .attr("d", arc)
-//							   .attr("fill-rule", "evenodd")
 							   .style("stroke", "#222")
 							   .style("fill", function(d) { return d.colour; })
-//							   .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
 							   .on("mouseover", function(d)
 							   {	$('.highlight').html( d.path );
 									$('.hdr_size').html( d.szstr );
@@ -117,40 +106,23 @@
 							   {	$('.selitem').html( '' );
 									d3.select(this).style("fill", d.colour);
 							   })
-							   .each(stash)
 							   ;
-							   
+
 							path
 								.exit()
 								.remove()
 								;
-								
+
 						} // end if
-						
+
 						setTimeout( poll_data, 1000 );
 					 },
 					 error: function(xhr,opt,msg) { setTimeout( poll_data, 1000 ); },
 				});
 		}
-			
-		setTimeout( poll_data, 1000 );
 
-		// Stash the old values for transition.
-		function stash(d) {
-		  d.x0 = d.x;
-		  d.dx0 = d.dx;
-		}
+		poll_data();
 
-		// Interpolate the arcs in data space.
-		function arcTween(a) {
-		  var i = d3.interpolate({x: a.x0, dx: a.dx0}, a);
-		  return function(t) {
-			var b = i(t);
-			a.x0 = b.x;
-			a.dx0 = b.dx;
-			return arc(b);
-		  };
-		}
 	</script>
 </body>
 
