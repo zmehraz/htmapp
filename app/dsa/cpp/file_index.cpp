@@ -1,4 +1,3 @@
-// pnet_video.cpp
 
 #include <string>
 #include <vector>
@@ -8,7 +7,7 @@
 #include "file_index.h"
 
 /// Initialize space constructor
-CFileIndex::CFileIndex( t_size nBlock, t_size nBlob )
+CFileIndex::CFileIndex( t_size nBlock, t_size nBlob, const void *pRootName, t_size szRootName )
 {
 	m_f = 0;
 	m_user = 0;
@@ -18,7 +17,7 @@ CFileIndex::CFileIndex( t_size nBlock, t_size nBlob )
 	m_block_offset = 0;
 
 	if ( nBlock )
-		Init( nBlock, nBlob );
+		Init( nBlock, nBlob, pRootName, szRootName );
 }
 
 CFileIndex::~CFileIndex()
@@ -32,13 +31,6 @@ void CFileIndex::Destroy()
 {
 	// Reset blocks
 	clear();
-
-	// Dump the root node
-	m_root = 0;
-
-	// Release memory
-	m_blocks.clear();
-	m_blobs.clear();
 }
 
 void CFileIndex::clear()
@@ -47,16 +39,14 @@ void CFileIndex::clear()
 	m_deleted = 0;
 	m_blob_offset = 0;
 	m_block_offset = 0;
-	
-	// Clear the root node
-	if ( m_root )
-	{	SBlockItem *pRoot = getItem( m_root );
-		memset( pRoot, 0, sizeof( SBlockItem ) );
-	} // end if
-	
+	m_root = 0;
+
+	// Release memory
+	m_blocks.clear();
+	m_blobs.clear();
 }
 
-bool CFileIndex::Init( t_size nBlock, t_size nBlob )
+bool CFileIndex::Init( t_size nBlock, t_size nBlob, const void *pRootName, t_size szRootName )
 {
 	// Out with the old
 	Destroy();
@@ -91,6 +81,10 @@ bool CFileIndex::Init( t_size nBlock, t_size nBlob )
 	
 	// Initialize root item
 	memset( root, 0, sizeof( SBlockItem ) );
+
+	// Set the root name
+	if ( pRootName )
+		root->name = NewBlob( pRootName, szRootName );
 
 	return true;
 }
@@ -427,11 +421,12 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 			
 			// Go ahead and point to next block, 
 			// pointer may not be good after Index() returns
+			t_block hThis = hBlock;
 			hBlock = p->next;
 			
 			// Process this block if directory
 			if ( p && p->name && 0 != ( p->flags & disk::eFileAttribDirectory ) )
-				lAdded += Index( hBlock, disk::FilePath< t_char, t_string >( sRoot, getBlob( p->name ) ),
+				lAdded += Index( hThis, disk::FilePath< t_char, t_string >( sRoot, getBlob( p->name ) ),
 								 lMinDepth - 1, lMaxDepth - 1, plCancel );
 
 		} // end while		
@@ -455,10 +450,11 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 			if ( fd.szName[ 0 ] != '.'
 				 || ( fd.szName[ 1 ] && ( fd.szName[ 1 ] != '.' || fd.szName[ 2 ] ) ) )
 			{
+				// One added
 				lAdded++;
 
 				t_string sFull = disk::FilePath< t_char, t_string >( sRoot, fd.szName );
-				// str::Print( "%s\n", sFull.c_str() );
+//				str::Print( "%s\n", sFull.c_str() );
 
 				// Directory
 				if ( 0 != ( fd.uFileAttributes & disk::eFileAttribDirectory ) )

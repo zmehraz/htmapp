@@ -25,7 +25,7 @@ class CHmResources
 public:
 
 	/// Resource function type
-	typedef int (*t_fn)( const TPropertyBag< char > &in, std::basic_string< char > &out );
+	typedef int (*t_fn)( TPropertyBag< char > &in, TPropertyBag< char > &out );
 	
 	/// Resource size type
 	typedef unsigned long t_size;

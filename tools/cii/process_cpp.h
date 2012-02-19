@@ -61,7 +61,7 @@ template< typename T, typename T_STR >
 		// Function prototype
 		const T *pFn = sFn.data();
 		if ( !sFn.length() || !pFn || !*pFn )
-			pFn = tcTT( T, "static int _internal_run( const TPropertyBag< char > &in, std::basic_string< char > &out )" ); 
+			pFn = tcTT( T, "static int _internal_run( TPropertyBag< char > &in, TPropertyBag< char > &out )" ); 
 
 		// Start out with some space
 		sDst.reserve( sSrc.length() * 2 );
@@ -78,7 +78,7 @@ template< typename T, typename T_STR >
 
 		// Process the data
 		long nPos = 0, nOpen = 0, nClose = 0, nSkip = 0, nStart = 0, nType = 0;
-		while ( ( nPos + szOpen + szClose ) < szSrc )
+		while ( ( nPos + szOpen + szClose ) <= szSrc )
 		{
 			// Initialize
 			nStart = nPos;
@@ -105,7 +105,7 @@ template< typename T, typename T_STR >
 			{
 				// Encode any text
 				if ( nStart < nOpen )
-				{	sDst += tcTT( T, "\n\tout += \"" );
+				{	sDst += tcTT( T, "\n\tout << \"" );
 					sDst += parser::CppEncode< T, T_STR >( &pSrc[ nStart ], nOpen - nStart );
 					sDst += tcTT( T, "\";\n" );
 				} // end if
@@ -137,7 +137,7 @@ template< typename T, typename T_STR >
 
 		// Copy whatever is left
 		if ( nStart < szSrc )
-		{	sDst += tcTT( T, "\n\tout += \"" );
+		{	sDst += tcTT( T, "\n\tout << \"" );
 			sDst += parser::CppEncode< T, T_STR >( &pSrc[ nStart ], szSrc - nStart );
 			sDst += tcTT( T, "\";\n" );
 		} // end if

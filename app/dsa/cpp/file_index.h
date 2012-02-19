@@ -55,7 +55,7 @@ public:
 public:
 
 	/// Default constructor
-	CFileIndex( t_size nBlock = 0, t_size nBlob = 0 );
+	CFileIndex( t_size nBlock = 0, t_size nBlob = 0, const void *pRootName = 0, t_size szRootName = 0 );
 
 	/// Destructor
 	virtual ~CFileIndex();
@@ -67,7 +67,7 @@ public:
 	void clear();
 
 	/// Allocate initial storage for indexing
-	bool Init( t_size nBlock, t_size nBlob = 0 );
+	bool Init( t_size nBlock, t_size nBlob = 0, const void *pRootName = 0, t_size szRootName = 0 );
 
 	/// Initializes the specified block
 //	void InitBlock( SBlockItem *p );

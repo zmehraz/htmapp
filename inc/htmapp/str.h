@@ -1045,15 +1045,15 @@ namespace str
 		long i = 0;
 		static const T *sizes[] = 
 		{	tcTT( T, "" ), 			//
-			tcTT( T, "K" ), 		// Kilo				
-			tcTT( T, "M" ), 		// Mega			
-			tcTT( T, "G" ), 		// Giga
-			tcTT( T, "T" ), 		// Tera
-			tcTT( T, "P" ),			// Peta
-			tcTT( T, "E" ),			// Exa
-			tcTT( T, "Z" ),			// Zetta
-			tcTT( T, "Y" ),			// Yotta
-			tcTT( T, "B" ),			// Bronto
+			tcTT( T, " K" ), 		// Kilo				
+			tcTT( T, " M" ), 		// Mega			
+			tcTT( T, " G" ), 		// Giga
+			tcTT( T, " T" ), 		// Tera
+			tcTT( T, " P" ),		// Peta
+			tcTT( T, " E" ),		// Exa
+			tcTT( T, " Z" ),		// Zetta
+			tcTT( T, " Y" ),		// Yotta
+			tcTT( T, " B" ),		// Bronto
 			0 						// Geop, but G already taken?
 									// Segan, ...
 		};

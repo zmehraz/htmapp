@@ -3,8 +3,12 @@ body
 	width:				100%;
 	height:				100%;
 	color: 				#ffffff;
-	/*background-color:	#404040;*/
-	background-image: -webkit-linear-gradient(#aad, #556);
+	background-color:	#54768c;
+	font-family:		Arial;
+	/*
+	background-image: linear-gradient(bottom, rgb(84,118,140) 15%, rgb(208,242,242) 88%);
+	background-image: -webkit-linear-gradient(bottom, rgb(84,118,140) 15%, rgb(208,242,242) 88%);
+	*/
 }
 
 .hidden
@@ -14,26 +18,105 @@ body
 
 .transparent
 {
-	opacity: 0;
+	opacity: 			0;
 }
 
-.header
+.bdr_gray
 {
-	height: 40px;
-	width: 100%;
+/*
+	border-left:		1px solid #404040;
+	border-top:			1px solid #404040;
+	border-right:		1px solid #404040;
+	border-bottom:		1px solid #404040;
+*/
+}
+
+.hdr
+{
+	position:			absolute;
+	left:				0px;
+	top:				0px;
+	height: 			60px;
+	width: 				800px;
+}
+
+.hdr_text
+{
+	font-size:			18px;
+	font-weight:		bold;
+	padding:			5px 10px;
+}
+
+.hdr_size
+{	
+	position:			absolute;
+	left:				80px;
+	top:				0px;
+	height: 			30px;
+	width:				300px;
+}
+
+.hdr_progress
+{	
+	position:					absolute;
+	background-color:			#7090b0;
+	left:						380px;
+	top:						0px;
+	height: 					20px;
+	width:						400px;
+	margin:						5px;
+	padding:					5px;
+	border-top-left-radius: 	15px;
+	border-bottom-left-radius:	15px;
+	border-top-right-radius:	15px;
+	border-bottom-right-radius:	15px;
+}
+
+.progress_a
+{
+	float:left;
+	/*background-color:			#00a000;*/
+	margin:						0px;
+	padding:					0px;
+	border-top-left-radius: 	15px;
+	border-bottom-left-radius:	15px;
+	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(128,255,128,.50)),color-stop(1, rgba(128,255,128,.25)));
+	background-image: 			-webkit-linear-gradient(rgba(128,255,128,.50), rgba(128,255,128,.25));
+}
+
+.progress_b
+{
+	float:left;
+	/*background-color:			#400000;*/
+	margin:						0px;
+	padding:					0px;
+	border-top-right-radius:	15px;
+	border-bottom-right-radius:	15px;
+	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,128,128,.50)),color-stop(1, rgba(255,128,128,.25)));
+	background-image: 			-webkit-linear-gradient(rgba(255,128,128,.50), rgba(255,128,128,.25));
+}
+
+.hdr_path
+{	
+	position:			absolute;
+	left:				80px;
+	top:				30px;
+	height: 			30px;
+	width:				600px;
 }
 
 .page
 {
 	position:			absolute;
 	left: 				10px;
-	top: 				50px;
+	top: 				70px;
 }
 
 .highlight
 {
 	position:			absolute;
 	width:				640px;
+	width:				400px;
 }
 
 .usechart

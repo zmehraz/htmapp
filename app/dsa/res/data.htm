@@ -1,224 +1,32 @@
 <?global
-//<meta http-equiv="refresh" content="3" />
-//<pre>
- 
-#include <stdlib.h>
 
-#include <string.h>
-#include <time.h>
-#include "cpp/file_index.h"
-
-	void make_array( t_pb8 &pb, long d, long &i )
-	{
-		pb[ "name" ] = ++i;
-		if ( d ) //&& d != i % 5 )
-		{	pb[ "children" ].is_list( true );
-			//pb[ "colour" ] = "#f9f0ab";
-			for( long x = 0; x < 3; x++ )
-				make_array( pb[ "children" ][ x ], d - 1, i );
-		}
-		else
-			pb[ "size" ] = rand() % 10;		
-	}
-
-	static volatile long g_topmax = 10;
-	static volatile long g_depthmax = 2;
-	
-	static volatile long g_lThreadId = -1;
-	static volatile long g_lCancel = 0;
-	static volatile unsigned long g_lLastUpdate = 0;
-	
-	bool replace_smallest( CFileIndex::SBlockItem *p, CFileIndex::SBlockItem **lst, long sz_lst )
-	{
-		long smallest = 0;
-		for ( long i = 0; i < sz_lst; i++ )
-		{
-			// Empty slot?
-			if ( !lst[ i ] )
-			{	lst[ i ] = p;
-				return true;
-			} // end if
-			
-			// Track the smallest item
-			if ( smallest != i && lst[ i ]->size < lst[ smallest ]->size )
-				smallest = i;
-		
-		} // end for
-		
-		// Punt if new item is smaller than the smallest
-		if ( p->size <= lst[ smallest ]->size )
-			return false;
-
-		// Replace smallest
-		lst[ smallest ] = p;
-		
-		return true;		
-	}
-	
-	void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p );
-	long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_block b, long lDepth = 0 )
-	{
-		if ( !b || g_depthmax < lDepth )
-			return 0;
-
-		CFileIndex::SBlockItem *p = fi.getItem( b );
-		if ( !p )
-			return 0;
-		
-		// If it's the root
-		if ( 0 >= lDepth )
-		{	pb[ "name" ] = "<root>";
-			// pb[ "size" ] = p->size;
-			return add_items( "/", pb[ "children" ], fi, p->child, lDepth + 1 );
-		} // end if
-
-		// This will be a list
-		pb.is_list( true );
-			
-		// Top array
-		g_topmax = cmn::Min( g_topmax, 256l );
-		CFileIndex::SBlockItem *tdir[ 256 ], *tfile[ 256 ];
-		memset( tdir, 0, sizeof( CFileIndex::SBlockItem ) * g_topmax );
-		memset( tfile, 0, sizeof( CFileIndex::SBlockItem ) * g_topmax );
-		
-		// Find the top 'g_topmax' items
-		CFileIndex::SBlockItem *it = fi.getItem( b );
-		while ( it )
-		{
-			// Tree?
-			if ( it->child )
-				replace_smallest( it, tdir, g_topmax );
-			else
-				replace_smallest( it, tfile, g_topmax );
-				
-			// Next sibling
-			it = it->next ? fi.getItem( it->next ) : 0;
-		
-		} // end while
-
-		long idx = 0;
-
-		// Add top directories
-		for ( long i = 0; i < g_topmax && tdir[ i ]; i++ )
-		{	t_pb &r = pb[ idx++ ];
-			add_item( sRoot, r, fi, tdir[ i ] );
-			add_items( disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( tdir[ i ]->name ) ),
-					   r[ "children" ], fi, tdir[ i ]->child, lDepth + 1 );
-		} // end for
-			
-		// Add top files
-		for ( long i = 0; i < g_topmax && tfile[ i ]; i++ )		
-			add_item( sRoot, pb[ idx++ ], fi, tfile[ i ] );
-
-		return idx;
-	}
-	
-	void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
-	{
-//		CFileIndex::SBlockItem *p = fi.getItem( b );
-		if ( !p )
-			return;
-		
-		// Set our name
-		pb[ "name" ] = fi.getBlob( p->name );
-		pb[ "hrd" ] = str::t_string()
-					  + "<b>" + str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B"
-					  + "</b><br>&nbsp;&nbsp;"
-					  + disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( p->name ) );
-		
-		if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
-//		if ( p->child )
-			pb[ "colour" ] = "#804000";
-		else
-			pb[ "colour" ] = "#004080";
-		
-		
-//					  disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( p->name ) )
-//					  + " - " + str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B";
-
-//		str::Print( "%s\n", fi.getBlob( p->name ) );
-
-		// Add size if no children
-//		if ( !p->child )
-			pb[ "size" ] = p->size;
-	}
-	
-	
-	long index_callback( CFileIndex *pFi, void *p )
-	{
-//		str::Print( "%s\n", p->name ? p->name : "<empty>" );
-		if ( !pFi )
-			return g_lCancel;
-
-		// Update once per second
-		const unsigned long t = (const unsigned long)time( 0 );
-		if ( t == g_lLastUpdate )
-			return g_lCancel;
-		g_lLastUpdate = t;
-
-		// Lock the global property bag
-		t_pb pb;
-		add_items( "", pb, *pFi, pFi->getRoot() );
-		tq::set( "indexer.out", pb, "." );
-		
-		return g_lCancel;
-	}
-
-	static long index_thread( CThread *t, void *p )
-	{
-		// Cancel flag
-		// long *pCancel = (long*)p;
-
-		// Indexing object
-//		CFileIndex fi( 1024 * 1024 );
-		CFileIndex fi( 1024 );
-		fi.setCallback( index_callback, p );
-		
-		bool bOnce = true;
-
-		// Until we get the kill signal
-		while ( t->getStopEvent().Wait( 1000 ) )
-		{
-			// Do we want to run
-//			t_pb job = tq::get( "indexer.job", "." );
-//			if ( job[ "run" ].ToLong() )
-			if ( bOnce )
-			{
-				bOnce = false;
-
-				// Clear run flag
-				tq::set( "indexer.run", "", "." );
-
-				long lMin = 0;
-				while ( 0 < fi.Index( fi.getRoot(), "/", lMin, lMin + 1, t->getStopFlag() ) ) 
-					lMin++;
-				
-				// Final update
-				g_lLastUpdate = 0;
-				index_callback( &fi, 0 );
-
-			} // end if
-
-		} // end while
-
-		return 0;
-	}
+#include "cpp/index_thread.h"
 
 ?><?c
-/*
-	t_pb8 pb;
-	long i = 0;
-	make_array( pb, 3, i );
-	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
-	return 0;
-*/
 
+/*
 	// Start the thread
 	if ( 0 > g_lThreadId )
+	{
+//		out += "<meta http-equiv='refresh' content='2' />",
 		g_lThreadId = tq::start( index_thread );
+		
+		t_pb di;
+		disk::GetDisksInfo( di, true );
+		g_total = di[ "/" ][ "bytes" ].ToInt64();
+		g_free = di[ "/" ][ "bytes_free" ].ToInt64();
+		
+	} // end if
+*/
 
+	t_pb8 pb;
+	pb[ "map" ] = tq::get( "indexer.out", "." );
+	pb[ "drive" ][ "free" ] = tq::get( "indexer.job.drive.bytes_free", "." ).ToInt64();
+	pb[ "drive" ][ "total" ] = tq::get( "indexer..job.drive.bytes", "." ).ToInt64();
+	pb[ "drive" ][ "progress" ] = tq::get( "indexer.progress", "." ).ToInt64();
+		
 	// Send back output status
-	out += parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( tq::get( "indexer.out", "." ) ).c_str();
+	out << parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 
 	return 0;
 ?>

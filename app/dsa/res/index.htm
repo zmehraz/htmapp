@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><?c out += CII_PROJECT_DESC ?></title>
+    <title><?c out << CII_PROJECT_DESC ?></title>
 
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 	<meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -18,33 +18,35 @@
 
   </head>
   <body>
-    <div class='header' onclick='selPage( "drives" )'><img src='imgs/pie2.png' onclick='selPage( "drives" )'></div>
+ 
+    <div class='hdr bdr_gray' onclick='selPage( "drives" )'>
+		<img src='imgs/pie2.png' onclick='selPage( "drives" )'>
+		<div class='hdr_size hdr_text bdr_gray'></div>
+		<div class='hdr_progress hdr_text bdr_gray hidden'>
+			<div class='progress_a'></div>
+			<div class='progress_b'></div>
+		</div>
+		<div class='hdr_path hdr_text bdr_gray'></div>
+	</div>
     
-	<div class='highlight'></div>	
+	<div class='highlight hdr_text'></div>	
 	<div id='drives' class='page'></div>
 	<div id='graph' class='page hidden'></div>
 
 	<script type='text/javascript'>
 
-		//$.ajax({ url: "test.htm", 
-		//		 context: document.body, 
-		//		 success: function() { alert( 'hi' ); },
-		//		 error: function(xhr,opt,msg) { alert( xhr.status ); alert( xhr.responseText ); alert( opt ); alert( msg ); },
-		//		 beforeSend: function(xhr) { xhr.withCredentials = true; }
-		//	});
-		// $(document).ready( function(){ $.get( 'test.htm', function( data ){ $('#drives').html( 'hello world' ); } ) } );
 		$( $('#drives').load( 'drives.htm' ) );
-		$( $('#graph').load( 'graph.htm' ) );
+//		$( $('#graph').load( 'graph.htm' ) );
 
 		var g_sel = '';
 		function showPage( id, page, dir )
 		{
 //			if ( page == 'graph' )
-//				$( $('#'+id).load( id+'.htm' ) );
 //			else
 //				setTimeout( function(){ $('#graph').html( '' ); }, 1000 );
 
 			if ( page == id )
+				$( $('#'+id).load( id+'.htm?root='+$('.highlight').html() ) ),
 				$('#'+id).hide().animate( { left: dir/*, opacity:0*/ }, 0 ),
 				$('#'+id).show().animate( { left:'20px'/*, opacity:1*/ }, 500 );
 			else
@@ -60,6 +62,36 @@
 			if ( "graph" != page ) $('.highlight').animate( { opacity: 0 }, 500 );
 		}
 		
+		function setProgress( progress, total )
+		{
+			var pa = ( 0 < total ) ? parseInt( progress * 100 / total ) : 0;
+			var pb = ( 0 < total ) ? parseInt( ( total - progress ) * 100 / total ) : 0;
+			var w = $('.hdr_progress').width() - 20;
+			var h = $('.hdr_progress').height();
+			
+			// $('.progress_a').html( w + ' / ' + h + ' / ' + pa + ' / ' + pb );
+			
+			if ( 0 >= w || 0 >= h || 0 >= pa || 100 <= pa )
+			{	$('.hdr_progress').addClass( 'hidden' );
+				return;
+			} // end if
+					
+			$('.hdr_progress').removeClass( 'hidden' );
+			
+			$('.progress_a').height( h );
+			$('.progress_a').width( parseInt( pa * w / 100 ) + 10 );
+			$('.progress_b').height( h );
+			$('.progress_b').width( parseInt( pb * w / 100 ) + 10 );
+		}
+/*		
+		var g_prog = 0;
+		function fakeProgress()
+		{	setProgress( ++g_prog, 100 );
+			if ( g_prog >= 100 ) return;		
+			setTimeout( fakeProgress, 200 );
+		}		
+		setTimeout( fakeProgress, 200 );
+*/		
 	</script>
   </body>
 </html>

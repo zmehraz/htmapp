@@ -194,6 +194,38 @@ public:
     {  	merge( r ); 
     }
 
+    /// Construction from int
+    TPropertyBag( int n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from unsigned int
+    TPropertyBag( unsigned int n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from long
+    TPropertyBag( long n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from unsigned long
+    TPropertyBag( unsigned long n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from long
+    TPropertyBag( str::tc_int64 n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from unsigned long
+    TPropertyBag( str::tc_uint64 n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from double
+    TPropertyBag( float n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
+    /// Construction from double
+    TPropertyBag( double n )
+    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+
     //==============================================================
     // operator = ()
     //==============================================================
@@ -366,7 +398,6 @@ public:
     t_String operator = ( const T* pStr ) 
     {   return m_str = pStr; }
 
-
     //==============================================================
     // operator = ()
     //==============================================================
@@ -422,6 +453,76 @@ public:
     /// Conversion from double
     t_String operator = ( double n )
     {   return m_str = str::ToString< T, t_String >( n ); }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from string object
+    t_String operator << ( t_String sStr ) 
+    {   m_str += sStr; return m_str; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from string
+    t_String operator << ( const T* pStr ) 
+    {   return m_str += pStr; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from int
+    t_String operator << ( int n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from unsigned int
+    t_String operator << ( unsigned int n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from long
+    t_String operator << ( long n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from unsigned long
+    t_String operator << ( unsigned long n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from long
+    t_String operator << ( str::tc_int64 n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from unsigned long
+    t_String operator << ( str::tc_uint64 n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from double
+    t_String operator << ( float n )
+    {   return m_str += n; }
+
+    //==============================================================
+    // operator << ()
+    //==============================================================
+    /// Conversion from double
+    t_String operator << ( double n )
+    {   return m_str += n; }
 
     //==============================================================
     // setFlags()

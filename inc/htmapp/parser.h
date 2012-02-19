@@ -196,13 +196,13 @@ namespace parser
 				sStr += EncodeJsonStr< T, T_STR >( it->first ),
 				sStr += tcTT( T, "\": " );
 
-			// Single value
-			if ( it->second->length() )
-				sStr += tcTC( T, '\"' ), sStr += EncodeJsonStr< T, T_STR >( it->second->str() ), sStr += tcTC( T, '\"' );
-
 			// Recurse for array
-			else if ( it->second->size() )
+			if ( it->second->size() )
 				sStr += EncodeJson< T, T_STR, T_PB >( *it->second, x_depth + 1 );
+
+			// Single value
+			else if ( it->second->length() )
+				sStr += tcTC( T, '\"' ), sStr += EncodeJsonStr< T, T_STR >( it->second->str() ), sStr += tcTC( T, '\"' );
 
 			// Empty
 			else

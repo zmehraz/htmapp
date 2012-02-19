@@ -90,9 +90,23 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 					CHmResources::t_fn pFn = res.Fn( hRes );
 					if ( pFn )
 					{
+						// in / out
 						TPropertyBag< str::t_char8 > in;
-						std::basic_string< str::t_char8 > out;
+						TPropertyBag< str::t_char8 > out;
+						
+						// Copy GET parameters
+						long szQi = req.url().encodedQueryItems().size();
+						if ( szQi )
+						{	TPropertyBag< str::t_char8 > &pbGet = in[ "GET" ];
+							for( long i = 0; i < szQi; i++ ) 
+							{	const QPair< QByteArray, QByteArray > it 
+									= req.url().encodedQueryItems().at( i );
+								pbGet[ str::t_string8( it.first.data(), it.first.length() ) ]
+									= str::t_string8( it.second.data(), it.second.length() );
+							} // end for
+						} // end if
 
+						// Execute the page
 						pFn( in, out );
 
 						// Set the output

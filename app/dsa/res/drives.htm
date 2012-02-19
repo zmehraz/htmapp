@@ -1,74 +1,69 @@
 <body>
-
-	<?global
+<?global
 	
-		// Make single drive item
-		str::t_string mkitem( const str::t_string &grp, t_pb::iterator &it, str::t_string id )
-		{
-//			str::t_string sTotal = 
-//				str::SizeStr< str::t_char, str::t_string, double >( it->second->get( "bytes" ).ToDouble(), 1024, 2 );
-//			str::t_string sAvailable = 
-//				str::SizeStr< str::t_char, str::t_string, double >( it->second->get( "bytes_available" ).ToDouble(), 1024, 2 );
-//			str::t_string sUnavailable = 
-//				str::SizeStr< str::t_char, str::t_string, double >( it->second->get( "bytes_unavailable" ).ToDouble(), 1024, 2 );
-
-			return str::t_string() 
-					+ "<li class='cid_" + grp + "_" + id +" drive-item' value='" + it->first + "' data-id='did_" + id + "' onclick='selDrive( \"cid_" + grp + "_" + id +"\" )'>" 
-//					+ "<span class='usechart' values='" 
-//					+ it->second->get( "bytes_unavailable" ).str()
-//					+ "," + it->second->get( "bytes_available" ).str()
-//					+ "'></span>&nbsp;&nbsp;" 
-//					+ "<img src='imgs/ugs/drive-" + it->second->get( "drive_type" ).str() + ".png' width='48' height='48'>"
-					+ it->first 
-					+ "</li>\n";
-		}
-		
-		// Make buttons and drive lists
-		void listitems( t_pb &di, const str::t_string &sName, const str::t_string &sType,
-						str::t_string &btns, str::t_string &lists, str::t_string &last )
-		{
-			int i = 0;
-			str::t_string ret;
-			
-			for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
-				if ( sType == "all" || (*it->second)[ tcT( "drive_type" ) ].ToString() == sType )
-					if ( it->second->get( "bytes" ).ToDouble() )
-						ret += mkitem( sType, it, str::ToString< str::t_char, str::t_string>( i ) );
-
-			if ( !ret.length() )
-				return;
-				
-			last = sType;
-				
-			lists += str::t_string() + "<ul class='list_" + sType + " hidden'>" + ret + "</ul>";
-			
-			btns += "<button id='btn_" + sType + "' onclick='switch_list(\"" + sType + "\")' class='" 
-					+ ( !btns.length() ? "first" : "" ) + "'>" + sName + "</button>";
-		}
-	?>
-
-	<?c
-		t_pb di;
-		disk::GetDisksInfo( di, true );
-		
-		// Create buttons and drive lists
-		str::t_string btns, lists, last;		
-		listitems( di, "All", "all", btns, lists, last );
-		listitems( di, "Fixed", "fixed", btns, lists, last );
-		listitems( di, "Removable", "removable", btns, lists, last );
-		listitems( di, "RamDisk", "ramdisk", btns, lists, last );
-		listitems( di, "Network", "remote", btns, lists, last );
-	?>
+	// Make single drive item
+	str::t_string mkitem( const str::t_string &grp, t_pb::iterator &it, str::t_string id )
+	{
+		return str::t_string() 
+				+ "<li class='cid_" + grp + "_" + id +" drive-item' value='" + it->first + "' data-id='did_" + id + "' onclick='selDrive( \"cid_" + grp + "_" + id +"\" )'>" 
+//				+ "<span class='usechart' values='" 
+//				+ it->second->get( "bytes_unavailable" ).str()
+//				+ "," + it->second->get( "bytes_available" ).str()
+//				+ "'></span>&nbsp;&nbsp;" 
+//				+ "<img src='imgs/ugs/drive-" + it->second->get( "drive_type" ).str() + ".png' width='48' height='48'>"
+				+ it->first 
+				+ "</li>\n";
+	}
 	
-	<?c out += btns;?>
+	// Make buttons and drive lists
+	void listitems( t_pb &di, const str::t_string &sName, const str::t_string &sType,
+					str::t_string &btns, str::t_string &lists, str::t_string &last )
+	{
+		int i = 0;
+		str::t_string ret;
+		
+		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
+			if ( sType == "all" || (*it->second)[ tcT( "drive_type" ) ].ToString() == sType )
+				if ( it->second->get( "bytes" ).ToDouble() )
+					ret += mkitem( sType, it, str::ToString< str::t_char, str::t_string>( i ) );
+
+		if ( !ret.length() )
+			return;
+			
+		last = sType;
+			
+		lists += str::t_string() + "<ul class='list_" + sType + " hidden'>" + ret + "</ul>";
+		
+		btns += "<button id='btn_" + sType + "' onclick='switch_list(\"" + sType + "\")' class='" 
+				+ ( !btns.length() ? "first" : "" ) + "'>" + sName + "</button>";
+	}
+
+?><?c
+
+	// Stop the indexer thread
+	tq::stop( "indexer" );
+
+	t_pb di;
+	disk::GetDisksInfo( di, true );
+	
+	// Create buttons and drive lists
+	str::t_string btns, lists, last;		
+	listitems( di, "All", "all", btns, lists, last );
+	listitems( di, "Fixed", "fixed", btns, lists, last );
+	listitems( di, "Removable", "removable", btns, lists, last );
+	listitems( di, "RamDisk", "ramdisk", btns, lists, last );
+	listitems( di, "Network", "remote", btns, lists, last );
+?>
+	
+	<?c out << btns;?>
 
 	<ul id='dlist'></ul>
 	
-	<?c out += lists;?>
+	<?c out << lists;?>
 	
 	<script type="text/javascript">
 
-		$('#btn_<?c out += last ?>').addClass( 'last' );
+		$('#btn_<?c out << last ?>').addClass( 'last' );
 	
 		var g_list = 0;
 		function switch_list( id )
@@ -85,10 +80,11 @@
 		}
 
 		function selDrive(id)
-		{	var pos = $('.'+id).offset(), w = $('.'+id).width(), h = $('.'+id).height();
+		{	var posSrc = $('.'+id).offset(), posDst = $('.hdr_path').offset();			
+			var w = $('.hdr_path').width(), h = $('.hdr_path').height();
 			$('.highlight').html( $('.'+id).html() );
-			$('.highlight').css( { opacity: 1, left: pos.left, top: pos.top, width: w, height: h } );
-			$('.highlight').show().animate( { left: 70, top: 10 }, 500 );			
+			$('.highlight').css( { opacity: 1, left: posSrc.left, top: posSrc.top, width: w, height: h } );
+			$('.highlight').show().animate( { left: posDst.left, top: posDst.top }, 500 );			
 			selPage( 'graph' );
 		}
 

@@ -81,10 +81,11 @@ namespace tq
 	struct CWorkerThread : public CThread
 	{	CWorkerThread();
 		~CWorkerThread();
-		void Run( t_tqfunc f, void *p, bool bStart );
+		void Run( const str::t_string &s, t_tqfunc f, void *p, bool bStart );
 		virtual long DoThread( void* x_pData ); 
 		t_tqfunc m_f;
 		void *m_p;
+		str::t_string m_s;
 	};
 
 	/// Thread pool class
@@ -96,15 +97,21 @@ namespace tq
 		{
 			// Constructors
 			SCmdInfo() { f = 0; p = 0; }
-			SCmdInfo( t_tqfunc x_f, void *x_p ) { f = x_f; p = x_p; }
-			SCmdInfo( const SCmdInfo &r ) { f = r.f; p = r.p; }
+			SCmdInfo( const str::t_string &x_s, t_tqfunc x_f, void *x_p ) { s = x_s; f = x_f; p = x_p; }
+			SCmdInfo( const SCmdInfo &r ) { s = r.s; f = r.f; p = r.p; }
 
 			/// Function pointer
-			t_tqfunc 	f;
+			t_tqfunc 		f;
 
 			/// User data pointer
-			void		*p;
+			void			*p;
+			
+			/// Thread name
+			str::t_string 	s;
 		};
+
+		/// Thread name map type
+		typedef std::map< str::t_string, long > t_threadnames;
 
 		/// Thread pool map type
 		typedef std::map< long, CWorkerThread > t_threadpool;
@@ -124,10 +131,13 @@ namespace tq
 		/**
 			@return Thread id or less than zero if failure
 		*/
-		long start( t_tqfunc f, void *p = 0 );
+		long start( const str::t_string &s, t_tqfunc f, void *p = 0 );
 
 		/// Stops the specified thread
 		bool stop( long id );
+
+		/// Stops the specified thread
+		bool stop( const str::t_string &s );
 
 	protected:
 
@@ -144,6 +154,9 @@ namespace tq
 
 		/// Thread pool commands
 		t_threadcmds m_cmds;
+		
+		/// Stores a list of threads by name
+		t_threadnames m_names;
 
 		/// Command waiting event
 		CEvent m_event;
@@ -165,9 +178,12 @@ namespace tq
 	/**
 		@return Thread id or less than zero if failure
 	*/
-	long start( t_tqfunc f, void *p = 0 );
+	long start( const str::t_string &s, t_tqfunc f, void *p = 0 );
 
 	/// Stops the specified thread
 	bool stop( long id );
+
+	/// Stops the specified thread
+	bool stop( const str::t_string &s );
 
 }; // namespace tq

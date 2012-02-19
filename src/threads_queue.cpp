@@ -136,12 +136,15 @@ namespace tq
 
 	CThreadPool g_htmapp_tp;
 
-	long start( t_tqfunc f, void *p )
-	{	return g_htmapp_tp.start( f, p ); }
+	long start( const str::t_string &s, t_tqfunc f, void *p )
+	{	return g_htmapp_tp.start( s, f, p ); }
 
+	bool stop( const str::t_string &s )
+	{	return g_htmapp_tp.stop( s ); }
+	
 	bool stop( long id )
 	{	return g_htmapp_tp.stop( id ); }
-	
+
 	CWorkerThread::CWorkerThread() 
 	{
 		m_f = 0; 
@@ -154,10 +157,11 @@ namespace tq
 		m_p = 0;
 	}
 
-	void CWorkerThread::Run( t_tqfunc f, void *p, bool bStart ) 
+	void CWorkerThread::Run( const str::t_string &s, t_tqfunc f, void *p, bool bStart ) 
 	{
 		m_f = f;
 		m_p = p;
+		m_s = s;
 		if ( bStart ) 
 			Start(); 
 	}
@@ -191,8 +195,7 @@ namespace tq
 		{
 			// Function
 			long id = -1;
-			t_tqfunc f = 0;
-			void *p = 0;
+			SCmdInfo ci;
 
 			{ // Scope lock
 			
@@ -200,12 +203,11 @@ namespace tq
 				CScopeLock sl( m_lock );
 				if ( sl.isLocked() )
 				{
+					// Grab the first command in the list
 					t_threadcmds::iterator it = m_cmds.begin();
 					if ( m_cmds.end() != it )
-					{
-						id = m_cmds.begin()->first;
-						f = m_cmds.begin()->second.f;
-						p = m_cmds.begin()->second.p;
+					{	id = m_cmds.begin()->first;
+						ci = m_cmds.begin()->second;
 						m_cmds.erase( m_cmds.begin() );
 					} // end if
 
@@ -221,10 +223,10 @@ namespace tq
 			if ( 0 <= id )
 			{
 				// New thread?
-				if ( f )
+				if ( ci.f )
 				{
 					CWorkerThread &r = m_tp[ id ];
-					r.Run( f, p, true );
+					r.Run( ci.s, ci.f, ci.p, true );
 				} // end if
 
 				// Kill thread if that id exists
@@ -256,7 +258,7 @@ namespace tq
 		return 0;
 	}
 
-	long CThreadPool::start( t_tqfunc f, void *p )
+	long CThreadPool::start( const str::t_string &s, t_tqfunc f, void *p )
 	{
 		if ( !m_enable )
 			return -1;
@@ -268,14 +270,54 @@ namespace tq
 		// Create a new thread object and start it
 		long id = m_id++;
 
-		// Send start thread command
-		m_cmds[ id ] = SCmdInfo( f, p );
+		// Will the thread be named?
+		if ( s.length() )
+		{			
+			// See if we already have a thread by that name
+			t_threadnames::iterator it = m_names.find( s );
+			if ( m_names.end() != it )
+				return -1;
 
+			// Save the thread name
+			m_names[ s ] = id;
+
+		} // end if
+			
+		// Send start thread command
+		m_cmds[ id ] = SCmdInfo( s, f, p );
+		
 		// New command waiting
 		m_event.Signal();
 
 		// Return the thread id
 		return id;
+	}
+
+	bool CThreadPool::stop( const str::t_string &s )
+	{
+		if ( !m_enable || !s.length() )
+			return false;
+
+		CScopeLock sl( m_lock );
+		if ( !sl.isLocked() )
+			return false;
+
+		// See if we have a thread by that name
+		t_threadnames::iterator it = m_names.find( s );
+		if ( m_names.end() == it )
+			return -1;
+
+		// Ensure valid id
+		if ( it->second >= m_id )
+			return false;
+
+		// Stop signal
+		m_cmds[ it->second ] = SCmdInfo();
+
+		// New command waiting
+		m_event.Signal();
+
+		return true;
 	}
 
 	bool CThreadPool::stop( long id )
@@ -288,7 +330,7 @@ namespace tq
 			return false;
 
 		// Do we have such a thread?
-		if ( id <= m_id )
+		if ( id >= m_id )
 			return false;
 
 		// Stop signal
