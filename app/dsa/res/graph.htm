@@ -72,7 +72,7 @@
 		
 			$.ajax({ url: "data.htm", 
 					 dataType: "json",
-					 data: "center=" + $('.centeritem').html(),
+					 data: "center=" + escape( $('.centeritem').html() ),
 					 success: function(json) 
 					 {	
 						if ( json.drive )

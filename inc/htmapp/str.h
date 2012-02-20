@@ -129,8 +129,8 @@ namespace str
 	long StrFmt( char *x_pDst, unsigned long x_uMax, const char *x_pFmt, ... );
 
 	/// String format
-	template< typename T, typename T_STR >	
-		T_STR StrFmt( const T *x_pFmt, ... )
+	template< typename T_STR >	
+		T_STR StrFmt( const typename T_STR::value_type *x_pFmt, ... )
 	{
 		T_STR s;
 		long lRet;
@@ -161,8 +161,8 @@ namespace str
 	}	
 	
 	/// String format
-	template< typename T, typename T_STR >	
-		long StrFmt( T_STR &s, const T *x_pFmt, ... )
+	template< typename T_STR >	
+		long StrFmt( T_STR &s, const typename T_STR::value_type *x_pFmt, ... )
 	{
 		long lRet;
 		t_size sz = DEFSIZE;
@@ -249,60 +249,60 @@ namespace str
 
 #endif
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( int n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%d" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( unsigned int n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%u" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( long n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%li" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( unsigned long n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%lu" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( tc_int64 n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%lld" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( tc_uint64 n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%llu" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( float n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%f" ), (double)n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( double n )
-		{   T szNum[ 256 ] = { 0 };
+		{	typedef typename T_STR::value_type T; T szNum[ 256 ] = { 0 };
 			return T_STR( szNum, StrFmt( szNum, sizeof( szNum ), tcTT( T, "%f" ), n ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ToString( const T_STR &s )
 		{	return s; }
 
-	template< typename T, typename T_STR >
-		T_STR ToString( const T *s )
+	template< typename T_STR >
+		T_STR ToString( const typename T_STR::value_type *s )
 		{	return T_STR( s ); }
 
 	template < typename T >
@@ -835,10 +835,10 @@ namespace str
 
 		+++ Remove the dependency on null terminated strings
 	*/
-	template < typename T, typename T_STR, typename T_LST >
-		static T_LST SplitQuoted( T *x_pStr, t_size x_nSize,
-								  const T *x_pSep, const T *x_pOpen,
-								  const T *x_pClose, const T *x_pEsc,
+	template < typename T_STR, typename T_LST >
+		static T_LST SplitQuoted( typename T_STR::value_type *x_pStr, t_size x_nSize,
+								  const typename T_STR::value_type *x_pSep, const typename T_STR::value_type *x_pOpen,
+								  const typename T_STR::value_type *x_pClose, const typename T_STR::value_type *x_pEsc,
 								  bool x_bInPlace )
 	{
 		T_LST lst;
@@ -886,7 +886,7 @@ namespace str
 			else if ( nPos )
 			{
 				// Unquote the string and add it
-				lst.push_back( T_STR( x_pStr, UnquoteInplace< T >( x_pStr, nPos, x_pOpen, nOpen, x_pClose, nClose, x_pEsc, nEsc ) ) );
+				lst.push_back( T_STR( x_pStr, UnquoteInplace( x_pStr, nPos, x_pOpen, nOpen, x_pClose, nClose, x_pEsc, nEsc ) ) );
 
 				// Skip
 				x_nSize -= nPos; x_pStr += nPos;
@@ -1038,9 +1038,11 @@ namespace str
 	}
 
 	/// Appends a size formatted string ( 1.3KB, 44.75GB, etc...)
-	template< typename T, typename T_STR, typename T_NUM >
-		T_STR SizeStr( T_NUM dSize, T_NUM dDiv, long nDigits, const T ** pSuffix = tcNULL )
+	template< typename T_STR, typename T_NUM >
+		T_STR SizeStr( T_NUM dSize, T_NUM dDiv, long nDigits, const typename T_STR::value_type ** pSuffix = tcNULL )
 	{	
+		typedef typename T_STR::value_type T;
+
 		T_STR s;
 		long i = 0;
 		static const T *sizes[] = 
@@ -1080,11 +1082,11 @@ namespace str
 			
 		// Special formating?
 		if ( 0 > nDigits )
-			s += ToString< T, T_STR >( dSize );
+			s += ToString< T_STR >( dSize );
 		else if ( !nDigits )
-			s += ToString< T, T_STR >( (long)dSize );
+			s += ToString< T_STR >( (long)dSize );
 		else
-			s += StrFmt< T, T_STR >( ( T_STR( tcTT( T, "%." ) ) + ToString< T, T_STR >( nDigits ) + tcTT( T, "f" ) ).c_str(), dSize );
+			s += StrFmt< T_STR >( ( T_STR( tcTT( T, "%." ) ) + ToString< T_STR >( nDigits ) + tcTT( T, "f" ) ).c_str(), dSize );
 			
 		// Build the string
 		s += pSuffix[ i ];
@@ -1093,7 +1095,7 @@ namespace str
 	}
 	
 	/// Returns the Levenshtein distance between the specified strings
-	template < typename T, typename T_STR > 
+	template < typename T_STR > 
 		typename T_STR::size_type levstr(const T_STR &s1, const T_STR &s2)
 	{
 		typename T_STR::size_type l1 = s1.length(), l2 = s2.length();
@@ -1116,7 +1118,7 @@ namespace str
 	}
 
 	/// Returns the Levenshtein distance between the specified split paths
-	template < typename T, typename T_STR, typename T_LST > 
+	template < typename T_STR, typename T_LST > 
 		typename T_STR::size_type levpath(const T_LST &lst1, const T_LST &lst2)
 	{
 		typename T_STR::size_type l1 = lst1.size(), l2 = lst2.size();
@@ -1132,7 +1134,7 @@ namespace str
 		for ( i = 1; i <= l1; i++ )
 		    for ( j = 1; j <= l2; j++ )
 		        d[ i * l2 + j ] = cmn::Min( cmn::Min( d[ ( i - 1 ) * l2 + j ] + 1, d[ i * l2 + ( j - 1 ) ] + 1 ),
-											d[ ( i - 1 ) * l2 + ( j - 1 ) ] + levstr< T, T_STR>( lst1[ i - 1 ], lst2[ j - 1 ] )
+											d[ ( i - 1 ) * l2 + ( j - 1 ) ] + levstr( lst1[ i - 1 ], lst2[ j - 1 ] )
 										  );
 
 		return d[ ( l1 * l2 ) + l2 ];       

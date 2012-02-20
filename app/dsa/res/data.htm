@@ -10,10 +10,10 @@
 	pb[ "drive" ][ "progress" ] = tq::get( "indexer.progress", "." ).ToInt64();
 		
 	// Send back indexer status
-	out << parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
+	out << parser::EncodeJson( pb );
 
 	// Set the center folder
-	tq::set( "indexer.center", in[ "GET" ][ "center" ].str(), "." );
+	tq::set( "indexer.center", in[ "GET" ][ "center" ], "." );
 
 	// Request another update from the indexer thread
 	tq::set( "indexer.update", 1, "." );

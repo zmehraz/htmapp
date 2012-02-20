@@ -394,7 +394,7 @@ CFileIndex::t_block CFileIndex::findBlock( t_block hBlock, const t_string &name,
 	// Get first key
 	t_string key, next = name;
 	while ( !key.length() && next.length() )
-	{	typename t_string::size_type pos = next.find_first_of( sep );
+	{	t_string::size_type pos = next.find_first_of( sep );
 		key = ( t_string::npos == pos ) ? next : t_string( next, 0, pos );
 		next = ( t_string::npos == pos ) ? "" : t_string( next, pos + 1 );
 	};
@@ -466,7 +466,7 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 			
 			// Process this block if directory
 			if ( p && p->name && 0 != ( p->flags & disk::eFileAttribDirectory ) )
-				lAdded += Index( hThis, disk::FilePath< t_char, t_string >( sRoot, getBlob( p->name ) ),
+				lAdded += Index( hThis, disk::FilePath< t_string >( sRoot, getBlob( p->name ) ),
 								 lMinDepth - 1, lMaxDepth - 1, plCancel );
 
 		} // end while		
@@ -493,7 +493,7 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 				// One added
 				lAdded++;
 
-				t_string sFull = disk::FilePath< t_char, t_string >( sRoot, fd.szName );
+				t_string sFull = disk::FilePath< t_string >( sRoot, fd.szName );
 //				str::Print( "%s\n", sFull.c_str() );
 
 				// Directory

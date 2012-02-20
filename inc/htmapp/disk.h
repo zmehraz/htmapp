@@ -69,12 +69,12 @@ namespace disk
 	
 	const t_size MAXPATHLEN = 1024;
 
-	template< typename T, typename T_STR >
-		T_STR& RTrim( T_STR &s, T c )
+	template< typename T_STR >
+		T_STR& RTrim( T_STR &s, typename T_STR::value_type c )
 		{	return s.erase( s.find_last_not_of( c ) + 1 ); }
 
-	template< typename T, typename T_STR >
-		T_STR& LTrim( T_STR &s, T c )
+	template< typename T_STR >
+		T_STR& LTrim( T_STR &s, typename T_STR::value_type c )
 		{	return s.erase( 0, s.find_first_not_of( c ) ); }
 
 	template < typename T >
@@ -86,17 +86,18 @@ namespace disk
 			return _s;
 		}
 
-	template < typename T_STR, typename T >
-		T_STR& ReplaceChar( T_STR &s, const T a, const T b )
+	template < typename T_STR >
+		T_STR& ReplaceChar( T_STR &s, const typename T_STR::value_type a, const typename T_STR::value_type b )
 		{	typename T_STR::size_type i = 0;
 			while( T_STR::npos != ( i = s.find_first_of( a, i ) ) )
 				s[ i++ ] = b;
 			return s;
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR GetPath( T_STR s )
 		{
+			typedef typename T_STR::value_type T;
 			typename T_STR::size_type lb = s.find_last_of( tcTC( T, '\\' ) );
 			typename T_STR::size_type lf = s.find_last_of( tcTC( T, '/' ) );
 			if ( T_STR::npos == lb && T_STR::npos == lf )
@@ -110,9 +111,10 @@ namespace disk
 			return T_STR( s.c_str(), 0, lb );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR GetName( T_STR s )
 		{
+			typedef typename T_STR::value_type T;
 			typename T_STR::size_type lb = s.find_last_of( tcTC( T, '\\' ) );
 			typename T_STR::size_type lf = s.find_last_of( tcTC( T, '/' ) );
 			if ( T_STR::npos == lb && T_STR::npos == lf )
@@ -126,9 +128,9 @@ namespace disk
 			return T_STR( s.c_str(), lb + 1, T_STR::npos );
 		}
 
-	template< typename T, typename T_STR >
-		T_STR Path( T_STR s1, T_STR s2, T sep )
-		{
+	template< typename T_STR >
+		T_STR Path( T_STR s1, T_STR s2, typename T_STR::value_type sep )
+		{	typedef typename T_STR::value_type T;
 			ReplaceChar( s1, tcTC( T, '\\' ), sep );
 			ReplaceChar( s2, tcTC( T, '\\' ), sep );
 			return RTrim( RTrim( s1, tcTC( T, '\\' ) ), tcTC( T, '/' ) )
@@ -136,33 +138,36 @@ namespace disk
 				   + LTrim( LTrim( s2, tcTC( T, '\\' ) ), tcTC( T, '/' ) );
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR WebPath( T_STR s1, T_STR s2 )
-		{	return Path( s1, s2, tcTC( T, '/' ) ); }
+		{	typedef typename T_STR::value_type T;
+			return Path( s1, s2, tcTC( T, '/' ) ); 
+		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR FilePath( T_STR s1, T_STR s2 )
-		{
+		{	typedef typename T_STR::value_type T;
 #if defined( _WIN32 )
-			return Path< T, T_STR >( s1, s2, tcTC( T, '\\' ) );
+			return Path( s1, s2, tcTC( T, '\\' ) );
 #else
-			return Path< T, T_STR >( s1, s2, tcTC( T, '/' ) );
+			return Path( s1, s2, tcTC( T, '/' ) );
 #endif
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR GetExtension( const T_STR &sFile )
-		{	T_STR sFilename = GetName< T, T_STR >( sFile );
+		{	typedef typename T_STR::value_type T;
+			T_STR sFilename = GetName( sFile );
 			unsigned long pos = sFile.find_last_of( tcTT( T, "." ) );
 			if ( T_STR::npos == pos )
 				return T_STR();
 			return T_STR( sFile, pos + 1 );
 		}
 
-	template < typename T, typename T_STR >
+	template < typename T_STR >
 		T_STR GetMimeType( T_STR sFile )
-		{
-			T_STR sExt = disk::GetExtension< T, T_STR >( sFile );			
+		{	typedef typename T_STR::value_type T;
+			T_STR sExt = disk::GetExtension( sFile );			
 			if ( !sExt.length() )
 				return tcTT( T, "application/octet-stream" );
 				
@@ -361,9 +366,10 @@ namespace disk
 		@param [in] sFile	- Name of file
 		@param [in] sData	- Data to write to file
 	*/
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		t_size WriteFile( T_STR sFile, T_STR sData )
-		{	HFILE hOut = Open( sFile.c_str(), "wb" );
+		{	typedef typename T_STR::value_type T;
+			HFILE hOut = Open( sFile.c_str(), "wb" );
 			if ( c_invalid_hfile == hOut )
 				return 0;
 			t_size n = Write( sData.data(), sizeof( T ), sData.length(), hOut );
@@ -371,9 +377,10 @@ namespace disk
 			return n;
 		}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		t_size WriteFile( T_STR sFile, T_STR sData1, T_STR sData2 )
-		{	HFILE hOut = Open( sFile.c_str(), "wb" );
+		{	typedef typename T_STR::value_type T;
+			HFILE hOut = Open( sFile.c_str(), "wb" );
 			if ( c_invalid_hfile == hOut )
 				return 0;
 			t_size n = Write( sData1.data(), sizeof( T ), sData1.length(), hOut )
@@ -387,9 +394,10 @@ namespace disk
 		@param [in] sFile	- Name of file
 		@param [in] sData	- Data to append to file
 	*/
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		t_size AppendFile( T_STR sFile, T_STR sData )
-		{	HFILE hOut = Open( sFile.c_str(), "ab" );
+		{	typedef typename T_STR::value_type T;
+			HFILE hOut = Open( sFile.c_str(), "ab" );
 			if ( c_invalid_hfile == hOut )
 				hOut = Open( sFile.c_str(), "wb" );
 			if ( c_invalid_hfile == hOut )
@@ -404,9 +412,11 @@ namespace disk
 		@param [in] sFile	- Name of file
 		@param [in] sData	- Data to write to file
 	*/
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		T_STR ReadFile( T_STR sFile, str::tc_int64 nMax = 0 )
 		{
+			typedef typename T_STR::value_type T;
+			
 			// Open the file
 			HFILE hIn = Open( sFile.c_str(), "rb" );
 			if ( c_invalid_hfile == hIn )

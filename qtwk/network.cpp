@@ -50,8 +50,8 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 	QByteArray path = req.url().path().toUtf8();
 
 	str::t_string8 mime = "application/octet-stream";
-	str::t_string8 full = //str::t_string8( path.data(), path.length() );
-		disk::WebPath< str::t_char8, str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
+	str::t_string8 full = 
+		disk::WebPath< str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
 
 	printf( "%s(%d) : RES : %s\n", __FILE__, __LINE__, full.c_str() );
 
@@ -73,7 +73,7 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 
 				case 1 :
 				{
-					mime = disk::GetMimeType< str::t_char8, str::t_string8 >( full );
+					mime = disk::GetMimeType( full );
 					const void *ptr = res.Ptr( hRes );
 					unsigned long sz = res.Size( hRes );
 
@@ -91,18 +91,18 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 					if ( pFn )
 					{
 						// in / out
-						TPropertyBag< str::t_char8 > in;
-						TPropertyBag< str::t_char8 > out;
+						TPropertyBag< str::t_string8 > in;
+						TPropertyBag< str::t_string8 > out;
 						
 						// Copy GET parameters
 						long szQi = req.url().encodedQueryItems().size();
 						if ( szQi )
-						{	TPropertyBag< str::t_char8 > &pbGet = in[ "GET" ];
+						{	TPropertyBag< str::t_string8 > &pbGet = in[ "GET" ];
 							for( long i = 0; i < szQi; i++ ) 
 							{	const QPair< QByteArray, QByteArray > it 
 									= req.url().encodedQueryItems().at( i );
-								pbGet[ str::t_string8( it.first.data(), it.first.length() ) ]
-									= str::t_string8( it.second.data(), it.second.length() );
+								pbGet[ parser::DecodeUrlStr( str::t_string8( it.first.data(), it.first.length() ) ) ]
+									= parser::DecodeUrlStr( str::t_string8( it.second.data(), it.second.length() ) );
 							} // end for
 						} // end if
 

@@ -32,9 +32,10 @@
 
 #pragma once
 
-template< typename T, typename T_STR >
+template< typename T_STR >
 	int process_binary( const T_STR sIn, const T_STR sOut, const T_STR sPre, const T_STR sLen, const T_STR sEnd )
 	{
+		typedef typename T_STR::value_type T;
 		std::basic_string< char > sInData;
 
 		disk::HFILE hIn = disk::Open( sIn.c_str(), "rb" );
@@ -95,7 +96,7 @@ template< typename T, typename T_STR >
 		} // end while
 
 		if ( sLen.length() )
-		{	T_STR w = sLen + str::ToString< T, T_STR >( lTotal );
+		{	T_STR w = sLen + str::ToString< T_STR >( lTotal );
 			disk::Write( w.data(), sizeof( T ), w.length(), hOut );
 		} // end if
 

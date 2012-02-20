@@ -47,7 +47,7 @@
 
 	@code
 
-		TPropertyBag< char > pb;
+		TPropertyBag< basic_string< char > > pb;
 
 		pb[ "A" ][ "AA" ] = "Hello World!";
 		pb[ "A" ][ "AB" ] = (long)1;
@@ -69,7 +69,7 @@
 
 */
 //==================================================================
-template < typename T > class TPropertyBag
+template < typename T_STR > class TPropertyBag
 {
 public:
 
@@ -128,10 +128,13 @@ public:
     };
 
     /// Unicode friendly string
-    typedef typename std::basic_string< T > t_String;
+    typedef T_STR t_String;
+	
+	/// Character type
+	typedef typename T_STR::value_type T;
 
     /// Our multi-dimensional string array type
-    typedef typename std::map< t_String, CAutoMem< TPropertyBag< T > > > t_map;
+    typedef typename std::map< t_String, CAutoMem< TPropertyBag< T_STR > > > t_map;
 
 public:
 
@@ -196,35 +199,35 @@ public:
 
     /// Construction from int
     TPropertyBag( int n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from unsigned int
     TPropertyBag( unsigned int n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from long
     TPropertyBag( long n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from unsigned long
     TPropertyBag( unsigned long n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from long
     TPropertyBag( str::tc_int64 n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from unsigned long
     TPropertyBag( str::tc_uint64 n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from double
     TPropertyBag( float n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     /// Construction from double
     TPropertyBag( double n )
-    {   m_flags = 0; m_str = str::ToString< T, t_String >( n ); }
+    {   m_flags = 0; m_str = str::ToString< t_String >( n ); }
 
     //==============================================================
     // operator = ()
@@ -310,7 +313,7 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( int n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator []()
@@ -322,7 +325,7 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( unsigned int n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator []()
@@ -334,7 +337,7 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( long n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator []()
@@ -346,7 +349,7 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( unsigned long n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator []()
@@ -358,7 +361,7 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( str::tc_int64 n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator []()
@@ -370,7 +373,7 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( str::tc_uint64 n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator []()
@@ -382,147 +385,217 @@ public:
         \return Reference to sub class.
     */
     TPropertyBag& operator []( double n ) 
-    {	return m_lstSub[ str::ToString< T, t_String >( n ) ]; }
+    {	return m_lstSub[ str::ToString< t_String >( n ) ]; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from string object
-    t_String operator = ( t_String sStr ) 
-    {   m_str = sStr; return m_str; }
+    TPropertyBag& operator = ( t_String sStr ) 
+    {   m_str = sStr; return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from string
-    t_String operator = ( const T* pStr ) 
-    {   return m_str = pStr; }
+    TPropertyBag& operator = ( const T* pStr ) 
+    {   m_str = pStr; return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from int
-    t_String operator = ( int n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( int n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from unsigned int
-    t_String operator = ( unsigned int n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( unsigned int n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from long
-    t_String operator = ( long n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( long n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from unsigned long
-    t_String operator = ( unsigned long n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( unsigned long n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from long
-    t_String operator = ( str::tc_int64 n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( str::tc_int64 n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from unsigned long
-    t_String operator = ( str::tc_uint64 n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( str::tc_uint64 n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from double
-    t_String operator = ( float n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( float n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator = ()
     //==============================================================
     /// Conversion from double
-    t_String operator = ( double n )
-    {   return m_str = str::ToString< T, t_String >( n ); }
+    TPropertyBag& operator = ( double n )
+    {   m_str = str::ToString< t_String >( n ); return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from string object
-    t_String operator << ( t_String sStr ) 
-    {   m_str += sStr; return m_str; }
+    TPropertyBag& operator << ( t_String sStr ) 
+    {   m_str += sStr; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from string
-    t_String operator << ( const T* pStr ) 
-    {   return m_str += pStr; }
+    TPropertyBag& operator << ( const T* pStr ) 
+    {   m_str += pStr; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from int
-    t_String operator << ( int n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( int n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from unsigned int
-    t_String operator << ( unsigned int n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( unsigned int n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from long
-    t_String operator << ( long n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( long n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from unsigned long
-    t_String operator << ( unsigned long n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( unsigned long n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from long
-    t_String operator << ( str::tc_int64 n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( str::tc_int64 n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from unsigned long
-    t_String operator << ( str::tc_uint64 n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( str::tc_uint64 n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from double
-    t_String operator << ( float n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( float n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // operator << ()
     //==============================================================
     /// Conversion from double
-    t_String operator << ( double n )
-    {   return m_str += n; }
+    TPropertyBag& operator << ( double n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from string object
+    TPropertyBag& operator + ( t_String sStr ) 
+    {   m_str += sStr; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from string
+    TPropertyBag& operator + ( const T* pStr ) 
+    {   m_str += pStr; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from int
+    TPropertyBag& operator + ( int n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from unsigned int
+    TPropertyBag& operator + ( unsigned int n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from long
+    TPropertyBag& operator + ( long n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from unsigned long
+    TPropertyBag& operator + ( unsigned long n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from long
+    TPropertyBag& operator + ( str::tc_int64 n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from unsigned long
+    TPropertyBag& operator + ( str::tc_uint64 n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from double
+    TPropertyBag& operator + ( float n )
+    {   m_str += n; return *this; }
+
+    //==============================================================
+    // operator + ()
+    //==============================================================
+    /// Conversion from double
+    TPropertyBag& operator + ( double n )
+    {   m_str += n; return *this; }
 
     //==============================================================
     // setFlags()
@@ -693,15 +766,15 @@ private:
 
 /// Property bag types
 /** \see TPropertyBag */
-typedef TPropertyBag< str::t_char8 > t_pb8;
+typedef TPropertyBag< str::t_string8 > t_pb8;
 #ifndef CII_NO_WCHAR
-	typedef TPropertyBag< str::t_charw > t_pbw;
+	typedef TPropertyBag< str::t_stringw > t_pbw;
 #endif
 
 #if defined( tcUNICODE )
-	typedef TPropertyBag< str::t_charw > t_pb;
+	typedef TPropertyBag< str::t_stringw > t_pb;
 #else
-	typedef TPropertyBag< str::t_char8 > t_pb;
+	typedef TPropertyBag< str::t_string8 > t_pb;
 #endif
 
 

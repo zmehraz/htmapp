@@ -36,23 +36,24 @@
 #include "process_binary.h"
 #include "process_cpp.h"
 
-typedef TCmdLine< char > t_cmdline8;
-typedef std::basic_string< char > t_string8;
+typedef str::t_char8 t_char8;
+typedef str::t_string8 t_string8;
+typedef TCmdLine< t_string8 > t_cmdline8;
 typedef std::list< t_string8 > t_strlist8;
 
 int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, t_string8 x_sRel, t_string8 x_sFile, t_cmdline8 &cl, t_strlist8 &lstCmp, t_string8 &sRoot, long &lI )
 {
 	// Create unique variable name
-	t_string8 sVar = sRoot + str::ToString< char, t_string8 >( lI++ );
+	t_string8 sVar = sRoot + str::ToString< t_string8 >( lI++ );
 	
 	// Create full input and output file paths
-	t_string8 sIn = disk::FilePath< char >( x_sInDir, x_sFile );
-	t_string8 sOut = disk::FilePath< char >( x_sOutDir, disk::Path< char >( x_sOutPre, x_sFile, '_' ) ) + t_string8( ".cpp" );
+	t_string8 sIn = disk::FilePath( x_sInDir, x_sFile );
+	t_string8 sOut = disk::FilePath( x_sOutDir, disk::Path( x_sOutPre, x_sFile, '_' ) ) + t_string8( ".cpp" );
 	t_string8 sFn = cl.pb()[ "f" ].str();
 
 	// Dependency file
 	if ( cl.pb()[ "t" ].length() )
-		disk::AppendFile< char >( cl.pb()[ "t" ].str(), t_string8( sOut ) + ": " + sIn + "\n\n" );
+		disk::AppendFile( cl.pb()[ "t" ].str(), t_string8( sOut ) + ": " + sIn + "\n\n" );
 
 	// Is this a compiled type?
 	stdForeach( t_strlist8::iterator, it, lstCmp )
@@ -62,23 +63,23 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 				str::Print( "c: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
 			// Declare variables
-			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
-									  t_string8()
-									  + "\nextern void * f_" + sVar + ";\n"
-									);
+			disk::AppendFile( disk::FilePath< t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
+							  t_string8()
+							  + "\nextern void * f_" + sVar + ";\n"
+							);
 
 			// Add to map
-			disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resources.cpp" ),
-									  t_string8( "\n{" )
-									  + "\n\t\"" + disk::WebPath< char >( x_sRel, x_sFile ) + "\","
-									  + "\n\t" + str::ToString< char, t_string8 >( (long)disk::WebPath< char >( x_sRel, x_sFile ).length() ) + ","
-									  + "\n\tf_" + sVar + ","
-									  + "\n\t0,"
-									  + "\n\t2\n},\n"
-									);
+			disk::AppendFile( disk::FilePath< t_string8 >( x_sOutDir, "htmapp_resources.cpp" ),
+							  t_string8( "\n{" )
+							  + "\n\t\"" + disk::WebPath( x_sRel, x_sFile ) + "\","
+							  + "\n\t" + str::ToString< t_string8 >( (long)disk::WebPath( x_sRel, x_sFile ).length() ) + ","
+							  + "\n\tf_" + sVar + ","
+							  + "\n\t0,"
+							  + "\n\t2\n},\n"
+							);
 
 			// Process the embedded c/c++ file
-			process_cpp< char, t_string8 >( sIn, sOut, sVar, sFn );
+			process_cpp( sIn, sOut, sVar, sFn );
 				
 			return 0;
 		} // end if
@@ -87,27 +88,27 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 		str::Print( "b: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
 	// Declare variables
-	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
-							  t_string8()
-							  + "\nextern const char data_" + sVar + "[];"
-							  + "\nextern const long size_" + sVar + ";\n"
-							);
+	disk::AppendFile( disk::FilePath< t_string8 >( x_sOutDir, "htmapp_resource_extern.hpp" ),
+					  t_string8()
+					  + "\nextern const char data_" + sVar + "[];"
+					  + "\nextern const long size_" + sVar + ";\n"
+					);
 
 	// Add to map
-	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( x_sOutDir, "htmapp_resources.cpp" ),
-							  t_string8( "\n{" )
-							  + "\n\t\"" + disk::WebPath< char >( x_sRel, x_sFile ) + "\","
-							  + "\n\t" + str::ToString< char, t_string8 >( (long)disk::WebPath< char >( x_sRel, x_sFile ).length() ) + ","
-							  + "\n\tdata_" + sVar + ","
-							  + "\n\tsize_" + sVar + ",\n\t1\n},\n"
-							);
+	disk::AppendFile( disk::FilePath< t_string8 >( x_sOutDir, "htmapp_resources.cpp" ),
+					  t_string8( "\n{" )
+					  + "\n\t\"" + disk::WebPath( x_sRel, x_sFile ) + "\","
+					  + "\n\t" + str::ToString< t_string8 >( (long)disk::WebPath( x_sRel, x_sFile ).length() ) + ","
+					  + "\n\tdata_" + sVar + ","
+					  + "\n\tsize_" + sVar + ",\n\t1\n},\n"
+					);
 
 	// Create the binary data file
-	long lBytes = process_binary< char, t_string8 >( sIn, sOut,
-													 t_string8( "\nextern const char data_" ) + sVar + "[] = \n{\n\t",
-													 t_string8( "\n\t0\n};\n\nextern const long size_" ) + sVar + " = ",
-													 ";\n"
-													);
+	long lBytes = process_binary< t_string8 >( sIn, sOut,
+											   t_string8( "\nextern const char data_" ) + sVar + "[] = \n{\n\t",
+											   t_string8( "\n\t0\n};\n\nextern const long size_" ) + sVar + " = ",
+											   ";\n"
+											 );
 
 	return lBytes;
 }
@@ -130,10 +131,10 @@ int process_directory( t_string8 x_sIn, t_string8 x_sOut, t_string8 x_sOutPre, t
 		{
 			// Recurse if directory
 			if ( disk::eFileAttribDirectory & fd.uFileAttributes )
-				process_directory( disk::FilePath< char, t_string8 >( x_sIn, fd.szName ), 
+				process_directory( disk::FilePath< t_string8 >( x_sIn, fd.szName ), 
 								   x_sOut,
-								   disk::Path< char, t_string8 >( x_sOutPre, fd.szName, '_' ),
-								   disk::FilePath< char, t_string8 >( x_sRel, fd.szName ), 
+								   disk::Path< t_string8 >( x_sOutPre, fd.szName, '_' ),
+								   disk::FilePath< t_string8 >( x_sRel, fd.szName ), 
 								   cl, lstCmp, sRoot, lI );
 
 			// Go process the file
@@ -158,7 +159,7 @@ int main( int argc, char* argv[] )
 
 	// Dumping the command line options to STDOUT?
 	if ( cl.pb().IsSet( "d" ) || cl.pb().IsSet( "debug" ) )
-	{	for ( TCmdLine< char >::iterator it = cl.begin(); cl.end() != it; it++ )
+	{	for ( t_cmdline8::iterator it = cl.begin(); cl.end() != it; it++ )
 			str::Print( "[%s] = '%s'\n", it->first.c_str(), it->second->c_str() );
 		return 0;
 	} // end if
@@ -198,20 +199,20 @@ int main( int argc, char* argv[] )
 	disk::unlink( cl.pb()[ "t" ].str().c_str() );
 
 	// res_extern.hpp
-	disk::unlink( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resource_extern.hpp" ).c_str() );
+	disk::unlink( disk::FilePath< t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resource_extern.hpp" ).c_str() );
 	
 	// res_list.hpp
-	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ),
+	disk::WriteFile( disk::FilePath< t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ),
 							 t_string8() + "#include \"htmapp_resources.h\"\n"
 										   "#include \"htmapp_resource_extern.hpp\"\n"
 										   "SHmResourceInfo _htmapp_resources[] = \n{\n" );
 
 	// resource.h
-	disk::WriteFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.h" ),
+	disk::WriteFile( disk::FilePath< t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.h" ),
 							 t_string8() + 
 										   ""
 										   "#define HTMAPP_RESOURCES 1\n\n"
-										   "#define hmResourceFn( n ) int (*n)( const TPropertyBag< char > &in, std::basic_string< char > &out );\n"
+										   "#define hmResourceFn( n ) int (*n)( const TPropertyBag< str::t_string8 > &in, std::basic_string< str::t_string8 > &out );\n"
 										   "\nstruct SHmResourceInfo\n{"
 										   "\n\tconst char*   name;"
 										   "\n\tunsigned long sz_size;"
@@ -227,18 +228,18 @@ int main( int argc, char* argv[] )
 	if ( !cl.pb().IsSet( "c" ) )
 		lstCmp.push_back( "*.htm" );
 	else
-		lstCmp = str::SplitQuoted< char, t_string8, t_strlist8 >
+		lstCmp = str::SplitQuoted< t_string8, t_strlist8 >
 								   ( (char*)cl.pb()[ "c" ].data(), cl.pb()[ "c" ].length(), 
 								     ";, \t", "\"'", "\"'", "\\", true );
 
 	// Separate the different directories
-	t_strlist8 lstDir = str::SplitQuoted< char, t_string8, t_strlist8 >
+	t_strlist8 lstDir = str::SplitQuoted< t_string8, t_strlist8 >
 										  ( (char*)cl.pb()[ "i" ].data(), cl.pb()[ "i" ].length(), 
 											";, \t", "\"'", "\"'", "\\", true );
 
 	// Root variable name
 	t_string8 sRoot( "T" );
-	sRoot += str::ToString< char, t_string8 >( (unsigned long)time( 0 ) );
+	sRoot += str::ToString< t_string8 >( (unsigned long)time( 0 ) );
 	sRoot += "I";
 
 	// Process each directory
@@ -247,8 +248,8 @@ int main( int argc, char* argv[] )
 		process_directory( *it, cl.pb()[ "o" ].str(), *it, it->c_str(), cl, lstCmp, sRoot, lI );
 
 	// Close up res_list.hpp
-	disk::AppendFile< char >( disk::FilePath< char, t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ), 
-							  t_string8( "\n{0,0,0,0,0}\n\n};\n" ) );
+	disk::AppendFile( disk::FilePath< t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.cpp" ), 
+					  t_string8( "\n{0,0,0,0,0}\n\n};\n" ) );
 
 	return 0;
 }

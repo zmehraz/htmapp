@@ -302,7 +302,7 @@ static str::t_string disk_GetHome()
 	return tcT( "~/" );
 }
 
-#define disk_FROMHOME( s ) disk::FilePath< str::t_char, str::t_string >( disk_GetHome(), tcT( s ) )
+#define disk_FROMHOME( s ) disk::FilePath< str::t_string >( disk_GetHome(), tcT( s ) )
 
 str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength )
 {
@@ -488,7 +488,7 @@ long GetDisksInfo( t_pb &pb, bool bInfo )
 		{
 			str::t_string sPath = m->mnt_dir 
 								  ? tcMb2Str( m->mnt_dir ) 
-								  : str::ToString< str::t_char, str::t_string >( lTotal );
+								  : str::ToString< str::t_string >( lTotal );
 			
 			
 			if ( bInfo )

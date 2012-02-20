@@ -176,7 +176,8 @@ HFIND FindFirst( const char *x_pPath, const char *x_pMask, SFindData *x_pFd, uns
 	ZeroMemory( &wfd, sizeof( wfd ) );
 
 	// Where will we be looking?
-	std::basic_string< char > sRoot = FilePath< char >( std::basic_string< char >( x_pPath ), std::basic_string< char >( x_pMask ) );
+	std::basic_string< char > sRoot 
+		= FilePath( std::basic_string< char >( x_pPath ), std::basic_string< char >( x_pMask ) );
 
 	// Find first file
 	HANDLE hFind = ::FindFirstFile( sRoot.c_str(), &wfd );
@@ -450,11 +451,11 @@ str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength 
 
 	// Trim path
 	while ( trim )
-		s = GetPath< str::t_char, str::t_string >( s ), trim--;
+		s = GetPath( s ), trim--;
 
 	// Is there a sub directory?
 	if ( sub.length() )
-		return FilePath< str::t_char, str::t_string >( s, sub );
+		return FilePath( s, sub );
 
 	return s;
 }

@@ -43,7 +43,7 @@ else
 endif
 
 PRJ_INCS := $(PRJ_INCS) $(CFG_LIBROOT)/inc
-
+e
 # Include directories
 ifneq ($(PRJ_INCS),)
 	BLD_INCS := $(BLD_INCS) $(foreach inc,$(PRJ_INCS),-I$(inc))

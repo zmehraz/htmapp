@@ -33,7 +33,31 @@ bool replace_smallest( CFileIndex::SBlockItem *p, CFileIndex::SBlockItem **lst, 
 	return true;		
 }
 
-void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p );
+void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
+{
+	// Sanity check
+	if ( !p || 0 > p->size )
+		return;
+
+	// Set our name
+	pb[ "name" ] = fi.getBlob( p->name );
+	pb[ "path" ] = disk::FilePath< str::t_string >( sRoot, fi.getBlob( p->name ) );
+	pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)p->size, 1024., 2 ) + "B";
+
+	// Folder color
+	if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
+		pb[ "colour" ] = "#804000",
+		pb[ "hi_colour" ] = "#ffa000";
+
+	// File color
+	else
+		pb[ "colour" ] = "#004080",
+		pb[ "hi_colour" ] = "#00a0FF";
+
+	// Item size, some renderers have a problem with zero
+	pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
+}
+
 long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_block b, long lMaxTop, long lMaxDepth, long lDepth = 0 )
 {
 	if ( !b || lMaxDepth < lDepth || 0 >= lMaxTop )
@@ -50,7 +74,7 @@ long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_blo
 		pb[ "hi_colour" ] = "#a00000";
 		pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
 		pb[ "path" ] = sRoot;
-		pb[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B";
+		pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)p->size, 1024., 2 ) + "B";
 		tq::set( "indexer.progress", p->size, "." );
 		return add_items( sRoot, pb[ "children" ], fi, p->child, lMaxTop, lMaxDepth, lDepth + 1 );
 	} // end if
@@ -85,7 +109,7 @@ long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_blo
 	for ( long i = 0; i < lMaxTop && tdir[ i ]; i++ )
 	{	t_pb &r = pb[ idx++ ];
 		add_item( sRoot, r, fi, tdir[ i ] );
-		add_items( disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( tdir[ i ]->name ) ),
+		add_items( disk::FilePath< str::t_string >( sRoot, fi.getBlob( tdir[ i ]->name ) ),
 				   r[ "children" ], fi, tdir[ i ]->child, lMaxTop, lMaxDepth, lDepth + 1 );
 	} // end for
 
@@ -94,31 +118,6 @@ long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_blo
 		add_item( sRoot, pb[ idx++ ], fi, tfile[ i ] );
 
 	return idx;
-}
-
-void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
-{
-	// Sanity check
-	if ( !p || 0 > p->size )
-		return;
-
-	// Set our name
-	pb[ "name" ] = fi.getBlob( p->name );
-	pb[ "path" ] = disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( p->name ) );
-	pb[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B";
-
-	// Folder color
-	if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
-		pb[ "colour" ] = "#804000",
-		pb[ "hi_colour" ] = "#ffa000";
-
-	// File color
-	else
-		pb[ "colour" ] = "#004080",
-		pb[ "hi_colour" ] = "#00a0FF";
-
-	// Item size, some renderers have a problem with zero
-	pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
 }
 
 long index_callback( CFileIndex *pFi, void *p )
@@ -161,8 +160,8 @@ long index_callback( CFileIndex *pFi, void *p )
 	{	CFileIndex::SBlockItem *pCenter = pFi->getItem( hCenter );
 		pb[ "name" ] = "..";
 		pb[ "path" ] = center;
-		pb[ "dst" ] = ( center.length() > root.length() ) ? disk::GetPath< str::t_char, str::t_string >( center ) : "";
-		pb[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)pCenter->size, 1024., 2 ) + "B";
+		pb[ "dst" ] = ( center.length() > root.length() ) ? disk::GetPath( center ) : "";
+		pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)pCenter->size, 1024., 2 ) + "B";
 		add_items( center, r, *pFi, pCenter->child, job[ "top" ].ToLong(), job[ "depth" ].ToLong(), 1 );
 
 	} // end if	
@@ -178,7 +177,7 @@ long index_callback( CFileIndex *pFi, void *p )
 		pbFree[ "hi_colour" ] = "#00a000";
 		pbFree[ "size" ] = ( 0 < nFree ) ? nFree : 1;
 		pbFree[ "path" ] = "[ Free Space ]";
-		pbFree[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)job[ "drive" ][ "bytes_free" ].ToInt64(), 1024., 2 ) + "B";
+		pbFree[ "szstr" ] = str::SizeStr< str::t_string >( (double)job[ "drive" ][ "bytes_free" ].ToInt64(), 1024., 2 ) + "B";
 
 		// Add disk items
 		add_items( job[ "params" ][ "root" ].str(), r[ "used" ], *pFi, 

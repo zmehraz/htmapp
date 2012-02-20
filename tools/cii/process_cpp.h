@@ -48,11 +48,13 @@
   @endcode
 
 */
-template< typename T, typename T_STR >
+template< typename T_STR >
 	int process_cpp( const T_STR sIn, const T_STR sOut, const T_STR sVar, const T_STR sFn )
 	{
+		typedef typename T_STR::value_type T;
+
 		// Attempt to read in the file data, it must fit in memory
-		T_STR sSrc = disk::ReadFile< T, T_STR >( sIn ), sDst;
+		T_STR sSrc = disk::ReadFile( sIn ), sDst;
 		const T *pSrc = sSrc.data();
 		long szSrc = sSrc.length();
 		if ( 0 >= szSrc )
@@ -61,7 +63,7 @@ template< typename T, typename T_STR >
 		// Function prototype
 		const T *pFn = sFn.data();
 		if ( !sFn.length() || !pFn || !*pFn )
-			pFn = tcTT( T, "static int _internal_run( TPropertyBag< char > &in, TPropertyBag< char > &out )" ); 
+			pFn = tcTT( T, "static int _internal_run( TPropertyBag< str::t_string8 > &in, TPropertyBag< str::t_string8 > &out )" ); 
 
 		// Start out with some space
 		sDst.reserve( sSrc.length() * 2 );
@@ -94,7 +96,7 @@ template< typename T, typename T_STR >
 					nPos++;
 
 			// Find a closing bracket
-			while ( nClose == szSrc && ( nPos + szClose ) < szSrc )
+			while ( nClose == szSrc && ( nPos + szClose ) <= szSrc )
 				if ( pSrc[ nPos ] == tsClose[ 0 ] && !memcmp( &pSrc[ nPos ], tsClose, szClose ) )
 					nClose = nPos;
 				else
@@ -106,7 +108,7 @@ template< typename T, typename T_STR >
 				// Encode any text
 				if ( nStart < nOpen )
 				{	sDst += tcTT( T, "\n\tout << \"" );
-					sDst += parser::CppEncode< T, T_STR >( &pSrc[ nStart ], nOpen - nStart );
+					sDst += parser::CppEncode< T_STR >( &pSrc[ nStart ], nOpen - nStart );
 					sDst += tcTT( T, "\";\n" );
 				} // end if
 
@@ -138,7 +140,7 @@ template< typename T, typename T_STR >
 		// Copy whatever is left
 		if ( nStart < szSrc )
 		{	sDst += tcTT( T, "\n\tout << \"" );
-			sDst += parser::CppEncode< T, T_STR >( &pSrc[ nStart ], szSrc - nStart );
+			sDst += parser::CppEncode< T_STR >( &pSrc[ nStart ], szSrc - nStart );
 			sDst += tcTT( T, "\";\n" );
 		} // end if
 
@@ -149,6 +151,6 @@ template< typename T, typename T_STR >
 		sDst += T_STR() + tcTT( T, "\n\nvoid * f_" ) + sVar + tcTT( T, " = (void*)&_internal_run;\n" );
 
 		// Write out the file
-		return disk::WriteFile< T >( sOut, sGlobal, sDst );
+		return disk::WriteFile( sOut, sGlobal, sDst );
 	}
 

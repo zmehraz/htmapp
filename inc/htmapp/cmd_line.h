@@ -86,20 +86,20 @@
 	@endcode
 
 */
-template< typename T >
+template< typename T_STR >
 	class TCmdLine
 {
 public:
 
-	/// Char type
-	typedef T t_char;
+	/// Character type
+	typedef typename T_STR::value_type t_char;
 
 	/// Size type
 	typedef long t_size;
 
 	/// Property bag type
-	typedef TPropertyBag< t_char > t_pb;
-
+	typedef TPropertyBag< T_STR > t_pb;
+	
 	/// String type
 	typedef typename t_pb::t_String t_String;
 
@@ -196,7 +196,7 @@ public:
 		{
 			// Save the naked value into the array by it's position
 			t_String sVal( x_p, x_l );
-			x_pb[ t_String( tcTT( t_char, "#" ) ) + str::ToString< T, t_String >( i ) ] = sVal;
+			x_pb[ t_String( tcTT( t_char, "#" ) ) + str::ToString< t_String >( i ) ] = sVal;
 			
 			// Update previous switch(s) with it's value
 			if ( last && last->size() )
@@ -225,7 +225,7 @@ public:
 			t_size sep = str::FindCharacter( &x_p[ n ], x_l - n, tcTC( t_char, ':' ) );
 			t_String sVal = ( 0 < sep ) 
 							? t_String( &x_p[ n + sep + 1 ], x_l - n - sep ) 
-							: ( t_String( tcTT( t_char, "#" ) ) + str::ToString< T, t_String >( i ) );
+							: ( t_String( tcTT( t_char, "#" ) ) + str::ToString< t_String >( i ) );
 
 			// Set all switches
 			while( n < x_l && tcTC( t_char, ':' ) != x_p[ n ] )
@@ -256,7 +256,7 @@ public:
 		else
 		{
 			x_pb[ sKey = t_String( &x_p[ n ], x_l - n ) ] 
-				= t_String( tcTT( t_char, "#" ) ) + str::ToString< T, t_String >( i );
+				= t_String( tcTT( t_char, "#" ) ) + str::ToString< t_String >( i );
 			if ( last )
 				last->push_back( &x_pb[ sKey ].str() );
 		} // end else
@@ -281,7 +281,7 @@ public:
 			return 0;
 
 		// Break the command line into chunks
-		t_strlist sl = str::SplitQuoted< T, t_String, t_strlist >
+		t_strlist sl = str::SplitQuoted< t_char, t_String, t_strlist >
 								( x_pStr, x_lSize, 
 								  tcTT( t_char, " \t" ), tcTT( t_char, "\"'" ), 
 								  tcTT( t_char, "\"'" ), tcTT( t_char, "\\" ) );

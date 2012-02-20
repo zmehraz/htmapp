@@ -34,8 +34,14 @@
 
 #include "str.h"
 
+// +++ Rewrite all these to use join/split method
+
 namespace parser
 {
+//------------------------------------------------------------------
+// C++ encode / decode
+//------------------------------------------------------------------
+
 	/// Returns non-zero if the character is a valid html character
 	template< typename T >
 		static bool IsCppChar( T x_ch )
@@ -49,9 +55,11 @@ namespace parser
 		return ( 0 > x_ch || tcTC( T, ' ' ) <= x_ch ) ? true : false;
 	}
 
-	template< typename T, typename T_STR >
-		static T_STR CppEncodeChar( T x_ch )
+	template< typename T_STR >
+		static T_STR CppEncodeChar( typename T_STR::value_type x_ch )
 	{
+		typedef typename T_STR::value_type T;
+
 		switch( x_ch )
 		{
 			case tcTC( T, '"' ) :
@@ -78,9 +86,11 @@ namespace parser
 		return T_STR( s, 10 );
 	}
 
-	template< typename T, typename T_STR >
-		static T_STR CppEncode( const T *x_pStr, typename T_STR::size_type x_lSize = 0 )
+	template< typename T_STR >
+		static T_STR CppEncode( const typename T_STR::value_type *x_pStr, typename T_STR::size_type x_lSize = 0 )
 	{
+		typedef typename T_STR::value_type T;
+
 		if ( !x_pStr || !*x_pStr || 0 >= x_lSize )
 			return T_STR();
 
@@ -97,7 +107,7 @@ namespace parser
 					ret.append( &x_pStr[ nStart ], nPos - nStart );
 
 				// Encode this character
-				ret.append( CppEncodeChar< T, T_STR >( x_pStr[ nPos ] ) );
+				ret.append( CppEncodeChar< T_STR >( x_pStr[ nPos ] ) );
 
 				// Next
 				nStart = ++nPos;
@@ -116,15 +126,23 @@ namespace parser
 		return ret;
 	}
 
-	template< typename T, typename T_STR >
+	template< typename T_STR >
 		static T_STR CppEncode( const T_STR &x_str )
-	{	return CppEncode< T, T_STR >( x_str.data(), x_str.length() ); }
+	{	return CppEncode( x_str.data(), x_str.length() ); }
 
 
-	template< typename T, typename T_STR >
-		static T_STR EncodeJsonStr( const T *p, typename T_STR::size_type nLen )
+//------------------------------------------------------------------
+// JSON encode / decode
+//------------------------------------------------------------------
+
+	template< typename T_STR >
+		static T_STR EncodeJsonStr( const T_STR &x_str )
 	{
+		typedef typename T_STR::value_type T;
+
 		// Sanity check
+		const T *p = &x_str[ 0 ];
+		typename T_STR::size_type nLen = x_str.length();
 		if ( !p || 0 >= nLen )
 			return T_STR();
 
@@ -163,13 +181,12 @@ namespace parser
 		return ret;
 	}
 
-	template< typename T, typename T_STR >
-		static T_STR EncodeJsonStr( const T_STR &x_str )
-	{	return EncodeJsonStr< T, T_STR >( x_str.data(), x_str.length() ); }
-
-	template< typename T, typename T_STR, typename T_PB >
-		static T_STR EncodeJson( const T_PB &x_pb, long x_depth = 0 )
+	template< typename T_PB >
+		static typename T_PB::t_String EncodeJson( const T_PB &x_pb, long x_depth = 0 )
 	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
 		T_STR sTab, sTab1;
 		for ( long t = 0; t < x_depth; t++ )
 			sTab += tcTC( T, '\t' );
@@ -193,16 +210,16 @@ namespace parser
 			// Add key
 			if ( !bList )
 				sStr += tcTC( T, '\"' ),
-				sStr += EncodeJsonStr< T, T_STR >( it->first ),
+				sStr += EncodeJsonStr( it->first ),
 				sStr += tcTT( T, "\": " );
 
 			// Recurse for array
 			if ( it->second->size() )
-				sStr += EncodeJson< T, T_STR, T_PB >( *it->second, x_depth + 1 );
+				sStr += EncodeJson( *it->second, x_depth + 1 );
 
 			// Single value
 			else if ( it->second->length() )
-				sStr += tcTC( T, '\"' ), sStr += EncodeJsonStr< T, T_STR >( it->second->str() ), sStr += tcTC( T, '\"' );
+				sStr += tcTC( T, '\"' ), sStr += EncodeJsonStr( it->second->str() ), sStr += tcTC( T, '\"' );
 
 			// Empty
 			else
@@ -215,9 +232,13 @@ namespace parser
 		return sStr;
 	}
 
-	template< typename T, typename T_STR >
-		static T_STR DecodeJsonStr( const T *p, typename T_STR::size_type nLen )
+	template< typename T_STR >
+		static T_STR DecodeJsonStr( const T_STR &x_str )
 	{
+		typedef typename T_STR::value_type T;
+
+		const T *p = &x_str[ 0 ];
+		typename T_STR::size_type nLen = x_str.length();
 		if ( !p || 0 >= nLen )
 			return T_STR();
 
@@ -264,13 +285,15 @@ namespace parser
 		return ret;
 	}
 
-	template< typename T, typename T_STR >
-		static T_STR DecodeJsonStr( const T_STR x_str )
-	{	return DecodeJsonStr< T, T_STR >( x_str.data(), x_str.length() ); }
-
-	template< typename T, typename T_STR, typename T_PB >
-		static str::t_size _DecodeJson( const T *p, str::t_size nLen, T_PB &x_pb, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
+	template< typename T_PB >
+		static typename T_PB::t_String::size_type DecodeJson( const typename T_PB::t_String &x_str, T_PB &x_pb, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
 	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+	
+		const T *p = &x_str[ 0 ];
+		typename T_STR::size_type nLen = x_str.length();
+	
 		// Lose previous contents
 		if ( !x_bMerge )
 			x_pb.clear();
@@ -280,7 +303,7 @@ namespace parser
 			return 0;
 
 		// Find start of array
-		str::t_size nPos = 0;
+		typename T_STR::size_type nPos = 0;
 		while ( !x_lArrayType && nPos < nLen )
 		{
 			// Look for array start character
@@ -307,7 +330,7 @@ namespace parser
 		while ( nPos < nLen )
 		{
 			// Skip whitespace
-			str::t_size nSkip = str::FindInRange( p, nLen - nPos, tcTC( T, '!' ), tcTC( T, '~' ) );
+			typename T_STR::size_type nSkip = str::FindInRange( p, nLen - nPos, tcTC( T, '!' ), tcTC( T, '~' ) );
 			if ( 0 > nSkip || nSkip >= ( nLen - nPos ) )
 				return nPos;
 			p += nSkip, nPos += nSkip;
@@ -321,9 +344,10 @@ namespace parser
 				p++;
 
 				if ( !lMode )
-					sKey = str::ToString< T, T_STR >( lItems++ );
+					sKey = str::ToString< T_STR >( lItems++ );
 
-				str::t_size sz = _DecodeJson< T, T_STR, T_PB >( p, nLen - nPos, x_pb[ sKey ], tcTC( T, '{' ) == ch ? 1 : 2 );
+//				str::t_size sz = _DecodeJson( p, nLen - nPos, x_pb[ sKey ], tcTC( T, '{' ) == ch ? 1 : 2 );
+				typename T_STR::size_type sz = DecodeJson( T_STR( p, nLen - nPos ), x_pb[ sKey ], tcTC( T, '{' ) == ch ? 1 : 2 );
 				if ( 0 <= sz )
 					p += sz, nPos += sz;
 
@@ -343,7 +367,7 @@ namespace parser
 					if ( 1 == x_lArrayType )
 						x_pb[ sKey ] = tcTT( T, "" );
 					else
-						x_pb[ str::ToString< T, T_STR >( lItems ) ] = sKey;
+						x_pb[ str::ToString< T_STR >( lItems ) ] = sKey;
 
 					// Count an item
 					lItems++;
@@ -373,13 +397,13 @@ namespace parser
 				// Key?
 				if ( !lMode )
 					lMode = 1,
-					sKey = ( 0 < end ) ? DecodeJsonStr< T, T_STR >( p, end ) : T_STR();
+					sKey = ( 0 < end ) ? DecodeJsonStr( T_STR( p, end) ) : T_STR();
 
 				// Value?
 				else if ( lMode )
 					lItems++,
 					lMode = ( 1 == lMode ) ? 0 : lMode,
-					x_pb[ sKey ] = ( 0 < end ) ? DecodeJsonStr< T, T_STR >( p, end ) : T_STR();
+					x_pb[ sKey ] = ( 0 < end ) ? DecodeJsonStr( T_STR( p, end ) ) : T_STR();
 
 				// Skip string
 				p += end, nPos += end;
@@ -399,15 +423,155 @@ namespace parser
 		return nPos;
 	}
 
-	template< typename T, typename T_STR, typename T_PB >
-		static T_PB DecodeJson( const T_STR x_str, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
-		{	T_PB pb;
-			_DecodeJson< T, T_STR, T_PB >( x_str.data(), x_str.length(), pb, x_lArrayType, x_bMerge, x_pLast );
-			return pb;
-		}
+	template< typename T_PB >
+		static T_PB DecodeJson( const typename T_PB::t_String &x_str, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
+		{	T_PB pb; DecodeJson( x_str, pb, x_lArrayType, x_bMerge, x_pLast ); return pb; }
 
-	template< typename T, typename T_STR, typename T_PB >
-		static long DecodeJson( const T_STR x_str, T_PB &x_pb, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
-		{	return _DecodeJson< T, T_STR, T_PB >( x_str.data(), x_str.length(), x_pb, x_lArrayType, x_bMerge, x_pLast ); }
+		
+//------------------------------------------------------------------
+// URL encode / decode
+//------------------------------------------------------------------
+
+	/// Returns non-zero if the character is a valid url character
+	template< typename T >
+		static bool IsUrlChar( T x_ch )
+	{   return  ( tcTC( T, 'a' ) <= x_ch && tcTC( T, 'z' ) >= x_ch ) ||
+				( tcTC( T, 'A' ) <= x_ch && tcTC( T, 'Z' ) >= x_ch ) ||
+				( tcTC( T, '0' ) <= x_ch && tcTC( T, '9' ) >= x_ch ) ||
+				tcTC( T, '_' ) == x_ch || tcTC( T, '-' ) == x_ch ||
+				tcTC( T, '.' ) == x_ch;
+	}
+
+	template< typename T_STR >
+		static T_STR EncodeUrlStr( const T_STR &x_str )
+	{
+		typedef typename T_STR::value_type T;
+
+		const T *p = &x_str[ 0 ];
+		typename T_STR::size_type nLen = x_str.length();
+	
+		// Sanity check		
+		if ( !p || 0 >= nLen )
+			return T_STR();
+
+		// Need at least this much space
+		T_STR ret;
+		ret.reserve( nLen );
+
+		// Hex string buffer
+		T hex[] = { tcTC( T, '%' ), 0, 0, 0 };
+
+		while ( 0 < nLen-- )
+		{
+			if ( !IsUrlChar( *p ) )
+				str::ntoa( &hex[ 1 ], (unsigned char)*p ), ret.append( hex, 3 );
+			else
+				ret += *p;
+
+			// Next character
+			p++;
+
+		} // end while
+
+		return ret;
+	}
+
+	template< typename T_STR >
+		static T_STR DecodeUrlStr( const T_STR &x_str )
+	{	
+		typedef typename T_STR::value_type T;
+		
+		const T *p = &x_str[ 0 ];
+		typename T_STR::size_type nLen = x_str.length();
+
+		if ( !p || 0 >= nLen )
+			return T_STR();
+			
+		T ch = 0;
+		T_STR ret;
+		while ( 0 < nLen-- )
+		{
+			if ( tcTC( T, '+' ) == *p )
+				ret += tcTC( T, ' ' );
+
+			else if ( tcTC( T, '%' ) != *p )
+				ret += *p;
+
+			else
+				p++, ret += str::aton( p++, &ch, 2 ), nLen -= 2;
+
+			p++;
+
+		} // end while
+
+		return ret;
+	}
+	
+	template< typename T_PB >
+		static typename T_PB::t_String EncodeUrl( const T_PB &x_pb )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		T_STR s;
+		for ( typename T_PB::const_iterator it = x_pb.begin(); x_pb.end() != it; it++ )
+		{
+			if ( s.length() )
+				s += tcTC( T, '&' );
+				
+			s += EncodeUrlStr( it->first ) 
+				 + tcTC( T, '=' ) 
+				 + EncodeUrlStr( it->second->str() );
+
+		} // end if
+	
+		return s;
+	}
+	
+	template< typename T_PB >
+		static long DecodeUrlPair( const typename T_PB::t_String &x_sStr, T_PB &x_pb )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		if ( !x_sStr.length() )
+			return 0;
+		typename T_STR::size_type pos = x_sStr.find_first_of( tcTC( T, '=' ) );
+		if ( T_STR::npos == pos )
+			x_pb[ DecodeUrlStr( x_sStr ) ] = tcTT( T, "" );
+		else
+			x_pb[ DecodeUrlStr( T_STR( x_sStr, 0, pos ) ) ] = DecodeUrlStr( T_STR( x_sStr, pos + 1 ) );
+		return 1;
+	}
+
+	template< typename T_PB >
+		static long DecodeUrl( const typename T_PB::t_String &x_sStr, T_PB &x_pb, bool x_bMerge = false )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		if ( !x_bMerge )
+			x_pb.clear();
+	
+		long i = 0;
+		typename T_STR::size_type pos = 0, len = x_sStr.length();		
+		while ( T_STR::npos != pos && pos < len )
+		{
+			// Find pair sep
+			typename T_STR::size_type start = pos;
+			pos = x_sStr.find_first_of( tcTC( T, '&' ), pos );
+			if ( T_STR::npos == pos )
+				i += DecodeUrlPair( T_STR( x_sStr, start ), x_pb );
+			else
+				i += DecodeUrlPair( T_STR( x_sStr, start, pos - start ), x_pb ), pos++;
+	
+		} // end while
+	
+		return i;
+	}
+
+	template< typename T_PB >
+		static T_PB DecodeUrl( const typename T_PB::t_String &x_str )
+		{	T_PB pb; DecodeUrl( x_str, pb ); return pb; }
 
 }; // namespace parser

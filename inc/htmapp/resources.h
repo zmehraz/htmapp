@@ -25,7 +25,7 @@ class CHmResources
 public:
 
 	/// Resource function type
-	typedef int (*t_fn)( TPropertyBag< char > &in, TPropertyBag< char > &out );
+	typedef int (*t_fn)( TPropertyBag< str::t_string8 > &in, TPropertyBag< str::t_string8 > &out );
 	
 	/// Resource size type
 	typedef unsigned long t_size;

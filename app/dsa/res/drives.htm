@@ -25,7 +25,7 @@
 		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
 			if ( sType == "all" || (*it->second)[ tcT( "drive_type" ) ].ToString() == sType )
 				if ( it->second->get( "bytes" ).ToDouble() )
-					ret += mkitem( sType, it, str::ToString< str::t_char, str::t_string>( i ) );
+					ret += mkitem( sType, it, str::ToString< str::t_string>( i ) );
 
 		if ( !ret.length() )
 			return;
