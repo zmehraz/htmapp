@@ -6,14 +6,16 @@
 
 	t_pb8 pb;
 	pb[ "map" ] = tq::get( "indexer.out", "." );
-	pb[ "drive" ][ "free" ] = tq::get( "indexer.job.drive.bytes_free", "." ).ToInt64();
-	pb[ "drive" ][ "total" ] = tq::get( "indexer..job.drive.bytes", "." ).ToInt64();
+	pb[ "drive" ] = tq::get( "indexer.job.drive", "." );
 	pb[ "drive" ][ "progress" ] = tq::get( "indexer.progress", "." ).ToInt64();
 		
-	// Send back output status
+	// Send back indexer status
 	out << parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 
-	// Request another update
+	// Set the center folder
+	tq::set( "indexer.center", in[ "GET" ][ "center" ].str(), "." );
+
+	// Request another update from the indexer thread
 	tq::set( "indexer.update", 1, "." );
 	
 	return 0;

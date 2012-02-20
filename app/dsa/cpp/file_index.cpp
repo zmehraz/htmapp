@@ -380,6 +380,50 @@ CFileIndex::t_block CFileIndex::AddChild( t_block hBlock, t_char *name, t_size s
 	return hNew;
 }
 
+CFileIndex::t_block CFileIndex::findBlock( t_block hBlock, const t_string &name, const t_string &sep )
+{
+	// Sanitch check
+	if ( !hBlock || !name.length() )
+		return hBlock;
+	
+	// Get block info
+	SBlockItem *p = getItem( hBlock );
+	if ( !p )		
+		return 0;
+
+	// Get first key
+	t_string key, next = name;
+	while ( !key.length() && next.length() )
+	{	typename t_string::size_type pos = next.find_first_of( sep );
+		key = ( t_string::npos == pos ) ? next : t_string( next, 0, pos );
+		next = ( t_string::npos == pos ) ? "" : t_string( next, pos + 1 );
+	};
+
+	// Null key means this block
+	if ( !key.length() )
+		return hBlock;
+		
+	// Search children for a match
+	hBlock = p->child;
+	p = hBlock ? getItem( hBlock ) : 0;
+	while ( p )
+	{
+		// See if this is our block
+		t_size sz = 0;
+		const char *name = getBlob( p->name, &sz );
+		if ( name && sz && key == t_string( name, sz ) )
+			return findBlock( hBlock, next, sep );
+	
+		// Next item
+		hBlock = p->next;
+		p = hBlock ? getItem( hBlock ) : 0;
+	
+	} // end while
+	
+	// Not found
+	return 0;
+}
+
 long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, long lMaxDepth, volatile long *plCancel )
 {
 	// Sanity check
@@ -397,10 +441,6 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 	// Are we at the minimum depth?
 	if ( 0 < lMinDepth )
 	{
-		// Skip the root item
-//		if ( hBlock == getRoot() )
-//			lMinDepth++, lMaxDepth++;
-	
 		// Get child
 		SBlockItem *p = getItem( hBlock );
 		if ( !p->child )

@@ -82,6 +82,7 @@
 		function selDrive(id)
 		{	var posSrc = $('.'+id).offset(), posDst = $('.hdr_path').offset();			
 			var w = $('.hdr_path').width(), h = $('.hdr_path').height();
+			$('.centeritem').html( '' );
 			$('.highlight').html( $('.'+id).html() );
 			$('.highlight').css( { opacity: 1, left: posSrc.left, top: posSrc.top, width: w, height: h } );
 			$('.highlight').show().animate( { left: posDst.left, top: posDst.top }, 500 );			

@@ -98,7 +98,7 @@ long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_blo
 
 void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlockItem *p )
 {
-//		CFileIndex::SBlockItem *p = fi.getItem( b );
+	// Sanity check
 	if ( !p || 0 > p->size )
 		return;
 
@@ -106,18 +106,19 @@ void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlock
 	pb[ "name" ] = fi.getBlob( p->name );
 	pb[ "path" ] = disk::FilePath< str::t_char, str::t_string >( sRoot, fi.getBlob( p->name ) );
 	pb[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)p->size, 1024., 2 ) + "B";
-	
+
+	// Folder color
 	if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
-//			pb[ "colour" ] = "#40a000",
-//			pb[ "hi_colour" ] = "#a0ff00";
 		pb[ "colour" ] = "#804000",
 		pb[ "hi_colour" ] = "#ffa000";
+
+	// File color
 	else
 		pb[ "colour" ] = "#004080",
 		pb[ "hi_colour" ] = "#00a0FF";
 
-		// Item size, some renderers have a problem with zero
-		pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
+	// Item size, some renderers have a problem with zero
+	pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
 }
 
 long index_callback( CFileIndex *pFi, void *p )
@@ -126,11 +127,14 @@ long index_callback( CFileIndex *pFi, void *p )
 	if ( !pFi || !p )
 		return 1;
 
-	// Do we want an update
-	if ( !tq::get( "indexer.job.update", "." ).ToLong() )
+	// Do we want an update?
+	if ( !tq::get( "indexer.update", "." ).ToLong() )
 		return 0;
 
-		// Check for cancel
+	// Clear the update flag
+	tq::set( "indexer.update", 0, "." );
+		
+	// Check for cancel
 	if ( tq::get( "indexer.job.cancel", "." ).ToLong() )
 		return 1;
 
@@ -140,20 +144,47 @@ long index_callback( CFileIndex *pFi, void *p )
 	// Create a new root
 	t_pb pb;
 	t_pb &r = pb[ "children" ]; r.is_list( 1 );
+	pb[ "colour" ] = "#808080",
+	pb[ "hi_colour" ] = "#a0a0a0";		
 
-	str::tc_int64 nFree = job[ "drive" ][ "bytes_free" ].ToInt64();
+	// Indexer root
+	str::t_string root = job[ "params" ][ "root" ].str();
+
+	// Sunburst center
+	str::t_string center = tq::get( "indexer.center", "." ).str();
 	
-	// Add free space info
-	t_pb &pbFree = r[ "free" ];
-	pbFree[ "name" ] = "used";
-	pbFree[ "colour" ] = "#008000",
-	pbFree[ "hi_colour" ] = "#00a000";
-	pbFree[ "size" ] = ( 0 < nFree ) ? nFree : 1;
-	pbFree[ "path" ] = "[ Free Space ]";
-	pbFree[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)job[ "drive" ][ "bytes_free" ].ToInt64(), 1024., 2 ) + "B";
+	// Find the center block
+	CFileIndex::t_block hCenter = center.length() 
+								  ? pFi->findBlock( pFi->getRoot(), str::t_string( center, root.length() ), "/" ) 
+								  : 0;
+	if ( hCenter )
+	{	CFileIndex::SBlockItem *pCenter = pFi->getItem( hCenter );
+		pb[ "name" ] = "..";
+		pb[ "path" ] = center;
+		pb[ "dst" ] = ( center.length() > root.length() ) ? disk::GetPath< str::t_char, str::t_string >( center ) : "";
+		pb[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)pCenter->size, 1024., 2 ) + "B";
+		add_items( center, r, *pFi, pCenter->child, job[ "top" ].ToLong(), job[ "depth" ].ToLong(), 1 );
 
-	// Add disk items
-	add_items( job[ "params" ][ "root" ].str(), r[ "used" ], *pFi, pFi->getRoot(), job[ "top" ].ToLong(), job[ "depth" ].ToLong() );
+	} // end if	
+	else
+	{
+		// How much free space on the drive?
+		str::tc_int64 nFree = job[ "drive" ][ "bytes_free" ].ToInt64();
+		
+		// Add free space info
+		t_pb &pbFree = r[ "free" ];
+		pbFree[ "name" ] = "used";
+		pbFree[ "colour" ] = "#008000",
+		pbFree[ "hi_colour" ] = "#00a000";
+		pbFree[ "size" ] = ( 0 < nFree ) ? nFree : 1;
+		pbFree[ "path" ] = "[ Free Space ]";
+		pbFree[ "szstr" ] = str::SizeStr< str::t_char, str::t_string >( (double)job[ "drive" ][ "bytes_free" ].ToInt64(), 1024., 2 ) + "B";
+
+		// Add disk items
+		add_items( job[ "params" ][ "root" ].str(), r[ "used" ], *pFi, 
+				   pFi->getRoot(), job[ "top" ].ToLong(), job[ "depth" ].ToLong() );
+
+	} // end else
 	
 	// Set it into the thread queue
 	tq::set( "indexer.out", pb, "." );

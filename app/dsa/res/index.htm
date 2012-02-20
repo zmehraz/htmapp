@@ -29,14 +29,15 @@
 		<div class='hdr_path hdr_text bdr_gray'></div>
 	</div>
     
-	<div class='highlight hdr_text'></div>	
+	<div class='highlight hdr_text'></div>
+	<div class='centeritem hidden'></div>
+	
 	<div id='drives' class='page'></div>
 	<div id='graph' class='page hidden'></div>
 
 	<script type='text/javascript'>
 
 		$( $('#drives').load( 'drives.htm' ) );
-//		$( $('#graph').load( 'graph.htm' ) );
 
 		var g_sel = '';
 		function getPage()
@@ -55,6 +56,7 @@
 				setTimeout( function() { $('#'+id).hide(); }, 500 );
 		}
 		
+		/// Selects the active page
 		function selPage( page )
 		{	if ( g_sel == page ) return;
 			g_sel = page;
@@ -63,6 +65,7 @@
 			if ( "graph" != page ) $('.highlight').animate( { opacity: 0 }, 500 );
 		}
 
+		/// Updates the progress bar
 		function setProgress( progress, total )
 		{
 			var pa = ( 0 < total ) ? parseInt( progress * 100 / total ) : 0;

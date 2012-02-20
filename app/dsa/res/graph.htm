@@ -18,10 +18,12 @@
 			job[ "depth" ] = 3;
 			job[ "run" ] = 1;
 			job[ "cancel" ] = 1;
-			job[ "update" ] = 1;
 
 			// Set the job info
 			tq::set( "indexer.job", job, "." );
+			
+			// Tell the thread to update our data
+			tq::set( "indexer.update", 1, "." );
 
 			// Ensure indexer thread is running
 			tq::start( "indexer", index_thread );
@@ -70,10 +72,11 @@
 		
 			$.ajax({ url: "data.htm", 
 					 dataType: "json",
+					 data: "center=" + $('.centeritem').html(),
 					 success: function(json) 
 					 {	
 						if ( json.drive )
-							setProgress( json.drive.progress, json.drive.total );
+							setProgress( json.drive.progress, json.drive.bytes_used );
 					 
 						if ( json.map && notzero( json.map ) )
 						{
@@ -96,7 +99,7 @@
 
 							path
 							   .enter().append("path")
-							   .attr("display", function(d) { return d.depth ? null : "none"; })
+//							   .attr("display", function(d) { return d.depth ? null : "none"; })
 							   .attr("d", arc)
 							   .style("stroke", "#222")
 							   .style("fill", function(d) { return d.colour; })
@@ -108,6 +111,10 @@
 							   .on("mouseout", function(d)
 							   {	$('.selitem').html( '' );
 									d3.select(this).style("fill", d.colour);
+							   })
+							   .on("mousedown", function(d)
+							   {	$('.centeritem').html( d.dst ? d.dst : ( d.depth ? d.path : '' ) );
+									$('.highlight').html( d.dst ? d.dst : ( d.depth ? d.path : '' ) );
 							   })
 							   ;
 

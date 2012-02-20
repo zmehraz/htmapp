@@ -11,8 +11,13 @@ private:
 	
 public:
 
+	/// Size type
 	typedef long long int	t_size;
+	
+	/// Offse type
 	typedef long			t_offset;
+	
+	/// Character type
 	typedef char			t_char;
 	
 	/// String type
@@ -23,11 +28,9 @@ public:
 	
 	/// Block handle type
 	tcDECLARE_HANDLE( t_block );
-//	typedef void*			t_block;
 	
 	/// Blob handle
 	tcDECLARE_HANDLE( t_blob );
-//	typedef void*			t_blob;
 
 public:
 
@@ -69,11 +72,11 @@ public:
 	/// Allocate initial storage for indexing
 	bool Init( t_size nBlock, t_size nBlob = 0, const void *pRootName = 0, t_size szRootName = 0 );
 
-	/// Initializes the specified block
-//	void InitBlock( SBlockItem *p );
-
 	/// Returns the root node
 	t_block getRoot() { return m_root; }
+	
+	/// Finds the specifed block
+	t_block findBlock( t_block hBlock, const t_string &name, const t_string &sep );
 
 	/// Returns a pointer to the specified item
 	SBlockItem* getItem( t_block offset ) 
@@ -88,6 +91,8 @@ public:
 		{	t_size sz = *((t_size*)&m_blobs[ (t_size)offset ]);
 			if ( (t_size)offset + sizeof( t_size ) + sz > m_blobs.size() )
 				return 0;
+			if ( pSz )
+				*pSz = sz;
 			return (const char*)&m_blobs[ (t_size)offset + sizeof( t_size ) ]; 
 		} // end if
 		return 0;
