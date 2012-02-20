@@ -4,21 +4,6 @@
 
 ?><?c
 
-/*
-	// Start the thread
-	if ( 0 > g_lThreadId )
-	{
-//		out += "<meta http-equiv='refresh' content='2' />",
-		g_lThreadId = tq::start( index_thread );
-		
-		t_pb di;
-		disk::GetDisksInfo( di, true );
-		g_total = di[ "/" ][ "bytes" ].ToInt64();
-		g_free = di[ "/" ][ "bytes_free" ].ToInt64();
-		
-	} // end if
-*/
-
 	t_pb8 pb;
 	pb[ "map" ] = tq::get( "indexer.out", "." );
 	pb[ "drive" ][ "free" ] = tq::get( "indexer.job.drive.bytes_free", "." ).ToInt64();

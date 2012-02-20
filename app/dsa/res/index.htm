@@ -41,12 +41,8 @@
 		var g_sel = '';
 		function showPage( id, page, dir )
 		{
-//			if ( page == 'graph' )
-//			else
-//				setTimeout( function(){ $('#graph').html( '' ); }, 1000 );
-
 			if ( page == id )
-				$( $('#'+id).load( id+'.htm?root='+$('.highlight').html() ) ),
+				$( $('#'+id).load( id+'.htm?root=' + $('.highlight').html() ) ),
 				$('#'+id).hide().animate( { left: dir/*, opacity:0*/ }, 0 ),
 				$('#'+id).show().animate( { left:'20px'/*, opacity:1*/ }, 500 );
 			else
@@ -61,7 +57,7 @@
 			showPage( "graph", page, 1000 );
 			if ( "graph" != page ) $('.highlight').animate( { opacity: 0 }, 500 );
 		}
-		
+
 		function setProgress( progress, total )
 		{
 			var pa = ( 0 < total ) ? parseInt( progress * 100 / total ) : 0;
@@ -83,15 +79,7 @@
 			$('.progress_b').height( h );
 			$('.progress_b').width( parseInt( pb * w / 100 ) + 10 );
 		}
-/*		
-		var g_prog = 0;
-		function fakeProgress()
-		{	setProgress( ++g_prog, 100 );
-			if ( g_prog >= 100 ) return;		
-			setTimeout( fakeProgress, 200 );
-		}		
-		setTimeout( fakeProgress, 200 );
-*/		
+
 	</script>
   </body>
 </html>
