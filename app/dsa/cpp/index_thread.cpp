@@ -180,7 +180,7 @@
 				// Clear run and cancel flags
 				tq::set( "indexer.job.cancel", 0, "." );
 				tq::set( "indexer.job.run", 0, "." );
-
+				
 				str::t_string root = job[ "params" ][ "root" ].str();
 				if ( root.length() )
 				{
@@ -193,6 +193,7 @@
 					// Final update
 					g_lLastUpdate = 0;
 					index_callback( &fi, 0 );
+					fi.Destroy();
 					tq::set( "indexer.progress", 0, "." );
 
 				} // end if
@@ -200,6 +201,9 @@
 			} // end if
 
 		} // end while
+		
+		// Clear indexer data on exit
+		tq::set( "indexer", "" );
 
 		return 0;
 	}

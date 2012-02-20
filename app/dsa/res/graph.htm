@@ -64,6 +64,9 @@
 
 		function poll_data()
 		{
+			if ( getPage() != 'graph' )
+				return;
+		
 			$.ajax({ url: "data.htm", 
 					 dataType: "json",
 					 success: function(json) 

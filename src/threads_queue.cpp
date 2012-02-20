@@ -307,6 +307,9 @@ namespace tq
 		if ( m_names.end() == it )
 			return -1;
 
+		// Erase name mapping
+		m_names.erase( it );
+			
 		// Ensure valid id
 		if ( it->second >= m_id )
 			return false;
