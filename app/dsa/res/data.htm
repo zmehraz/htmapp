@@ -13,5 +13,8 @@
 	// Send back output status
 	out << parser::EncodeJson< str::t_char8, str::t_string8, t_pb8 >( pb ).c_str();
 
+	// Request another update
+	tq::set( "indexer.update", 1, "." );
+	
 	return 0;
 ?>

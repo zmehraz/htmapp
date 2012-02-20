@@ -18,6 +18,7 @@
 			job[ "depth" ] = 3;
 			job[ "run" ] = 1;
 			job[ "cancel" ] = 1;
+			job[ "update" ] = 1;
 
 			// Set the job info
 			tq::set( "indexer.job", job, "." );
@@ -117,7 +118,7 @@
 
 						} // end if
 
-						setTimeout( poll_data, 1000 );
+						setTimeout( poll_data, 500 );
 					 },
 					 error: function(xhr,opt,msg) { setTimeout( poll_data, 1000 ); },
 				});
