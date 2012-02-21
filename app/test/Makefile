@@ -29,8 +29,11 @@ PRJ_LIBS := htmapp
 # Framework
 PRJ_FWRK := qtwk
 
-# Homepage
-CII_HOME := http://embedded/index.htm
+# Parameters
+PRJ_CIID := { home:"http://embedded/index.htm", \
+			  width:"800", \
+			  height:"600" \
+			}
 
 #-------------------------------------------------------------------
 #Configure

@@ -29,15 +29,11 @@ PRJ_LIBS := htmapp
 # Framework
 PRJ_FWRK := qtwk
 
-# Homepage
-CII_HOME := http://embedded/index.htm
-#CII_HOME := http://embedded/data.htm
-
-# Window width
-CII_WIDTH := 800
-
-# Window height
-CII_HEIGHT := 600
+# Parameters
+PRJ_CIID := { home:"http://embedded/index.htm", \
+			  width:"800", \
+			  height:"600" \
+			}
 
 #-------------------------------------------------------------------
 #Configure

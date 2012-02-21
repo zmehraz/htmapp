@@ -85,7 +85,7 @@
 #endif
 
 #define tcM			( str::Print( "%s(%lu): MARKER\n", __FILE__, __LINE__ ) )
-#define tcS( s )	( str::Print( "%s(%lu): %s = %s\n", __FILE__, __LINE__, #s, str::ToString< str::t_char8, str::t_string8>( s ).c_str() ) )
+#define tcS( s )	( str::Print( "%s(%lu): %s = %s\n", __FILE__, __LINE__, #s, str::ToString< str::t_string8>( s ).c_str() ) )
 
 namespace str
 {
@@ -191,6 +191,12 @@ namespace str
 		return lRet;		
 	}	
 
+	/// Converts to int
+	int StrToInt( const char *x_pStr, long x_lRadix = 10 );
+
+	/// Converts to uint
+	unsigned int StrToUInt( const char *x_pStr, long x_lRadix = 10 );
+
 	/// Converts to int64
 	tc_int64 StrToInt64( const char *x_pStr, long x_lRadix = 10 );
 
@@ -228,6 +234,12 @@ namespace str
 
 	/// String format
 	long StrFmt( wchar_t *x_pDst, unsigned long x_uMax, const wchar_t *x_pFmt, ... );
+
+	/// Converts to int
+	int StrToInt( const wchar_t *x_pStr, long x_lRadix = 10 );
+
+	/// Converts to uint
+	unsigned int StrToUInt( const wchar_t *x_pStr, long x_lRadix = 10 );
 
 	/// Converts to int64
 	tc_int64 StrToInt64( const wchar_t *x_pStr, long x_lRadix = 10 );

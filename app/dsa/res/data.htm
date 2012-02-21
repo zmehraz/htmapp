@@ -15,6 +15,12 @@
 	// Set the center folder
 	tq::set( "indexer.center", in[ "GET" ][ "center" ], "." );
 
+	// Set the max top
+	tq::set( "indexer.top", cmn::Range( in[ "GET" ][ "top" ].ToInt(), 1, 25 ), "." );
+	
+	// Set the max depth
+	tq::set( "indexer.depth", cmn::Range( in[ "GET" ][ "depth" ].ToInt(), 1, 5 ), "." );
+	
 	// Request another update from the indexer thread
 	tq::set( "indexer.update", 1, "." );
 	

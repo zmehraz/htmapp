@@ -20,6 +20,8 @@ include $(CFG_MAKROOT)/init/bld.mk
 #-------------------------------------------------------------------
 # Configure output paths
 #-------------------------------------------------------------------
+CFG_ESC_QUOTES = $(subst ",\",$(1))
+CFG_ESC_BSLASH = $(subst \,\\,$(1))
 
 # Current working directory
 #ifneq ($(CYGBLD),)
@@ -44,16 +46,10 @@ CFG_PRJROOT := $(CFG_OBJROOT)/$(PRJ_NAME)
 CFG_EXTR := $(CFG_EXTR) -DCII_PROJECT_NAME="\"$(PRJ_NAME)\"" \
 						-DCII_PROJECT_DESC="\"$(PRJ_DESC)\""
 
-ifneq ($(CII_HOME),)
-	CFG_EXTR := $(CFG_EXTR) -DCII_HOME="\"$(CII_HOME)\""
-endif
-
-ifneq ($(CII_WIDTH),)
-	CFG_EXTR := $(CFG_EXTR) -DCII_WIDTH=$(CII_WIDTH)
-endif
-
-ifneq ($(CII_HEIGHT),)
-	CFG_EXTR := $(CFG_EXTR) -DCII_HEIGHT=$(CII_HEIGHT)
+# Project defines
+ifneq ($(PRJ_CIID),)
+#	CFG_EXTR := $(CFG_EXTR) $(foreach ciid,$(PRJ_CIID),-DCII_$(ciid))
+	CFG_EXTR := $(CFG_EXTR) -DCII_PARAMS="\"$(call CFG_ESC_QUOTES,$(call CFG_ESC_BSLASH,$(call CFG_ESC_QUOTES,$(PRJ_CIID))))\""
 endif
 
 #-------------------------------------------------------------------

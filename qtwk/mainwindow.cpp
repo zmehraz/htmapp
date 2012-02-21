@@ -80,29 +80,33 @@ void CMainWindow::Init()
 	else if ( m_name.length() )
 		setWindowTitle( m_name.c_str() );
 
-	// Check for fixed size window
-//	if ( 0 < m_width && 0 < m_height )
-//		setFixedSize( m_width, m_height );
+	// Grab makefile parameters
+	t_pb r = tq::get( "ciid" );
 
+	// Set width
+	if ( 0 < r[ "width" ].ToLong() )
+		setFixedWidth( r[ "width" ].ToLong() );
+
+	// Set height
+	if ( 0 < r[ "height" ].ToLong() )
+		setFixedHeight( r[ "height" ].ToLong() );
+		
 	// No scrollbars
-#if defined( CII_NOSCROLL )
-	m_pPage->mainFrame()->setScrollBarPolicy( Qt::Vertical,Qt::ScrollBarAlwaysOff );
-	m_pPage->mainFrame()->setScrollBarPolicy( Qt::Horizontal,Qt::ScrollBarAlwaysOff );
-#endif
+	if ( r[ "noscroll" ].length() )
+		m_pPage->mainFrame()->setScrollBarPolicy( Qt::Vertical,Qt::ScrollBarAlwaysOff ),
+		m_pPage->mainFrame()->setScrollBarPolicy( Qt::Horizontal,Qt::ScrollBarAlwaysOff );
 
 	// No context menu
-//#if defined( CII_NOCONTEXT )
-	m_pView->setContextMenuPolicy( Qt::PreventContextMenu );
-//#endif
+	if ( r[ "nocontext" ].length() )
+		m_pView->setContextMenuPolicy( Qt::PreventContextMenu );
 
 	// Enable cross scripting
-//#if defined( CII_ALLOW_CROSS_SCRIPTING )
-//	m_pView->settings()->setAttribute( QWebSettings::XSSAuditingEnabled, 0 );
-	m_pView->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, 1 );
-//#endif
+	if ( r[ "allow-cross-scripting" ].length() )
+		m_pView->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, 1 );
 
 	// Make the keyboard easier to use
-//	m_pView->settings()->setAttribute( QWebSettings::SpatialNavigationEnabled, 1 );
+	if ( r[ "spatial-nav" ].length() )
+		m_pView->settings()->setAttribute( QWebSettings::SpatialNavigationEnabled, 1 );
 
 	// Start the web view
 	setCentralWidget( m_pView );
@@ -112,7 +116,10 @@ void CMainWindow::Init()
 					 this, SLOT( onFinished(QNetworkReply*) ) );
 
 	// Load the home page
-	m_pView->load( QUrl( m_url.c_str() ) );
+	if ( r[ "home" ].length() )
+		m_pView->load( QUrl( r[ "home" ].c_str() ) );
+	else
+		m_pView->load( QUrl( m_url.c_str() ) );
 }
 
 void CMainWindow::onFinished( QNetworkReply *reply )

@@ -62,7 +62,9 @@
 			g_sel = page;
 			showPage( "drives", page, -1000 );
 			showPage( "graph", page, 1000 );
-			if ( "graph" != page ) $('.highlight').animate( { opacity: 0 }, 500 );
+			if ( "graph" != page ) 
+				setProgress( 0, 0 ),
+				$('.highlight').animate( { opacity: 0 }, 500 );
 		}
 
 		/// Updates the progress bar

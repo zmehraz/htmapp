@@ -38,19 +38,23 @@
 #	include <wchar.h>
 #	define VSNPRINTF		vsnprintf
 #	define STRTOLL			strtoll
+#	define STRTOULL			strtoll
 #if defined( __MINGW32__ )
 #	define VSNWPRINTF		vsnwprintf
 #else
 #	define VSNWPRINTF		vswprintf
 #endif
 #	define WCSTOLL			wcstoll
+#	define WCSTOULL			wcstoll
 #	define CAST_VL			tcVaList
 #else
 #	include <tchar.h>
 #	define VSNPRINTF		_vsnprintf
 #	define STRTOLL			_strtoi64
+#	define STRTOULL			_strtoi64
 #	define VSNWPRINTF		_vsnwprintf
 #	define WCSTOLL			_wcstoi64
+#	define WCSTOULL			_wcstoi64
 #	define CAST_VL			va_list
 #endif
 
@@ -117,6 +121,20 @@ long StrFmt( char *x_pDst, unsigned long x_uMax, const char *x_pFmt, ... )
 	return lRet;
 }
 
+int StrToInt( const char *x_pStr, long x_lRadix )
+{
+	if ( !x_pStr )
+		return 0;
+    return strtol( x_pStr, NULL, x_lRadix );
+}
+
+unsigned int StrToUInt( const char *x_pStr, long x_lRadix )
+{
+	if ( !x_pStr )
+		return 0;
+    return strtoul( x_pStr, NULL, x_lRadix );
+}
+
 tc_int64 StrToInt64( const char *x_pStr, long x_lRadix )
 {
 	if ( !x_pStr )
@@ -128,7 +146,7 @@ tc_uint64 StrToUInt64( const char *x_pStr, long x_lRadix )
 {
 	if ( !x_pStr )
 		return 0;
-    return STRTOLL( x_pStr, NULL, x_lRadix );
+    return STRTOULL( x_pStr, NULL, x_lRadix );
 }
 
 long StrToLong( const char *x_pStr, long x_lRadix )
@@ -263,7 +281,20 @@ long StrFmt( wchar_t *x_pDst, unsigned long x_uMax, const wchar_t *x_pFmt, ... )
 	return lRet;
 }
 
-/// Converts to int64
+int StrToInt( const wchar_t *x_pStr, long x_lRadix )
+{
+	if ( !x_pStr )
+		return 0;
+	return wcstol( x_pStr, NULL, x_lRadix );
+}
+
+unsigned int StrToUInt( const wchar_t *x_pStr, long x_lRadix )
+{
+	if ( !x_pStr )
+		return 0;
+	return wcstoul( x_pStr, NULL, x_lRadix );
+}
+
 tc_int64 StrToInt64( const wchar_t *x_pStr, long x_lRadix )
 {
 	if ( !x_pStr )
@@ -271,15 +302,13 @@ tc_int64 StrToInt64( const wchar_t *x_pStr, long x_lRadix )
 	return WCSTOLL( x_pStr, NULL, x_lRadix );
 }
 
-/// Converts to uint64
 tc_uint64 StrToUInt64( const wchar_t *x_pStr, long x_lRadix )
 {
 	if ( !x_pStr )
 		return 0;
-	return WCSTOLL( x_pStr, NULL, x_lRadix );
+	return WCSTOULL( x_pStr, NULL, x_lRadix );
 }
 
-/// Converts to long
 long StrToLong( const wchar_t *x_pStr, long x_lRadix )
 {
 	if ( !x_pStr )
@@ -287,7 +316,6 @@ long StrToLong( const wchar_t *x_pStr, long x_lRadix )
 	return wcstol( x_pStr, NULL, x_lRadix );
 }
 
-/// Converts to unsigned long
 unsigned long StrToULong( const wchar_t *x_pStr, long x_lRadix )
 {
 	if ( !x_pStr )
@@ -295,7 +323,6 @@ unsigned long StrToULong( const wchar_t *x_pStr, long x_lRadix )
 	return wcstoul( x_pStr, NULL, x_lRadix );
 }
 
-/// Converts to double
 float StrToFloat( const wchar_t *x_pStr )
 {
 	if ( !x_pStr )
@@ -303,7 +330,6 @@ float StrToFloat( const wchar_t *x_pStr )
 	return (float)wcstod( x_pStr, NULL );
 }
 
-/// Converts to double
 double StrToDouble( const wchar_t *x_pStr )
 {
 	if ( !x_pStr )

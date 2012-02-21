@@ -14,17 +14,16 @@
 		{	
 			// Set the job information
 			job[ "params" ] = in[ "GET" ];
-			job[ "top" ] = 5;
-			job[ "depth" ] = 3;
+			
+			// Run the new job
 			job[ "run" ] = 1;
+			
+			// Cancel any previous job
 			job[ "cancel" ] = 1;
 
 			// Set the job info
 			tq::set( "indexer.job", job, "." );
 			
-			// Tell the thread to update our data
-			tq::set( "indexer.update", 1, "." );
-
 			// Ensure indexer thread is running
 			tq::start( "indexer", index_thread );
 
@@ -35,6 +34,30 @@
 ?>
 <body>
     <div id="chart"></div>
+	<div class='rightoptions'>
+		<label for='maxtop'>Top</label>
+		<select id='maxtop' class='seloption'>
+			<?c
+				for( long i = 5; i <= 10; i++ )
+					out << "<option value='" 
+						<< str::ToString< str::t_string8 >( i ) 
+						<< ( ( i == 5 ) ? "' selected>" : "'>" )
+						<< str::ToString< str::t_string8 >( i ) 
+						<< "</option>";
+			?>
+		</select>
+		<label for='maxdepth'>Depth</label>
+		<select id='maxdepth' class='seloption'>
+			<?c
+				for( long i = 1; i <= 5; i++ )
+					out << "<option value='" 
+						<< str::ToString< str::t_string8 >( i ) 
+						<< ( ( i == 3 ) ? "' selected>" : "'>" )
+						<< str::ToString< str::t_string8 >( i ) 
+						<< "</option>";
+			?>
+		</select>
+	</div>
 	<script type="text/javascript">
 
 		var w = 640,
@@ -72,7 +95,12 @@
 		
 			$.ajax({ url: "data.htm", 
 					 dataType: "json",
-					 data: "center=" + escape( $('.centeritem').html() ),
+					 data:  { 	
+								center: $('.centeritem').html(),
+								top:	$('#maxtop').val(),
+								depth:	$('#maxdepth').val()
+							}
+							,
 					 success: function(json) 
 					 {	
 						if ( json.drive )
@@ -125,7 +153,7 @@
 
 						} // end if
 
-						setTimeout( poll_data, 500 );
+						setTimeout( poll_data, 250 );
 					 },
 					 error: function(xhr,opt,msg) { setTimeout( poll_data, 1000 ); },
 				});

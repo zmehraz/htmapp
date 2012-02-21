@@ -56,14 +56,14 @@ int main( int argc, char* argv[] )
 	pWindow->setDescription( CII_PROJECT_DESC );
 #endif	
 
-#if defined( CII_HOME )
-	pWindow->setHomeUrl( CII_HOME );
-#endif	
+	// Make the command line accessible
+	tq::set( "cmdline", TCmdLine< str::t_string >( argc, argv ).pb() );
 
-#if defined( CII_WIDTH ) && defined( CII_HEIGHT )
-	pWindow->setWindowSize( CII_WIDTH, CII_HEIGHT );
+	// Make the makefile parameters accessible
+#if defined( CII_PARAMS )
+	tq::set( "ciid", parser::DecodeJson< t_pb >( CII_PARAMS ) );
 #endif
-
+	
 	// Initialize the window
 	pWindow->Init();
 

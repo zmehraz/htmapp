@@ -156,15 +156,21 @@ long index_callback( CFileIndex *pFi, void *p )
 	CFileIndex::t_block hCenter = center.length() 
 								  ? pFi->findBlock( pFi->getRoot(), str::t_string( center, root.length() ), "/" ) 
 								  : 0;
-	if ( hCenter )
-	{	CFileIndex::SBlockItem *pCenter = pFi->getItem( hCenter );
-		pb[ "name" ] = "..";
+	
+	// Max top / depth
+	long lTop = cmn::Range( tq::get( "indexer.top", "." ).ToInt(), 1, 10 );
+	long lDepth = cmn::Range( tq::get( "indexer.depth", "." ).ToInt(), 1, 5 );
+	
+	// Did we get a center block?
+	CFileIndex::SBlockItem *pCenter = hCenter ? pFi->getItem( hCenter ) : 0;
+	if ( pCenter )
+	{	pb[ "name" ] = "..";
 		pb[ "path" ] = center;
 		pb[ "dst" ] = ( center.length() > root.length() ) ? disk::GetPath( center ) : "";
 		pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)pCenter->size, 1024., 2 ) + "B";
-		add_items( center, r, *pFi, pCenter->child, job[ "top" ].ToLong(), job[ "depth" ].ToLong(), 1 );
-
-	} // end if	
+		add_items( center, r, *pFi, pCenter->child, lTop, lDepth, 1 );
+	} // end if
+	
 	else
 	{
 		// How much free space on the drive?
@@ -180,8 +186,7 @@ long index_callback( CFileIndex *pFi, void *p )
 		pbFree[ "szstr" ] = str::SizeStr< str::t_string >( (double)job[ "drive" ][ "bytes_free" ].ToInt64(), 1024., 2 ) + "B";
 
 		// Add disk items
-		add_items( job[ "params" ][ "root" ].str(), r[ "used" ], *pFi, 
-				   pFi->getRoot(), job[ "top" ].ToLong(), job[ "depth" ].ToLong() );
+		add_items( job[ "params" ][ "root" ].str(), r[ "used" ], *pFi, pFi->getRoot(), lTop, lDepth ); 
 
 	} // end else
 	

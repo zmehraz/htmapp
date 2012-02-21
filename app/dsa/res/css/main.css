@@ -119,6 +119,19 @@ body
 	width:				400px;
 }
 
+.rightoptions
+{
+	position:			absolute;
+	left:				680px;
+	top:				40px;
+	right:				100px;
+	bottom:				400px;
+}
+
+.seloption
+{
+	width:				80px;
+}
 .usechart
 {
 	width: 32px;
