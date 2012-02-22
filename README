@@ -1,4 +1,14 @@
 
+//------------------------------------------------------------------
+// Project Description
+//------------------------------------------------------------------
+
+C++ framework for building HTML5 applications with WebKit and Qt
+
+//------------------------------------------------------------------
+// Build instructions
+//------------------------------------------------------------------
+
 // Linux - default Qt
 make SYSINCS="/usr/include/qt4 /usr/include/qt4/QtCore"
 

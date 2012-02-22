@@ -99,8 +99,7 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 						if ( szQi )
 						{	TPropertyBag< str::t_string8 > &pbGet = in[ "GET" ];
 							for( long i = 0; i < szQi; i++ ) 
-							{	const QPair< QByteArray, QByteArray > it 
-									= req.url().encodedQueryItems().at( i );
+							{	const QPair< QByteArray, QByteArray > it = req.url().encodedQueryItems().at( i );
 								pbGet[ parser::DecodeUrlStr( str::t_string8( it.first.data(), it.first.length() ) ) ]
 									= parser::DecodeUrlStr( str::t_string8( it.second.data(), it.second.length() ) );
 							} // end for

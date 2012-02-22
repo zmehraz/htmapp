@@ -464,7 +464,7 @@ str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength 
 str::t_string GetDriveTypeStr( const str::t_string &x_sDrive )
 {
 	switch( GetDriveType( x_sDrive.c_str() ) )
-	{	case DRIVE_NO_ROOT_DIR : 	return tcT( "noroot" ); break;
+	{	case DRIVE_NO_ROOT_DIR : 	// return tcT( "noroot" ); break;
 		case DRIVE_REMOVABLE : 		return tcT( "removable" ); break;
 		case DRIVE_FIXED : 			return tcT( "fixed" ); break;
 		case DRIVE_REMOTE :			return tcT( "remote" ); break;

@@ -46,6 +46,7 @@ void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlock
 
 	// Folder color
 	if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
+		pb[ "dir" ] = "1",
 		pb[ "colour" ] = "#804000",
 		pb[ "hi_colour" ] = "#ffa000";
 
@@ -74,6 +75,7 @@ long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_blo
 		pb[ "hi_colour" ] = "#a00000";
 		pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
 		pb[ "path" ] = sRoot;
+		pb[ "dir" ] = "1";
 		pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)p->size, 1024., 2 ) + "B";
 		tq::set( "indexer.progress", p->size, "." );
 		return add_items( sRoot, pb[ "children" ], fi, p->child, lMaxTop, lMaxDepth, lDepth + 1 );
@@ -165,6 +167,7 @@ long index_callback( CFileIndex *pFi, void *p )
 	CFileIndex::SBlockItem *pCenter = hCenter ? pFi->getItem( hCenter ) : 0;
 	if ( pCenter )
 	{	pb[ "name" ] = "..";
+		pb[ "dir" ] = "1";
 		pb[ "path" ] = center;
 		pb[ "dst" ] = ( center.length() > root.length() ) ? disk::GetPath( center ) : "";
 		pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)pCenter->size, 1024., 2 ) + "B";
@@ -221,14 +224,16 @@ long index_thread( CThread *t, void *p )
 				while ( 0 < fi.Index( fi.getRoot(), root.c_str(), lMin, lMin + 1, t->getStopFlag() ) ) 
 					lMin++;
 
-				// Final update
-				index_callback( &fi, 0 );
-				fi.Destroy();
+				// Done with the update
 				tq::set( "indexer.progress", 0, "." );
 
 			} // end if
 
 		} // end if
+
+		// Just maintain the data
+		else
+			index_callback( &fi, 0 );
 
 	} // end while
 	

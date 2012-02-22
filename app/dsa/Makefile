@@ -32,7 +32,9 @@ PRJ_FWRK := qtwk
 # Parameters
 PRJ_CIID := { home:"http://embedded/index.htm", \
 			  width:"800", \
-			  height:"600" \
+			  height:"600", \
+			  noscroll:"1", \
+			  nocontext:"1" \
 			}
 
 #-------------------------------------------------------------------

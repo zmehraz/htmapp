@@ -2,16 +2,16 @@
 <?global
 	
 	// Make single drive item
-	str::t_string mkitem( const str::t_string &grp, t_pb::iterator &it, str::t_string id )
+	str::t_string mkitem( const str::t_string &grp, const str::t_string &path, const str::t_string &type, str::t_string id )
 	{
 		return str::t_string() 
-				+ "<li class='cid_" + grp + "_" + id +" drive-item' value='" + it->first + "' data-id='did_" + id + "' onclick='selDrive( \"cid_" + grp + "_" + id +"\" )'>" 
+				+ "<li class='driveitem cid_" + grp + "_" + id +" drive-item' value='" + path + "' data-id='did_" + id + "' onclick='selDrive( \"cid_" + grp + "_" + id +"\" )'>" 
 //				+ "<span class='usechart' values='" 
 //				+ it->second->get( "bytes_unavailable" ).str()
 //				+ "," + it->second->get( "bytes_available" ).str()
 //				+ "'></span>&nbsp;&nbsp;" 
-//				+ "<img src='imgs/ugs/drive-" + it->second->get( "drive_type" ).str() + ".png' width='48' height='48'>"
-				+ it->first 
+				+ "<div class='pathdrive'><img class='driveimg' src='imgs/nes/drive-" + type + ".png'></div>"
+				+ "<div class='pathstr'>" + path + "</div>"
 				+ "</li>\n";
 	}
 	
@@ -25,8 +25,16 @@
 		for( t_pb::iterator it = di.begin(); it != di.end(); it++, i++ )
 			if ( sType == "all" || (*it->second)[ tcT( "drive_type" ) ].ToString() == sType )
 				if ( it->second->get( "bytes" ).ToDouble() )
-					ret += mkitem( sType, it, str::ToString< str::t_string>( i ) );
-
+					ret += mkitem( sType, it->first, it->second->get( "drive_type" ).str(), 
+								   str::ToString< str::t_string>( i ) );
+/*
+		char *fake_drives[] = { "remote", "fixed", "ramdisk", "cdrom", "removable", "unknown", 0 };
+		for( long d = 0; d < 5; d++ )
+			for ( long x = 0; fake_drives[ x ]; x++ )
+			{	str::t_string sid = str::ToString< str::t_string>( i++ );
+				ret += mkitem( fake_drives[ x ], sid, fake_drives[ x ], sid );
+			} // end for
+*/					
 		if ( !ret.length() )
 			return;
 			
@@ -78,18 +86,23 @@
 		{
 			//$('.usechart').sparkline( 'html', { type: 'pie', offset: -90, sliceColors: [ "#802000", "#008060" ] } );
 		}
+		
+		function moveItem( item, from, to )
+		{	var posSrc = from.offset(), posDst = to.offset();			
+			var w = to.width(), h = to.height();
+			item.html( from.html() );
+			item.css( { opacity: 1, left: posSrc.left, top: posSrc.top, width: w, height: h } );
+			item.show().animate( { left: posDst.left, top: posDst.top }, 500 );			
+		}
 
 		function selDrive(id)
-		{	var posSrc = $('.'+id).offset(), posDst = $('.hdr_path').offset();			
-			var w = $('.hdr_path').width(), h = $('.hdr_path').height();
-			$('.centeritem').html( '' );
-			$('.highlight').html( $('.'+id).html() );
-			$('.highlight').css( { opacity: 1, left: posSrc.left, top: posSrc.top, width: w, height: h } );
-			$('.highlight').show().animate( { left: posDst.left, top: posDst.top }, 500 );			
+		{	$('.centeritem').html( '' );
+			moveItem( $('.highlight'), $('.'+id+' .pathstr'), $('.hdr_path') );
+			moveItem( $('.highlightdrive'), $('.'+id+' .pathdrive'), $('.rightdrive') );
 			selPage( 'graph' );
 		}
 
-		$(function() { switch_list("fixed"); } );
+		$(function() { switch_list( "fixed" ); } );
 
 	</script>
 </body>

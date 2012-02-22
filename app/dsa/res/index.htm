@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><?c out << CII_PROJECT_DESC ?></title>
+<head>
+	<title><?c out << CII_PROJECT_DESC ?></title>
 
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 	<meta http-equiv="Access-Control-Allow-Origin" content="*">
 	<meta http-equiv="Access-Control-Allow-Methods" content="POST GET OPTIONS">
 
-    <link type="text/css" rel="stylesheet" href="css/main.css"/>
-    <link type="text/css" rel="stylesheet" href="css/button.css"/>
+	<link type="text/css" rel="stylesheet" href="css/main.css"/>
+	<link type="text/css" rel="stylesheet" href="css/button.css"/>
 
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <!--<script type="text/javascript" src="js/jquery.sparkline.min.js"></script>-->
-    <script type="text/javascript" src="js/jquery.quicksand.js"></script>
-    <script type="text/javascript" src="js/d3/d3.min.js"></script>
-    <script type="text/javascript" src="js/d3/d3.layout.min.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<!--<script type="text/javascript" src="js/jquery.sparkline.min.js"></script>-->
+	<script type="text/javascript" src="js/jquery.quicksand.js"></script>
+	<script type="text/javascript" src="js/d3/d3.min.js"></script>
+	<script type="text/javascript" src="js/d3/d3.layout.min.js"></script>
 
-  </head>
-  <body>
+</head>
+<body>
  
-    <div class='hdr bdr_gray' onclick='selPage( "drives" )'>
-		<img src='imgs/pie2.png' onclick='selPage( "drives" )'>
-		<div class='hdr_size hdr_text bdr_gray'></div>
-		<div class='hdr_progress hdr_text bdr_gray hidden'>
-			<div class='progress_a'></div>
-			<div class='progress_b'></div>
-		</div>
-		<div class='hdr_path hdr_text bdr_gray'></div>
+	<div class='hdr_size hdr_text bdr_gray'></div>
+	<div class='hdr_path hdr_text bdr_gray'></div>
+	<div class='hdr_progress hdr_text bdr_gray hidden'>
+		<div class='progress_a'></div>
+		<div class='progress_b'></div>
 	</div>
     
+	<div class='banner' onclick='selPage( "drives" )'>
+		<a href='javascript:' onclick='selPage( "drives" )'><img class='backbtn hidden' src='imgs/back.png'></a>
+		<div class='banner_logo'></div>
+		<div class='banner_login'></div>
+	</div>
+
 	<div class='highlight hdr_text'></div>
+	<div class='highlightdrive'></div>
 	<div class='centeritem hidden'></div>
+	<div class='rightdrive'></div>
 	
 	<div id='drives' class='page'></div>
 	<div id='graph' class='page hidden'></div>
@@ -48,7 +53,7 @@
 		function showPage( id, page, dir )
 		{
 			if ( page == id )
-				$( $('#'+id).load( id+'.htm?root=' + $('.highlight').html() ) ),
+				$('#'+id).load( id+'.htm?root=' + escape( $('.highlight').html() ) ),
 				$('#'+id).hide().animate( { left: dir/*, opacity:0*/ }, 0 ),
 				$('#'+id).show().animate( { left:'20px'/*, opacity:1*/ }, 500 );
 			else
@@ -62,9 +67,13 @@
 			g_sel = page;
 			showPage( "drives", page, -1000 );
 			showPage( "graph", page, 1000 );
-			if ( "graph" != page ) 
+			if ( "graph" != page )
 				setProgress( 0, 0 ),
-				$('.highlight').animate( { opacity: 0 }, 500 );
+				$('.backbtn').addClass( 'hidden' ),
+				$('.highlight').animate( { opacity: 0 }, 500 ),
+				$('.highlightdrive').animate( { opacity: 0 }, 500 );
+			else
+				$('.backbtn').removeClass( 'hidden' );
 		}
 
 		/// Updates the progress bar
@@ -75,12 +84,15 @@
 			var w = $('.hdr_progress').width() - 20;
 			var h = $('.hdr_progress').height();
 			
-			// $('.progress_a').html( w + ' / ' + h + ' / ' + pa + ' / ' + pb );
-			
-			if ( 0 >= w || 0 >= h || 0 >= pa || 100 <= pa )
+			// 0 turns progress bar off
+			if ( 0 >= w || 0 >= h || 0 >= pa )
 			{	$('.hdr_progress').addClass( 'hidden' );
 				return;
 			} // end if
+			
+			// Clip at 100%
+			if ( 100 < pa )
+				pa = 100, pb = 1;
 					
 			$('.hdr_progress').removeClass( 'hidden' );
 			

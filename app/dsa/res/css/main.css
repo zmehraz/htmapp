@@ -3,14 +3,44 @@ body
 	width:				100%;
 	height:				100%;
 	color: 				#ffffff;
-	background-color:	#54768c;
+	background-color:	#808890;
+	/*background-color:	#54768c;*/
 	font-family:		Arial;
+	margin:				0px;
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
 	/*
 	background-image: linear-gradient(bottom, rgb(84,118,140) 15%, rgb(208,242,242) 88%);
 	background-image: -webkit-linear-gradient(bottom, rgb(84,118,140) 15%, rgb(208,242,242) 88%);
 	*/
 }
 
+.banner
+{
+	height: 80px;
+	background-image: linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
+	background-image: -o-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
+	background-image: -moz-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
+	background-image: -webkit-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
+	background-image: -ms-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
+
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0.25, rgb(15,15,15)),
+		color-stop(0.68, rgb(77,76,77)),
+		color-stop(0.82, rgb(56,56,56))
+	);	
+}
+.banner_logo
+{
+	float: left;
+}
+.banner_login
+{
+	float: right;
+}
 .hidden
 {
 	display: 			none;
@@ -31,6 +61,24 @@ body
 */
 }
 
+.driveitem
+{
+	float: 				left;
+	list-style:			none;
+	margin:				20px;
+}
+
+.driveimg
+{
+	clear:				both;
+}
+
+.pathstr
+{
+	clear:				both;
+	margin:				auto;
+}
+
 .hdr
 {
 	position:			absolute;
@@ -40,20 +88,16 @@ body
 	width: 				800px;
 }
 
+.backbtn
+{
+	margin:				20px;
+}
+
 .hdr_text
 {
 	font-size:			16px;
 	font-weight:		bold;
 	padding:			5px 10px;
-}
-
-.hdr_size
-{	
-	position:			absolute;
-	left:				80px;
-	top:				0px;
-	height: 			30px;
-	width:				300px;
 }
 
 .hdr_progress
@@ -74,7 +118,7 @@ body
 
 .progress_a
 {
-	float:left;
+	float:						left;
 	/*background-color:			#00a000;*/
 	margin:						0px;
 	padding:					0px;
@@ -86,7 +130,7 @@ body
 
 .progress_b
 {
-	float:left;
+	float:						left;
 	/*background-color:			#400000;*/
 	margin:						0px;
 	padding:					0px;
@@ -96,10 +140,19 @@ body
 	background-image: 			-webkit-linear-gradient(rgba(255,128,128,.50), rgba(255,128,128,.25));
 }
 
+.hdr_size
+{	
+	position:			absolute;
+	left:				110px;
+	top:				10px;
+	height: 			30px;
+	width:				300px;
+}
+
 .hdr_path
 {	
 	position:			absolute;
-	left:				80px;
+	left:				110px;
 	top:				30px;
 	height: 			30px;
 	width:				600px;
@@ -109,7 +162,13 @@ body
 {
 	position:			absolute;
 	left: 				10px;
-	top: 				70px;
+	top: 				100px;
+}
+
+#dlist
+{
+	width:				680px;
+	height:				400px;
 }
 
 .highlight
@@ -119,6 +178,12 @@ body
 	width:				400px;
 }
 
+.highlightdrive
+{
+	position:			absolute;
+	width:				640px;
+	width:				400px;
+}
 .rightoptions
 {
 	position:			absolute;
@@ -126,6 +191,15 @@ body
 	top:				40px;
 	right:				100px;
 	bottom:				400px;
+}
+
+.rightdrive
+{
+	position:			absolute;
+	left:				640px;
+	top:				440px;
+	right:				100px;
+	bottom:				100px;
 }
 
 .seloption

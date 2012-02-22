@@ -6,6 +6,7 @@
 
 	// Start the indexer thread if we got root
 	str::t_string sRoot = in[ "GET" ][ "root" ].str();
+	
 	if ( sRoot.length() )
 	{
 		// Ensure valid drive
@@ -141,8 +142,9 @@
 									d3.select(this).style("fill", d.colour);
 							   })
 							   .on("mousedown", function(d)
-							   {	$('.centeritem').html( d.dst ? d.dst : ( d.depth ? d.path : '' ) );
-									$('.highlight').html( d.dst ? d.dst : ( d.depth ? d.path : '' ) );
+							   {	if ( d.dir )
+							   			$('.centeritem').html( d.dst ? d.dst : ( d.depth ? d.path : '' ) ),
+										$('.highlight').html( d.dst ? d.dst : ( d.depth ? d.path : '' ) );
 							   })
 							   ;
 
@@ -153,7 +155,7 @@
 
 						} // end if
 
-						setTimeout( poll_data, 250 );
+						setTimeout( poll_data, 500 );
 					 },
 					 error: function(xhr,opt,msg) { setTimeout( poll_data, 1000 ); },
 				});
