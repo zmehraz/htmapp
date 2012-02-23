@@ -47,13 +47,17 @@ void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlock
 	// Folder color
 	if ( 0 != ( p->flags & disk::eFileAttribDirectory ) )
 		pb[ "dir" ] = "1",
-		pb[ "colour" ] = "#804000",
-		pb[ "hi_colour" ] = "#ffa000";
+		pb[ "colour" ] = "#E9C21E",
+		pb[ "hi_colour" ] = "#EFE92B";
+//		pb[ "colour" ] = "#E9C21E",
+//		pb[ "hi_colour" ] = "#ffa000";
 
 	// File color
 	else
 		pb[ "colour" ] = "#004080",
-		pb[ "hi_colour" ] = "#00a0FF";
+		pb[ "hi_colour" ] = "#41C6EE";
+//		pb[ "colour" ] = "#004080",
+//		pb[ "hi_colour" ] = "#00a0FF";
 
 	// Item size, some renderers have a problem with zero
 	pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;

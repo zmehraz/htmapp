@@ -18,29 +18,29 @@ body
 .banner
 {
 	height: 80px;
-	background-image: linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
-	background-image: -o-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
-	background-image: -moz-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
-	background-image: -webkit-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
-	background-image: -ms-linear-gradient(bottom, rgb(15,15,15) 25%, rgb(77,76,77) 68%, rgb(56,56,56) 82%);
+background-image: linear-gradient(bottom, rgb(0,0,0) 37%, rgb(66,65,66) 69%, rgb(10,10,10) 85%);
+background-image: -o-linear-gradient(bottom, rgb(0,0,0) 37%, rgb(66,65,66) 69%, rgb(10,10,10) 85%);
+background-image: -moz-linear-gradient(bottom, rgb(0,0,0) 37%, rgb(66,65,66) 69%, rgb(10,10,10) 85%);
+background-image: -webkit-linear-gradient(bottom, rgb(0,0,0) 37%, rgb(66,65,66) 69%, rgb(10,10,10) 85%);
+background-image: -ms-linear-gradient(bottom, rgb(0,0,0) 37%, rgb(66,65,66) 69%, rgb(10,10,10) 85%);
 
-	background-image: -webkit-gradient(
-		linear,
-		left bottom,
-		left top,
-		color-stop(0.25, rgb(15,15,15)),
-		color-stop(0.68, rgb(77,76,77)),
-		color-stop(0.82, rgb(56,56,56))
-	);	
+background-image: -webkit-gradient(
+	linear,
+	left bottom,
+	left top,
+	color-stop(0.37, rgb(0,0,0)),
+	color-stop(0.69, rgb(66,65,66)),
+	color-stop(0.85, rgb(10,10,10))
+);
+
 }
+
 .banner_logo
 {
-	float: left;
+	float: 				right;
+	margin:				10px;
 }
-.banner_login
-{
-	float: right;
-}
+
 .hidden
 {
 	display: 			none;
@@ -103,7 +103,7 @@ body
 .hdr_progress
 {	
 	position:					absolute;
-	background-color:			#7090b0;
+	background-color:			#406070;
 	left:						380px;
 	top:						0px;
 	height: 					20px;
@@ -116,16 +116,58 @@ body
 	border-bottom-right-radius:	15px;
 }
 
+.hdr_progress  .progress_a
+{
+	border-top-left-radius: 	15px;
+	border-bottom-left-radius:	15px;
+	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(128,255,128,.50)),color-stop(1, rgba(128,255,128,.25)));
+	background-image: 			-webkit-linear-gradient(rgba(128,255,128,.50), rgba(128,255,128,.25));
+}
+
+.hdr_progress  .progress_b
+{
+	border-top-right-radius:	15px;
+	border-bottom-right-radius:	15px;
+	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,128,128,.50)),color-stop(1, rgba(255,128,128,.25)));
+	background-image: 			-webkit-linear-gradient(rgba(255,128,128,.50), rgba(255,128,128,.25));
+}
+
+.progress
+{	
+	background-color:			#7090b0;
+	height: 					10px;
+	width:						120px;
+	margin:						2px;
+	padding:					2px;
+	border-top-left-radius: 	10px;
+	border-bottom-left-radius:	10px;
+	border-top-right-radius:	10px;
+	border-bottom-right-radius:	10px;
+}
+
+.progress  .progress_a
+{
+	border-top-left-radius: 	10px;
+	border-bottom-left-radius:	10px;
+	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,128,128,.50)),color-stop(1, rgba(255,128,128,.25)));
+	background-image: 			-webkit-linear-gradient(rgba(255,128,128,.50), rgba(255,128,128,.25));
+}
+
+.progress  .progress_b
+{
+	border-top-right-radius:	10px;
+	border-bottom-right-radius:	10px;
+	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(128,255,128,.50)),color-stop(1, rgba(128,255,128,.25)));
+	background-image: 			-webkit-linear-gradient(rgba(128,255,128,.50), rgba(128,255,128,.25));
+}
+
+
 .progress_a
 {
 	float:						left;
 	/*background-color:			#00a000;*/
 	margin:						0px;
 	padding:					0px;
-	border-top-left-radius: 	15px;
-	border-bottom-left-radius:	15px;
-	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(128,255,128,.50)),color-stop(1, rgba(128,255,128,.25)));
-	background-image: 			-webkit-linear-gradient(rgba(128,255,128,.50), rgba(128,255,128,.25));
 }
 
 .progress_b
@@ -134,10 +176,6 @@ body
 	/*background-color:			#400000;*/
 	margin:						0px;
 	padding:					0px;
-	border-top-right-radius:	15px;
-	border-bottom-right-radius:	15px;
-	background-image: 			-webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,128,128,.50)),color-stop(1, rgba(255,128,128,.25)));
-	background-image: 			-webkit-linear-gradient(rgba(255,128,128,.50), rgba(255,128,128,.25));
 }
 
 .hdr_size
@@ -153,7 +191,7 @@ body
 {	
 	position:			absolute;
 	left:				110px;
-	top:				30px;
+	top:				35px;
 	height: 			30px;
 	width:				600px;
 }

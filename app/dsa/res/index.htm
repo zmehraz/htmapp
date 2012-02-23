@@ -21,15 +21,11 @@
  
 	<div class='hdr_size hdr_text bdr_gray'></div>
 	<div class='hdr_path hdr_text bdr_gray'></div>
-	<div class='hdr_progress hdr_text bdr_gray hidden'>
-		<div class='progress_a'></div>
-		<div class='progress_b'></div>
-	</div>
+	<div id='diskprogress' class='hdr_progress hidden'><div class='progress_a'></div><div class='progress_b'></div></div>
     
-	<div class='banner' onclick='selPage( "drives" )'>
-		<a href='javascript:' onclick='selPage( "drives" )'><img class='backbtn hidden' src='imgs/back.png'></a>
-		<div class='banner_logo'></div>
-		<div class='banner_login'></div>
+	<div class='banner'>
+		<img class='backbtn hidden' src='imgs/back.png' onclick='selPage( "drives" )'>
+		<div class='banner_logo'><img src='imgs/dsa.png'></div>
 	</div>
 
 	<div class='highlight hdr_text'></div>
@@ -45,10 +41,7 @@
 		$( $('#drives').load( 'drives.htm' ) );
 
 		var g_sel = '';
-		function getPage()
-		{
-			return g_sel;
-		}
+		function getPage() { return g_sel; }
 		
 		function showPage( id, page, dir )
 		{
@@ -67,39 +60,52 @@
 			g_sel = page;
 			showPage( "drives", page, -1000 );
 			showPage( "graph", page, 1000 );
-			if ( "graph" != page )
-				setProgress( 0, 0 ),
-				$('.backbtn').addClass( 'hidden' ),
-				$('.highlight').animate( { opacity: 0 }, 500 ),
-				$('.highlightdrive').animate( { opacity: 0 }, 500 );
-			else
-				$('.backbtn').removeClass( 'hidden' );
+			switch ( page )
+			{
+				case "graph" :
+					$('.banner_logo').animate( { opacity: 0 }, 500 );
+					$('.backbtn').animate( { opacity: 1 }, 500 );
+					$('.hdr_size').animate( { opacity: 1 }, 500 );
+					$('.backbtn').removeClass( 'hidden' );
+					break;
+				
+				default:
+					setProgress( '#diskprogress', 0, 0 ),
+					$('.banner_logo').animate( { opacity: 1 }, 500 );
+					$('.hdr_size').animate( { opacity: 0 }, 500 );
+					$('.highlight').animate( { opacity: 0 }, 500 );
+					$('.backbtn').animate( { opacity: 0 }, 500 );
+					$('.highlightdrive').animate( { opacity: 0 }, 500 );
+					
+			} // end switch;
 		}
 
 		/// Updates the progress bar
-		function setProgress( progress, total )
+		function setProgress( container, progress, total )
 		{
 			var pa = ( 0 < total ) ? parseInt( progress * 100 / total ) : 0;
 			var pb = ( 0 < total ) ? parseInt( ( total - progress ) * 100 / total ) : 0;
-			var w = $('.hdr_progress').width() - 20;
-			var h = $('.hdr_progress').height();
+			var w = $(container).width() - 20;
+			var h = $(container).height();
 			
 			// 0 turns progress bar off
-			if ( 0 >= w || 0 >= h || 0 >= pa )
-			{	$('.hdr_progress').addClass( 'hidden' );
+			if ( 0 >= w || 0 >= h || 0 >= total )
+			{	$(container).addClass( 'hidden' );
 				return;
 			} // end if
 			
-			// Clip at 100%
-			if ( 100 < pa )
-				pa = 100, pb = 1;
+			// Clip at 1% - 100%
+			if ( 99 < pa )
+				pa = 99, pb = 1;
+			if ( 0 >= pa )
+				pa = 1, pb = 99;
 					
-			$('.hdr_progress').removeClass( 'hidden' );
+			$(container).removeClass( 'hidden' );
 			
-			$('.progress_a').height( h );
-			$('.progress_a').width( parseInt( pa * w / 100 ) + 10 );
-			$('.progress_b').height( h );
-			$('.progress_b').width( parseInt( pb * w / 100 ) + 10 );
+			$(container + ' .progress_a').height( h );
+			$(container + ' .progress_a').width( parseInt( pa * w / 100 ) + 10 );
+			$(container + ' .progress_b').height( h );
+			$(container + ' .progress_b').width( parseInt( pb * w / 100 ) + 10 );
 		}
 
 	</script>

@@ -2,16 +2,15 @@
 <?global
 	
 	// Make single drive item
-	str::t_string mkitem( const str::t_string &grp, const str::t_string &path, const str::t_string &type, str::t_string id )
+	str::t_string mkitem( const str::t_string &grp, const str::t_string &path, const str::t_string &type, 
+						  str::t_string id, const str::t_string &used, const str::t_string &total )
 	{
 		return str::t_string() 
 				+ "<li class='driveitem cid_" + grp + "_" + id +" drive-item' value='" + path + "' data-id='did_" + id + "' onclick='selDrive( \"cid_" + grp + "_" + id +"\" )'>" 
-//				+ "<span class='usechart' values='" 
-//				+ it->second->get( "bytes_unavailable" ).str()
-//				+ "," + it->second->get( "bytes_available" ).str()
-//				+ "'></span>&nbsp;&nbsp;" 
 				+ "<div class='pathdrive'><img class='driveimg' src='imgs/nes/drive-" + type + ".png'></div>"
 				+ "<div class='pathstr'>" + path + "</div>"
+				+ "<div class='pid_" + grp + "_" + id +" progress'><div class='progress_a'></div><div class='progress_b'></div></div>"
+				+ "<script language='javascript'>$( setProgress( \".pid_" + grp + "_" + id +"\", " + used + ", " + total + " ) )</script>"
 				+ "</li>\n";
 	}
 	
@@ -26,15 +25,9 @@
 			if ( sType == "all" || (*it->second)[ tcT( "drive_type" ) ].ToString() == sType )
 				if ( it->second->get( "bytes" ).ToDouble() )
 					ret += mkitem( sType, it->first, it->second->get( "drive_type" ).str(), 
-								   str::ToString< str::t_string>( i ) );
-/*
-		char *fake_drives[] = { "remote", "fixed", "ramdisk", "cdrom", "removable", "unknown", 0 };
-		for( long d = 0; d < 5; d++ )
-			for ( long x = 0; fake_drives[ x ]; x++ )
-			{	str::t_string sid = str::ToString< str::t_string>( i++ );
-				ret += mkitem( fake_drives[ x ], sid, fake_drives[ x ], sid );
-			} // end for
-*/					
+								   str::ToString< str::t_string>( i ),
+								   it->second->get( "bytes_used" ).str(),
+								   it->second->get( "bytes" ).str() );
 		if ( !ret.length() )
 			return;
 			
@@ -75,17 +68,11 @@
 	
 		var g_list = 0;
 		function switch_list( id )
-		{	//refresh_pies();
-			$('button').removeClass( 'active' );
+		{	$('button').removeClass( 'active' );
 			$('#btn_'+id).addClass( 'active' );
-			$('#dlist').quicksand( $('.list_'+id+' li'), refresh_pies );
+			$('#dlist').quicksand( $('.list_'+id+' li') );
 			if ( ++g_list > 3 ) g_list = 0;
 		}		
-		
-		function refresh_pies()
-		{
-			//$('.usechart').sparkline( 'html', { type: 'pie', offset: -90, sliceColors: [ "#802000", "#008060" ] } );
-		}
 		
 		function moveItem( item, from, to )
 		{	var posSrc = from.offset(), posDst = to.offset();			
@@ -102,7 +89,7 @@
 			selPage( 'graph' );
 		}
 
-		$(function() { switch_list( "fixed" ); } );
+		$(function() { switch_list( "all" ); } );
 
 	</script>
 </body>
