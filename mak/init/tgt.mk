@@ -43,3 +43,6 @@ ifneq ($(findstring debug,$(TGT)),)
 	TTYPE := $(TTYPE)-debug
 endif
 
+# Only gcc supported at the moment
+TGT_BUILD := gcc
+

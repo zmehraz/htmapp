@@ -182,5 +182,8 @@ QNetworkReply* CNetworkMgr::createRequest( QNetworkAccessManager::Operation op, 
 	if ( req.url().host() == "embedded" )
 		return new CNetworkReply( this, req, op );
 
-	return QNetworkAccessManager::createRequest( op, req, device );
+	return new CNetworkReply( this, req, op );
+	
+	// This could be enabled to allow network access
+	// return QNetworkAccessManager::createRequest( op, req, device );
 }

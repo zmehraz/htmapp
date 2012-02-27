@@ -2,18 +2,25 @@
 #-------------------------------------------------------------------
 # What to build?
 #-------------------------------------------------------------------
+
+# htmapp
 BUILDDIRS := $(BUILDDIRS) src
 
+# cii precompiler tool
 BUILDDIRS := $(BUILDDIRS) tools/cii
 
 ifeq ($(TOOLSONLY),)
 
+# Qt / WebKit
 BUILDDIRS := $(BUILDDIRS) qtwk
 
+# Example applications
 BUILDDIRS := $(BUILDDIRS) \
-							app/dsa \
-							app/test \
-							
+							examples/dsa \
+							examples/test \
+
+# Installers	
+BUILDDIRS := $(BUILDDIRS) install
 
 endif
 

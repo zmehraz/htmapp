@@ -19,6 +19,10 @@ make SYSINCS=~/qtsdk-2010.05/qt/include SYSLIBP=~/qtsdk-2010.05/qt/lib
 make TOOLSONLY=1
 make TGT=windows BLD=posix-x86-shared PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN=
 
+// Linux cross build for Windows with installer
+make TGT=windows BLD=posix-x86-shared PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN= \
+	 NSIS="wine /home/bob/code/lib3/nsis/makensis.exe"
+
 // Cygwin
 make PRE=/bin/i686-pc-mingw32- QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
 

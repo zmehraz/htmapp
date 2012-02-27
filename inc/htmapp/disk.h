@@ -95,37 +95,57 @@ namespace disk
 		}
 
 	template< typename T_STR >
-		T_STR GetPath( T_STR s )
-		{
-			typedef typename T_STR::value_type T;
-			typename T_STR::size_type lb = s.find_last_of( tcTC( T, '\\' ) );
-			typename T_STR::size_type lf = s.find_last_of( tcTC( T, '/' ) );
-			if ( T_STR::npos == lb && T_STR::npos == lf )
+		T_STR GetRoot( T_STR s )
+		{	typedef typename T_STR::value_type T;
+			typename T_STR::size_type i = s.find_first_of( tcTT( T, "\\/" ) );
+			if ( T_STR::npos == i )
 				return T_STR();
-			if ( T_STR::npos == lb )
-				return T_STR( s.c_str(), 0, lf );
-			else if ( T_STR::npos == lf )
-				return T_STR( s.c_str(), 0, lb );
-			else if ( lf > lb )
-				return T_STR( s.c_str(), 0, lf );
-			return T_STR( s.c_str(), 0, lb );
+			return T_STR( s.data(), 0, i );
+		}
+
+	template< typename T_STR >
+		T_STR StripRoot( T_STR s )
+		{	typedef typename T_STR::value_type T;
+			typename T_STR::size_type i = s.find_first_of( tcTT( T, "\\/" ) );
+			if ( T_STR::npos == i )
+				return s;
+			typename T_STR::size_type e = s.find_first_not_of( tcTT( T, "\\/" ), i );
+			if ( T_STR::npos == e )
+				return T_STR();
+			return T_STR( s.data(), e, s.length() - e );
+		}
+		
+	template< typename T_STR >
+		T_STR SkipRoot( T_STR s, T_STR root )
+		{	typedef typename T_STR::value_type T;
+			typename T_STR::size_type i = s.find( root );
+			if ( T_STR::npos == i )
+				return s;
+			i = s.find_first_not_of( tcTT( T, "\\/" ), i + root.length() );
+			if ( T_STR::npos == i )
+				return T_STR();
+			return T_STR( s, i );
+		}
+
+	template< typename T_STR >
+		T_STR GetPath( T_STR s )
+		{	typedef typename T_STR::value_type T;
+			typename T_STR::size_type i = s.find_last_of( tcTT( T, "\\/" ) );
+			if ( T_STR::npos == i )
+				return T_STR();
+			typename T_STR::size_type e = s.find_last_not_of( tcTT( T, "\\/" ), i );
+			if ( T_STR::npos == e )
+				return T_STR();
+			return T_STR( s.data(), 0, e + 1 );
 		}
 
 	template< typename T_STR >
 		T_STR GetName( T_STR s )
-		{
-			typedef typename T_STR::value_type T;
-			typename T_STR::size_type lb = s.find_last_of( tcTC( T, '\\' ) );
-			typename T_STR::size_type lf = s.find_last_of( tcTC( T, '/' ) );
-			if ( T_STR::npos == lb && T_STR::npos == lf )
+		{	typedef typename T_STR::value_type T;
+			typename T_STR::size_type i = s.find_last_of( tcTT( T, "\\/" ) );
+			if ( T_STR::npos == i )
 				return s;
-			if ( T_STR::npos == lb )
-				return T_STR( s.c_str(), lf + 1, T_STR::npos );
-			else if ( T_STR::npos == lf )
-				return T_STR( s.c_str(), lb + 1, T_STR::npos );
-			else if ( lf > lb )
-				return T_STR( s.c_str(), lf + 1, T_STR::npos );
-			return T_STR( s.c_str(), lb + 1, T_STR::npos );
+			return T_STR( s.data(), i + 1 );
 		}
 
 	template< typename T_STR >
