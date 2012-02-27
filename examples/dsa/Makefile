@@ -6,7 +6,7 @@ PRJ_LIBROOT := ../..
 #-------------------------------------------------------------------
 
 # Project Name
-PRJ_NAME := dsa
+PRJ_NAME := DiskSpaceAnalyzer
 
 # Project Description
 PRJ_DESC := Disk Space Analyzer

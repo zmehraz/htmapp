@@ -436,7 +436,7 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 		plCancel = &lCancel;
 
 	// Assume no additions
-	long lAdded = 0;
+	long lAdded = 0, lCount = 0;
 	
 	// Are we at the minimum depth?
 	if ( 0 < lMinDepth )
@@ -468,6 +468,12 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 			if ( p && p->name && 0 != ( p->flags & disk::eFileAttribDirectory ) )
 				lAdded += Index( hThis, disk::FilePath< t_string >( sRoot, getBlob( p->name ) ),
 								 lMinDepth - 1, lMaxDepth - 1, plCancel );
+
+			// Callback function every 100 items
+			if ( lCount++ && !( lCount % 100 ) )
+				if ( m_f && plCancel )
+					if ( m_f( this, m_user ) )
+						*plCancel = 1;
 
 		} // end while		
 
@@ -507,6 +513,12 @@ long CFileIndex::Index( t_block hBlock, const t_string &sRoot, long lMinDepth, l
 
 			} // end if
 
+			// Callback function every 100 items
+			if ( lCount++ && !( lCount % 100 ) )
+				if ( m_f && plCancel )
+					if ( m_f( this, m_user ) )
+						*plCancel = 1;
+			
 		// For each directory item
 		} while ( disk::FindNext( hFind, &fd ) );
 

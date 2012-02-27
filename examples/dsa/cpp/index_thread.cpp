@@ -49,15 +49,11 @@ void add_item( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::SBlock
 		pb[ "dir" ] = "1",
 		pb[ "colour" ] = "#E9C21E",
 		pb[ "hi_colour" ] = "#EFE92B";
-//		pb[ "colour" ] = "#E9C21E",
-//		pb[ "hi_colour" ] = "#ffa000";
 
 	// File color
 	else
 		pb[ "colour" ] = "#004080",
-		pb[ "hi_colour" ] = "#41C6EE";
-//		pb[ "colour" ] = "#004080",
-//		pb[ "hi_colour" ] = "#00a0FF";
+		pb[ "hi_colour" ] = "#00a0FF";
 
 	// Item size, some renderers have a problem with zero
 	pb[ "size" ] = ( 0 < p->size ) ? p->size : 1;
@@ -81,7 +77,8 @@ long add_items( str::t_string sRoot, t_pb &pb, CFileIndex &fi, CFileIndex::t_blo
 		pb[ "path" ] = sRoot;
 		pb[ "dir" ] = "1";
 		pb[ "szstr" ] = str::SizeStr< str::t_string >( (double)p->size, 1024., 2 ) + "B";
-		tq::set( "indexer.progress", p->size, "." );
+		if ( 0 <= tq::get( "indexer.progress", "." ).ToLong() )
+			tq::set( "indexer.progress", p->size, "." );
 		return add_items( sRoot, pb[ "children" ], fi, p->child, lMaxTop, lMaxDepth, lDepth + 1 );
 	} // end if
 
@@ -131,11 +128,11 @@ long index_callback( CFileIndex *pFi, void *p )
 	// Ensure valid
 	if ( !pFi || !p )
 		return 1;
-
+		
 	// Do we want an update?
 	if ( !tq::get( "indexer.update", "." ).ToLong() )
 		return 0;
-
+		
 	// Clear the update flag
 	tq::set( "indexer.update", 0, "." );
 		
@@ -145,6 +142,15 @@ long index_callback( CFileIndex *pFi, void *p )
 
 	// Recover job pointer
 	t_pb &job = *((t_pb*)p);
+
+	// See if we're done
+	CFileIndex::SBlockItem *pRoot = pFi->getItem( pFi->getRoot() );
+	if ( !pRoot 
+		 || ( 0 <= tq::get( "indexer.progress", "." ).ToLong() 
+			  && pRoot->size >= job[ "drive" ][ "bytes" ].ToInt64() 
+			) 
+		)
+		return 1;
 
 	// Create a new root
 	t_pb pb;
@@ -159,10 +165,10 @@ long index_callback( CFileIndex *pFi, void *p )
 	str::t_string center = tq::get( "indexer.center", "." ).str();
 	
 	// Find the center block
-	CFileIndex::t_block hCenter = center.length() 
-								  ? pFi->findBlock( pFi->getRoot(), str::t_string( center, root.length() ), "/" ) 
+	CFileIndex::t_block hCenter = ( center.length() > root.length() )
+								  ? pFi->findBlock( pFi->getRoot(), disk::SkipRoot( center, root ), "/\\" ) 
 								  : 0;
-	
+
 	// Max top / depth
 	long lTop = cmn::Range( tq::get( "indexer.top", "." ).ToInt(), 1, 10 );
 	long lDepth = cmn::Range( tq::get( "indexer.depth", "." ).ToInt(), 1, 5 );
@@ -207,17 +213,19 @@ long index_thread( CThread *t, void *p )
 {
 	// Indexing object
 	CFileIndex fi;
+	t_pb job;
 	
 	// Until we get the kill signal
 	while ( t->getStopEvent().Wait( 100 ) )
 	{
 		// Do we want to run
-		t_pb job = tq::get( "indexer.job", "." );
+		job = tq::get( "indexer.job", "." );
 		if ( job[ "run" ].ToLong() )
 		{
 			// Clear run and cancel flags
 			tq::set( "indexer.job.cancel", 0, "." );
 			tq::set( "indexer.job.run", 0, "." );
+			tq::set( "indexer.progress", 0, "." );
 			
 			str::t_string root = job[ "params" ][ "root" ].str();
 			if ( root.length() )
@@ -229,7 +237,7 @@ long index_thread( CThread *t, void *p )
 					lMin++;
 
 				// Done with the update
-				tq::set( "indexer.progress", 0, "." );
+				tq::set( "indexer.progress", -1, "." );
 
 			} // end if
 
@@ -237,7 +245,7 @@ long index_thread( CThread *t, void *p )
 
 		// Just maintain the data
 		else
-			index_callback( &fi, 0 );
+			index_callback( &fi, &job );
 
 	} // end while
 	
