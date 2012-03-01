@@ -24,6 +24,11 @@ BUILDDIRS := $(BUILDDIRS) install
 
 endif
 
+# doxygen
+ifneq ($(DOX),)
+	BUILDDIRS := $(BUILDDIRS) dox
+endif
+
 #-------------------------------------------------------------------
 # multithreading
 #-------------------------------------------------------------------
