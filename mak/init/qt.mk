@@ -11,7 +11,7 @@ else
 	CFG_QTMOC := moc
 endif
 
-ifneq ($(findstring qtwk,$(PRJ_FWRK)),)
+ifneq ($(findstring qt,$(FRWK)),)
 	ifeq ($(TGT_PLATFORM),windows)
 		PRJ_GUIT := win
 	endif

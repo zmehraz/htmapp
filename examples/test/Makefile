@@ -27,7 +27,7 @@ PRJ_INCS :=
 PRJ_LIBS := htmapp
 
 # Framework
-PRJ_FWRK := qtwk
+PRJ_FRWK := html5
 
 # Parameters
 PRJ_CIID := { home:"http://embedded/index.htm", \
@@ -39,12 +39,6 @@ PRJ_CIID := { home:"http://embedded/index.htm", \
 #Configure
 #-------------------------------------------------------------------
 include $(PRJ_LIBROOT)/mak/init.mk
-
-ifeq ($(TGT_PLATFORM),windows)
-	PRJ_LIBS := $(PRJ_LIBS) QtWebKit4 QtNetwork4 QtGui4 QtCore4 phonon4
-else
-	PRJ_LIBS := $(PRJ_LIBS) QtWebKit QtNetwork QtGui QtCore
-endif
 
 #-------------------------------------------------------------------
 # Build dependencies

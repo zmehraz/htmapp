@@ -6,7 +6,7 @@
 C++ framework for building HTML5 applications with WebKit and Qt
 
 //------------------------------------------------------------------
-// Build instructions
+// Build instructions for QT
 //------------------------------------------------------------------
 
 // Linux - default Qt
@@ -39,3 +39,14 @@ make PRE=/bin/i686-pc-mingw32- \
 	 QTBIN=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw/bin \
 	 SYSINCS=/cygdrive/c/QtSDK/Desktop/Q4.7.4/mingw/include \
 	 SYSLIBP=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw/lib
+
+//------------------------------------------------------------------
+// Build instructions for CGI module
+//------------------------------------------------------------------
+
+// Linux
+make TGT=cgi
+
+// Cygwin on Windows
+make TGT=cgi PRE=/bin/i686-pc-mingw32-
+

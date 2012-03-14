@@ -2,6 +2,7 @@
 #-------------------------------------------------------------------
 # What to build?
 #-------------------------------------------------------------------
+include mak/init/tgt.mk
 
 # htmapp
 BUILDDIRS := $(BUILDDIRS) src
@@ -12,7 +13,7 @@ BUILDDIRS := $(BUILDDIRS) tools/cii
 ifeq ($(TOOLSONLY),)
 
 # Qt / WebKit
-BUILDDIRS := $(BUILDDIRS) qtwk
+BUILDDIRS := $(BUILDDIRS) frwk/$(FRWK)
 
 # Example applications
 BUILDDIRS := $(BUILDDIRS) \

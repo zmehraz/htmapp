@@ -68,7 +68,7 @@ else
 			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
 		else
 			CFG_TGT_PRE := lib
-			CFG_TGT_EXT := .a			
+			CFG_TGT_EXT := .a
 		endif
 	else
 		ifeq ($(TGT_PLATFORM),windows)

@@ -1,7 +1,9 @@
 
-# Qt WebKit framework?
-ifneq ($(findstring qtwk,$(PRJ_FWRK)),)
-	include $(CFG_MAKROOT)/go/qtwk.mk
+# Framework stuff
+ifeq ($(PRJ_TYPE),exe)
+	ifneq ($(findstring html5,$(PRJ_FRWK)),)
+		-include $(CFG_MAKROOT)/go/$(FRWK).mk
+	endif
 endif
 
 GO_LIBS := -L$(CFG_OUTROOT) $(foreach inc,$(PRJ_LIBS),-l$(inc))

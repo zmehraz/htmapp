@@ -34,14 +34,23 @@ ifndef TGT_LINK
 	endif
 endif
 
+# If no framework specified
+ifeq ($(FRWK),)
+	FRWK := $(strip $(foreach t,qt apache cgi srv,$(findstring $(t),$(TGT))))
+	ifeq ($(FRWK),)
+		FRWK := qt
+	endif
+endif
+
 # Create a type string
-TTYPE := $(TGT_PLATFORM)-$(TGT_PROC)-$(TGT_LINK)
+TTYPE := $(TGT_PLATFORM)-$(TGT_PROC)-$(TGT_LINK)-$(FRWK)
 
 # debug
 ifneq ($(findstring debug,$(TGT)),)
 	DBG := 1
 	TTYPE := $(TTYPE)-debug
 endif
+
 
 # Only gcc supported at the moment
 TGT_BUILD := gcc

@@ -83,9 +83,11 @@ PRJ_INCS := $(CFG_CUR_ROOT) $(PRJ_INCS)
 include $(CFG_MAKROOT)/init/dir.mk
 
 #-------------------------------------------------------------------
-# Configure Qt
+# Configure Framework
 #-------------------------------------------------------------------
-include $(CFG_MAKROOT)/init/qt.mk
+ifneq ($(findstring html5,$(PRJ_FRWK)),)
+	-include $(CFG_MAKROOT)/init/$(FRWK).mk
+endif
 
 #-------------------------------------------------------------------
 # Configure gcc
