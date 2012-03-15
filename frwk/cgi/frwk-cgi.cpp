@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <htmapp.h>
 
 const char* response_msg( int code )
@@ -18,6 +19,9 @@ const char* response_msg( int code )
 
 int send_response( t_pb8 &headers, int code, const void *p, long sz )
 {
+	// Ensure stdout is in binary mode
+	_setmode( fileno( stdout ), O_BINARY );
+
 	// NULL terminated?
 	if ( p && 0 >= sz )
 		while ( ((char*)p)[ sz ] ) sz++;
@@ -33,25 +37,7 @@ int send_response( t_pb8 &headers, int code, const void *p, long sz )
 
 	// Write the data
 	if ( p && 0 < sz )
-	{
-		// Write all the data
-		size_t written = 0, blocksz = 256;
-		while ( 0 <= written && written < sz )
-		{
-			// Write a block
-			size_t w = sz - written;
-			if ( blocksz < w )
-				w = blocksz;
-
-			// Write block
-			written += fwrite( &((char*)p)[ written ], 1, w, stdout );
-
-			// Flush the output
-			fflush( stdout );
-
-		} // end while
-
-	} // end if
+		fwrite( p, 1, sz, stdout );
 
 	return 0;
 }
@@ -100,26 +86,21 @@ int process_cgi_request( int argc, char* argv[], const char *params )
 		in[ "GET" ] = parser::DecodeUrl< t_pb8 >( r[ "QUERY_STRING" ].ToString() );
 
 	// Add browser headers
-	in[ "HEADERS" ] = parser::DecodeHttpHeaders< t_pb8 >( pfake );
+//	in[ "HEADERS" ] = parser::DecodeHttpHeaders< t_pb8 >( pHeaders );
 
 	// What page does the caller want?
 	str::t_string8 sPath = r[ "PATH_INFO" ].ToString();
 
 	// Create full path
 	str::t_string8 full = disk::WebPath< str::t_string8 >( "res", r[ "PATH_INFO" ].ToString() );
-	str::t_string8 sContent = full + parser::EncodeJson( in );
-
-	HMRES hRes = 0;
-	CHmResources res;
 
 	// Check for resource
+	HMRES hRes = 0;
+	CHmResources res;
 	if ( !res.IsValid() || 0 == ( hRes = res.FindResource( 0, full.c_str() ) ) )
 		return -send_error( 404 );
 
 	t_pb8 headers;
-//	headers[ "host" ] = r[ "SERVER_NAME" ];
-//	return send_response( headers, 200, sContent.c_str(), sContent.length() );
-
 	switch ( res.Type( hRes ) )
 	{
 		default :
@@ -136,7 +117,7 @@ int process_cgi_request( int argc, char* argv[], const char *params )
 
 			// Verify data
 			if ( !ptr || 0 >= sz )
-				return send_error( 500 );
+				return -send_error( 500 );
 
 			// Send the binary data
 			return send_response( headers, 200, ptr, sz );
