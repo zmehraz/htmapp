@@ -41,6 +41,7 @@ ifeq ($(TGT_LINK),static)
 else
 	ifneq ($(TGT_PLATFORM),windows)
 		CFG_PP_FLAGS := $(CFG_PP_FLAGS)  -shared -fPIC -DPIC
+		CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -lpthread -lrt
 	else
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -shared -shared-libgcc
 	endif

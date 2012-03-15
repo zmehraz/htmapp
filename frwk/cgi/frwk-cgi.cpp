@@ -19,8 +19,13 @@ const char* response_msg( int code )
 
 int send_response( t_pb8 &headers, int code, const void *p, long sz )
 {
+
+#if defined( _WIN32 ) || defined( WIN32 )
+
 	// Ensure stdout is in binary mode
 	_setmode( fileno( stdout ), O_BINARY );
+
+#endif
 
 	// NULL terminated?
 	if ( p && 0 >= sz )

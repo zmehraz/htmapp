@@ -105,8 +105,8 @@ void CMainWindow::Init()
 		m_pView->settings()->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, 1 );
 
 	// Make the keyboard easier to use
-	if ( r[ "spatial-nav" ].length() )
-		m_pView->settings()->setAttribute( QWebSettings::SpatialNavigationEnabled, 1 );
+//	if ( r[ "spatial-nav" ].length() )
+//		m_pView->settings()->setAttribute( QWebSettings::SpatialNavigationEnabled, 1 );
 
 	// Start the web view
 	setCentralWidget( m_pView );
