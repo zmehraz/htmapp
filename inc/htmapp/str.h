@@ -328,6 +328,59 @@ namespace str
 
 			return memcmp( s1, s2, l1 * sizeof( T ) );
 		}
+		
+	template< typename T_STR >
+		static T_STR TrimWs( const T_STR &x_str )
+	{
+		typedef typename T_STR::value_type T;
+
+		typename T_STR::size_type s = 0, e = x_str.length();
+		if ( !e )
+			return T_STR();
+
+		// Back into the string
+		e--;
+
+		// Skip white space at the end
+		while ( e > s && tcTC( T, ' ' ) >= x_str[ e ] )
+			e--;
+
+		// Skip the white space at the beginning
+		while ( s < e && tcTC( T, ' ' ) >= x_str[ s ] )
+			s++;
+
+		// Were we left with anything?
+		if ( s >= e )
+			return T_STR();
+
+		// Return the string minus white space
+		return T_STR( x_str, s, e - s + 1 );
+	}
+
+	template < typename T >
+		T ReplaceStr( const T s, const T a, const T b )
+		{	T _s( s ); 
+			typename T::size_type i = 0;
+			while( T::npos != ( i = _s.find_first_of( a, i ) ) )
+				_s.replace( i, a.length(), b ), i += b.length();
+			return _s;
+		}
+
+	template < typename T_STR >
+		T_STR ReplaceChar( T_STR s, const typename T_STR::value_type a, const typename T_STR::value_type b )
+		{	typename T_STR::size_type i = 0;
+			while( T_STR::npos != ( i = s.find_first_of( a, i ) ) )
+				s[ i++ ] = b;
+			return s;
+		}
+
+	template < typename T_STR >
+		T_STR& ReplaceCharInplace( T_STR &s, const typename T_STR::value_type a, const typename T_STR::value_type b )
+		{	typename T_STR::size_type i = 0;
+			while( T_STR::npos != ( i = s.find_first_of( a, i ) ) )
+				s[ i++ ] = b;
+			return s;
+		}
 
 	/// Converts upper case letters to lower case
     /**
@@ -352,6 +405,14 @@ namespace str
         return dst;
 	}
 
+	template < typename T_STR >
+		T_STR& ToLowerInplace( T_STR &s )
+	{	ToLower( &s[ 0 ], s.length() ); return s; }
+
+	template < typename T_STR >
+		T_STR ToLower( T_STR s )
+	{	return ToLowerInplace( s ); }
+
 	/// Converts lower case letters to upper case
     /**
         \param [in] dst     -   String to modify
@@ -374,6 +435,14 @@ namespace str
 
 		return dst;
 	}
+
+	template < typename T_STR >
+		T_STR& ToUpperInplace( T_STR &s )
+	{	ToUpper( &s[ 0 ], s.length() ); return s; }
+
+	template < typename T_STR >
+		T_STR ToUpper( T_STR s )
+	{	return ToUpperInplace( s ); }
 
     /// Returns the length of the null terminated string in s
     /**

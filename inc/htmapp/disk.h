@@ -77,23 +77,6 @@ namespace disk
 		T_STR& LTrim( T_STR &s, typename T_STR::value_type c )
 		{	return s.erase( 0, s.find_first_not_of( c ) ); }
 
-	template < typename T >
-		T ReplaceStr( const T s, const T a, const T b )
-		{	T _s( s ); 
-			typename T::size_type i = 0;
-			while( T::npos != ( i = _s.find_first_of( a, i ) ) )
-				_s.replace( i, a.length(), b ), i += b.length();
-			return _s;
-		}
-
-	template < typename T_STR >
-		T_STR& ReplaceChar( T_STR &s, const typename T_STR::value_type a, const typename T_STR::value_type b )
-		{	typename T_STR::size_type i = 0;
-			while( T_STR::npos != ( i = s.find_first_of( a, i ) ) )
-				s[ i++ ] = b;
-			return s;
-		}
-
 	template< typename T_STR >
 		T_STR GetRoot( T_STR s )
 		{	typedef typename T_STR::value_type T;
@@ -151,8 +134,8 @@ namespace disk
 	template< typename T_STR >
 		T_STR Path( T_STR s1, T_STR s2, typename T_STR::value_type sep )
 		{	typedef typename T_STR::value_type T;
-			ReplaceChar( s1, tcTC( T, '\\' ), sep );
-			ReplaceChar( s2, tcTC( T, '\\' ), sep );
+			str::ReplaceCharInplace( s1, tcTC( T, '\\' ), sep );
+			str::ReplaceCharInplace( s2, tcTC( T, '\\' ), sep );
 			return RTrim( RTrim( s1, tcTC( T, '\\' ) ), tcTC( T, '/' ) )
 				   + sep
 				   + LTrim( LTrim( s2, tcTC( T, '\\' ) ), tcTC( T, '/' ) );

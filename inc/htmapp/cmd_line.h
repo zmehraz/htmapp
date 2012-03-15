@@ -310,7 +310,7 @@ public:
 		stdForeach( typename t_pb::iterator, it, m_pb )
 			if ( t_String( it->second->str().c_str(), 0, 2 ) == tcTT( t_char, "##" ) )
 			{	t_String sKey = t_String( it->second->str().c_str(), 1, t_String::npos );
-				if ( m_pb.IsSet( sKey ) )
+				if ( m_pb.isSet( sKey ) )
 					it->second = m_pb[ sKey ];
 			} // end if
 	}

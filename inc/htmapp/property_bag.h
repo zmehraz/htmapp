@@ -719,10 +719,10 @@ public:
     bool IsArray() { return 0 < m_lstSub.size(); }
 
     //==============================================================
-    // IsSet()
+    // isSet()
     //==============================================================
     /// Returns non-zero if the specified key exists
-    bool IsSet( const t_String &k ) 
+    bool isSet( const t_String &k ) 
 	{	return ( m_lstSub.end() == m_lstSub.find( k ) ) ? false : true; }
 
 public:

@@ -132,6 +132,154 @@ namespace parser
 
 
 //------------------------------------------------------------------
+// Http Headers encode / decode
+//------------------------------------------------------------------
+
+	/// Returns non-zero if the character is a valid url character
+	template< typename T >
+		static bool IsHttpHeaderChar( T x_ch )
+	{	return x_ch != tcTC( T, '\r' ) && x_ch != tcTC( T, '\n' ); }
+
+	/// Encodes the string so it is safe to put into an http header field
+	template< typename T_STR >
+		static T_STR EncodeHttpHeaderStr( const T_STR &x_str )
+	{
+		typedef typename T_STR::value_type T;
+
+		const T *p = &x_str[ 0 ];
+		typename T_STR::size_type nLen = x_str.length();
+
+		// Sanity check		
+		if ( !p || 0 >= nLen )
+			return T_STR();
+
+		// Need at least this much space
+		T_STR ret;
+		ret.reserve( nLen );
+
+		while ( 0 < nLen-- )
+		{
+			// +++ Replace CR & LF with spaces, not sure what else to do here?
+			if ( !IsHttpHeaderChar( *p ) )
+				ret += tcTC( T, ' ' );
+			else
+				ret += *p;
+
+			// Next character
+			p++;
+
+		} // end while
+
+		return ret;
+	}
+
+	/// Decodes the string from an http header field
+	template< typename T_STR >
+		static T_STR DecodeHttpHeaderStr( const T_STR &x_str )
+	{	return str::TrimWs( x_str ); }
+
+	/// Decodes a single http header name/value pair
+	template< typename T_PB >
+		static long DecodeHttpHeaderPair( const typename T_PB::t_String &x_sStr, T_PB &x_pb )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		// Did we get valid data?
+		if ( !x_sStr.length() )
+			return 0;
+
+		// Find pair separator
+		typename T_STR::size_type pos = x_sStr.find_first_of( tcTC( T, ':' ) );
+		if ( T_STR::npos == pos )
+			x_pb[ str::ToLower( DecodeHttpHeaderStr( x_sStr ) ) ] = tcTT( T, "" );
+		else
+			x_pb[ str::ToLower( DecodeHttpHeaderStr( T_STR( x_sStr, 0, pos ) ) ) ] 
+				= DecodeHttpHeaderStr( T_STR( x_sStr, pos + 1 ) );
+
+		return 1;
+	}
+
+	/// Decodes a set of http headers
+	template< typename T_PB >
+		static long DecodeHttpHeaders( const typename T_PB::t_String &x_sStr, T_PB &x_pb, bool x_bMerge = false )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		if ( !x_bMerge )
+			x_pb.clear();
+	
+		long i = 0;
+		typename T_STR::size_type pos = 0, len = x_sStr.length();		
+		while ( T_STR::npos != pos && pos < len )
+		{
+			// Start of pair
+			typename T_STR::size_type start = pos;
+			typename T_STR::size_type next = pos;
+
+			// Find the end of the pair
+			do
+			{
+				// Potential end
+				pos = x_sStr.find_first_of( tcTT( T, "\r\n" ), next );
+
+				// End of data?
+				if ( T_STR::npos == pos )
+					next = pos;
+
+				// Find the end of this marker
+				else
+					next = x_sStr.find_first_not_of( tcTT( T, "\r\n" ), pos );
+
+			// If the next line starts with white space, then the variable keeps going
+			} while ( T_STR::npos != next && x_sStr[ next ] <= tcTC( T, ' ' ) );
+
+			// Decode the pair
+			if ( T_STR::npos == pos )
+				i += DecodeHttpHeaderPair( T_STR( x_sStr, start ), x_pb );
+			else
+				i += DecodeHttpHeaderPair( T_STR( x_sStr, start, pos - start ), x_pb ), pos++;
+
+			// Skip to start of next pair
+			pos = next;
+
+		} // end while
+
+		return i;
+	}
+
+	/// Decodes the specified http headers into a property bag
+	template< typename T_PB >
+		static T_PB DecodeHttpHeaders( const typename T_PB::t_String &x_str )
+		{	T_PB pb; DecodeHttpHeaders( x_str, pb ); return pb; }
+
+	/// Encodes the property bag into http headers
+	template< typename T_PB >
+		static typename T_PB::t_String EncodeHttpHeaders( const T_PB &x_pb )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		T_STR s;
+		for ( typename T_PB::const_iterator it = x_pb.begin(); x_pb.end() != it; it++ )
+		{
+			// Put break between headers
+			if ( s.length() )
+				s += tcTT( T, "\n" );
+
+			// +++ Can't have a : in key, it would seem http headers encoding is far from perfect
+			s += EncodeHttpHeaderStr( str::ReplaceChar( T_STR( it->first ), tcTC( T, ':' ), tcTC( T, '.' ) ) ) 
+				 + tcTT( T, ": " ) 
+				 + EncodeHttpHeaderStr( it->second->str() );
+
+		} // end if
+
+		return s;
+	}
+
+
+//------------------------------------------------------------------
 // JSON encode / decode
 //------------------------------------------------------------------
 
@@ -527,7 +675,7 @@ namespace parser
 	
 		return s;
 	}
-	
+
 	template< typename T_PB >
 		static long DecodeUrlPair( const typename T_PB::t_String &x_sStr, T_PB &x_pb )
 	{

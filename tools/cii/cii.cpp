@@ -59,7 +59,7 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 	stdForeach( t_strlist8::iterator, it, lstCmp )
 		if ( 0 <= str::MatchPattern( sIn.data(), sIn.length(), it->data(), it->length(), true ) )
 		{
-			if ( !cl.pb().IsSet( "q" ) )
+			if ( !cl.pb().isSet( "q" ) )
 				str::Print( "c: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
 			// Declare variables
@@ -84,7 +84,7 @@ int process_file( t_string8 x_sInDir, t_string8 x_sOutDir, t_string8 x_sOutPre, 
 			return 0;
 		} // end if
 		
-	if ( !cl.pb().IsSet( "q" ) )
+	if ( !cl.pb().isSet( "q" ) )
 		str::Print( "b: %s -> %s\n", sIn.c_str(), sOut.c_str() );
 
 	// Declare variables
@@ -158,15 +158,15 @@ int main( int argc, char* argv[] )
     t_cmdline8 cl( argc, argv );
 
 	// Dumping the command line options to STDOUT?
-	if ( cl.pb().IsSet( "d" ) || cl.pb().IsSet( "debug" ) )
+	if ( cl.pb().isSet( "d" ) || cl.pb().isSet( "debug" ) )
 	{	for ( t_cmdline8::iterator it = cl.begin(); cl.end() != it; it++ )
 			str::Print( "[%s] = '%s'\n", it->first.c_str(), it->second->c_str() );
 		return 0;
 	} // end if
 
 	// Ensure all needed parameters are present
-	if ( cl.pb().IsSet( "h" ) || cl.pb().IsSet( "help" )
-		 || !cl.pb().IsSet( "i" ) || !cl.pb().IsSet( "o" ) )
+	if ( cl.pb().isSet( "h" ) || cl.pb().isSet( "help" )
+		 || !cl.pb().isSet( "i" ) || !cl.pb().isSet( "o" ) )
 	{	str::Print( "Options\n"
 				" -i            '<comma separated input directories>'\n"
 				" -o            '<output directory>'\n"
@@ -177,20 +177,20 @@ int main( int argc, char* argv[] )
 				" -d / --debug  'Show processed command line array'\n"
 				" -h / --help   Display this information\n"
 				);
-		return cl.pb().IsSet( "h" ) ? 0 : -1;
+		return cl.pb().isSet( "h" ) ? 0 : -1;
 	} // end if
 
 	// Combine quiet options
-	if ( cl.pb().IsSet( "quiet" ) )
+	if ( cl.pb().isSet( "quiet" ) )
 		cl.pb()[ "q" ] = 1;
 
 	// Combine quiet options
-	if ( cl.pb().IsSet( "fdec" ) )
+	if ( cl.pb().isSet( "fdec" ) )
 		cl.pb()[ "f" ] = cl.pb()[ "fdec" ];
 		
 	// Create output folder if needed
 	if ( !disk::exists( cl.pb()[ "o" ] ) )
-	{	if ( !cl.pb().IsSet( "q" ) )
+	{	if ( !cl.pb().isSet( "q" ) )
 			str::Print( "Creating directory : %s\n", cl.pb()[ "o" ].c_str() );
 		disk::mkdir( cl.pb()[ "o" ].c_str() );
 	} // end if
@@ -225,7 +225,7 @@ int main( int argc, char* argv[] )
 
 	// Get compiled types
 	t_strlist8 lstCmp;
-	if ( !cl.pb().IsSet( "c" ) )
+	if ( !cl.pb().isSet( "c" ) )
 		lstCmp.push_back( "*.htm" );
 	else
 		lstCmp = str::SplitQuoted< t_string8, t_strlist8 >
