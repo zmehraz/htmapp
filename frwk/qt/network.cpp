@@ -30,7 +30,7 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "frwk-qt.h"
+#include "frwk.h"
 #include "network.h"
 
 CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const QNetworkAccessManager::Operation op )

@@ -30,7 +30,7 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "frwk-qt.h"
+#include "frwk.h"
 #include "web_page.h"
 
 CWebPage::CWebPage()

@@ -30,9 +30,10 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "frwk-qt.h"
+#include "frwk.h"
 #include "htmapp_resources.h"
 #include "network.h"
+#include "web_page.h"
 #include "mainwindow.h"
 
 int main( int argc, char* argv[] )

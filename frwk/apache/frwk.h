@@ -40,4 +40,4 @@
 
 #include "htmapp.h"
 
-int process_cgi_request( int argc, char* argv[], const char *params );
+int process_request( int argc, char* argv[], const char *params );

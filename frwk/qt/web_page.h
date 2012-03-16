@@ -32,9 +32,9 @@
 
 #pragma once
 
-//#ifdef Q_MOC_RUN
-#	include "frwk-qt.h"
-//#endif
+#if defined( Q_MOC_RUN ) || defined( HTM_MOC_RUN )
+#	include "frwk.h"
+#endif
 
 class CWebPage : public QWebPage
 {

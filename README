@@ -3,10 +3,11 @@
 // Project Description
 //------------------------------------------------------------------
 
-C++ framework for building HTML5 applications with WebKit and Qt
+C++ framework for building HTML5 applications
+
 
 //------------------------------------------------------------------
-// Build instructions for QT
+// Build instructions for Qt
 //------------------------------------------------------------------
 
 // Linux - default Qt
@@ -17,10 +18,11 @@ make SYSINCS=~/qtsdk-2010.05/qt/include SYSLIBP=~/qtsdk-2010.05/qt/lib
 
 // Linux cross build for Windows
 make TOOLSONLY=1
-make TGT=windows BLD=posix-x86-shared PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN=
+make TGT=windows BLD=posix-x86-shared-qt PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN=
 
 // Linux cross build for Windows with installer
-make TGT=windows BLD=posix-x86-shared PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN= \
+make TOOLSONLY=1
+make TGT=windows BLD=posix-x86-shared-qt PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN= \
 	 NSIS="wine /home/bob/code/lib3/nsis/makensis.exe"
 
 // Cygwin
@@ -35,10 +37,6 @@ make TGT=x64\
 make PRE=/cygdrive/c/QtSDK/mingw/bin/ \
 	 QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
 
-make PRE=/bin/i686-pc-mingw32- \
-	 QTBIN=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw/bin \
-	 SYSINCS=/cygdrive/c/QtSDK/Desktop/Q4.7.4/mingw/include \
-	 SYSLIBP=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw/lib
 
 //------------------------------------------------------------------
 // Build instructions for CGI module
@@ -49,4 +47,16 @@ make TGT=cgi
 
 // Cygwin on Windows
 make TGT=cgi PRE=/bin/i686-pc-mingw32-
+
+
+//------------------------------------------------------------------
+// Build instructions for Apache module
+//------------------------------------------------------------------
+
+// Linux
+make TGT=apache SYSINCS="/usr/include/apache2 /usr/include/apr-1.0"
+
+// Linux 64 bit
+make TGT=x64-apache SYSINCS="/usr/include/apache2 /usr/include/apr-1.0"
+
 

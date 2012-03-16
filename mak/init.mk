@@ -51,7 +51,8 @@ CFG_PRJROOT := $(CFG_OBJROOT)/$(PRJ_NAME)
 #-------------------------------------------------------------------
 # Project info
 #-------------------------------------------------------------------
-CFG_EXTR := $(CFG_EXTR) -DCII_PROJECT_NAME="\"$(PRJ_NAME)\"" \
+CFG_EXTR := $(CFG_EXTR) -DCII_PROJECT=$(PRJ_NAME) \
+						-DCII_PROJECT_NAME="\"$(PRJ_NAME)\"" \
 						-DCII_PROJECT_DESC="\"$(PRJ_DESC)\""
 
 # Project defines

@@ -30,68 +30,41 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#define _BLDNAME( a, b ) 	a##b
+#define BLDNAME( a, b ) 	_BLDNAME( a, b )
 
-#pragma once
-
-#if defined( Q_MOC_RUN ) || defined( HTM_MOC_RUN )
-#	include "frwk.h"
-#	include "network.h"
-#	include "web_page.h"
-#endif
-
-class CMainWindow : public QMainWindow
+extern "C"
 {
-	Q_OBJECT
-
-public:
-
-	/// Constructor
-	CMainWindow();
-
-	/// Initializes the window
-	void Init();
-
-	/// Set the project name
-	void setName( str::t_string8 s ) { m_name = s; }
-
-	/// Set the project description
-	void setDescription( str::t_string8 s ) { m_desc = s; }
-
-	/// Set the initial url
-	void setHomeUrl( str::t_string8 s ) { m_url = s; }
-
-	/// Set the window size
-	void setWindowSize( long w, long h ) { m_width = w; m_height = h; }
-
-public slots:
-
-	// On network finished handler
-	void onFinished( QNetworkReply *reply );
-
-private:
-
-	/// Web view
-	QPointer< QWebView > 		m_pView;
-
-	/// Web page
-	QPointer< CWebPage > 		m_pPage;
-
-	/// Custom network object
-	QPointer< CNetworkMgr > 	m_pNet;
-
-	/// Initial URL
-	str::t_string8				m_url;
-
-	/// Project name
-	str::t_string8				m_name;
-
-	/// Project Description
-	str::t_string8				m_desc;
-
-	/// Initial window width
-	long						m_width;
-
-	/// Initial window height
-	long						m_height;
+#include <httpd.h>
+#include <http_protocol.h>
+#include <http_config.h>
+ 
+// HTTP_NOT_FOUND
+// HTTP_INTERNAL_SERVER_ERROR
+ 
+static int BLDNAME( CII_PROJECT, _handler )( request_rec* r )
+{
+	// Is it for our module?
+    if ( !r || !r->handler || strcmp( r->handler, CII_PROJECT_NAME ) )
+        return DECLINED;
+ 
+    return OK;
+}
+ 
+static void register_hooks( apr_pool_t* pool )
+{
+    ap_hook_handler( BLDNAME( CII_PROJECT, _handler ), 0, 0, APR_HOOK_MIDDLE );
+}
+ 
+module AP_MODULE_DECLARE_DATA BLDNAME( CII_PROJECT, _module ) = 
+{
+    STANDARD20_MODULE_STUFF,
+    0,
+    0,
+    0,
+    0,
+    0,
+    register_hooks
+};
 
 };

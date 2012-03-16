@@ -30,7 +30,7 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "frwk-qt.h"
+#include "frwk.h"
 #include "network.h"
 #include "web_page.h"
 #include "mainwindow.h"

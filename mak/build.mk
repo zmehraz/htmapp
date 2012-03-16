@@ -76,11 +76,11 @@ ifeq ($(BLD_TYPE),moc)
 # moc
 .PRECIOUS: $(BLD_PRJROOT)/%.moc.cpp
 $(BLD_PRJROOT)/%.moc.cpp : $(BLD_SRCDIR)/%.h $(BLDOUT)
-	$(CFG_QTMOC) "$<" -o "$@" $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) 
+	$(CFG_QTMOC) "$<" -o "$@" -DHTM_MOC_RUN $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) 
 
 # cpp build
 $(BLD_PRJROOT)/%.moc.o : $(BLD_PRJROOT)/%.moc.cpp
-	$(CFG_PP) $< $(CFG_PP_FLAGS) $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) -o $@
+	$(CFG_PP) $< $(CFG_PP_FLAGS) -DHTM_MOC_RUN $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) -o $@
 
 else
 

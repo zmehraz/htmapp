@@ -19,6 +19,11 @@ CFG_RC := $(PRE)windres
 #CFG_LD_FLAGS := $(CFG_LD_FLAGS) -export-all-symbols
 CFG_PP_FLAGS := $(CFG_PP_FLAGS) -MMD -Wall -fno-strict-aliasing -D__int64="long long"
 
+ifneq ($(TGT_PLATFORM),windows)
+	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIC -DPIC
+endif
+
+
 # GUI type?
 ifneq ($(PRJ_GUIT),)
 	ifeq ($(TGT_PLATFORM),windows)
@@ -40,7 +45,7 @@ ifeq ($(TGT_LINK),static)
 # shared build
 else
 	ifneq ($(TGT_PLATFORM),windows)
-		CFG_PP_FLAGS := $(CFG_PP_FLAGS)  -shared -fPIC -DPIC
+		CFG_PP_FLAGS := $(CFG_PP_FLAGS)  -shared
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -lpthread -lrt
 	else
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -shared -shared-libgcc
@@ -60,7 +65,8 @@ ifeq ($(PRJ_TYPE),dll)
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
 	else
 		CFG_TGT_EXT := .so
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -rdynamic -Wl,-E -Wl,--export-dynamic
+		CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIC -DPIC
+		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -shared -module -rdynamic -Wl,-E -Wl,--export-dynamic
 	endif
 else
 	ifeq ($(PRJ_TYPE),lib)

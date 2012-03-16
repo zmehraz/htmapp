@@ -55,7 +55,7 @@ int send_error( int code )
 }
 
 // parser::DecodeJson< t_pb >( CII_PARAMS );
-int process_cgi_request( int argc, char* argv[], const char *params )
+int process_request( int argc, char* argv[], const char *params )
 {
 	// Supported environment variables
 	static const char *pEnvVars[] = 

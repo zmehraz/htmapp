@@ -30,7 +30,7 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "frwk-cgi.h"
+#include "frwk.h"
 #include "htmapp_resources.h"
 
 int main( int argc, char* argv[] )
@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
 #endif
 
 	// Process the request
-	return process_cgi_request( argc, argv, CII_PARAMS );
+	return process_request( argc, argv, CII_PARAMS );
 
 	return 0;
 }
