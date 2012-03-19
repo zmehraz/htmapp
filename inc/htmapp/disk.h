@@ -62,7 +62,7 @@ namespace disk
 #if defined( _WIN32 )
 		typedef void* HFILE;
 #else
-		typedef int HFILE;
+		typedef void* HFILE;
 #endif
 
 	const HFILE c_invalid_hfile = (HFILE)-1;

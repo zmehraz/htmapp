@@ -11,7 +11,7 @@ C++ framework for building HTML5 applications
 //------------------------------------------------------------------
 
 // Linux - default Qt
-make SYSINCS="/usr/include/qt4 /usr/include/qt4/QtCore"
+make SYSINCS=/usr/include/qt4
 
 // Linux - installed Qt
 make SYSINCS=~/qtsdk-2010.05/qt/include SYSLIBP=~/qtsdk-2010.05/qt/lib
@@ -48,15 +48,12 @@ make TGT=cgi
 // Cygwin on Windows
 make TGT=cgi PRE=/bin/i686-pc-mingw32-
 
-
 //------------------------------------------------------------------
 // Build instructions for Apache module
 //------------------------------------------------------------------
+// apache2 apache2-threaded-dev
 
 // Linux
 make TGT=apache SYSINCS="/usr/include/apache2 /usr/include/apr-1.0"
-
-// Linux 64 bit
-make TGT=x64-apache SYSINCS="/usr/include/apache2 /usr/include/apr-1.0"
 
 

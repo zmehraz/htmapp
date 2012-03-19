@@ -16,6 +16,8 @@ ifdef SYSLIBP
 	GO_LIBS := $(GO_LIBS) $(foreach inc,$(SYSLIBP),-L$(inc))
 endif
 
+GO_LIBS := $(GO_LIBS) $(CFG_LD_LASTO)
+
 #-------------------------------------------------------------------
 # Build target
 #-------------------------------------------------------------------

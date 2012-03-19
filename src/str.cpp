@@ -39,14 +39,18 @@
 #	define VSNPRINTF		vsnprintf
 #	define STRTOLL			strtoll
 #	define STRTOULL			strtoll
-#if defined( __MINGW32__ )
-#	define VSNWPRINTF		vsnwprintf
-#else
-#	define VSNWPRINTF		vswprintf
-#endif
+#	if defined( __MINGW32__ )
+#		define VSNWPRINTF	vsnwprintf
+#	else
+#		define VSNWPRINTF	vswprintf
+#	endif
 #	define WCSTOLL			wcstoll
 #	define WCSTOULL			wcstoll
-#	define CAST_VL			tcVaList
+#	if defined( __LP64__ )
+#		define CAST_VL(t)	(t)
+#	else
+#		define CAST_VL(t)	((tcVaList)t)
+#	endif
 #else
 #	include <tchar.h>
 #	define VSNPRINTF		_vsnprintf
@@ -55,7 +59,7 @@
 #	define VSNWPRINTF		_vsnwprintf
 #	define WCSTOLL			_wcstoi64
 #	define WCSTOULL			_wcstoi64
-#	define CAST_VL			va_list
+#	define CAST_VL(t)		((va_list)t)
 #endif
 
 #include "htmapp.h"
@@ -65,7 +69,7 @@ namespace str
 
 long vPrint( const char *x_pFmt, tcVaList x_pArgs )
 {
-	return vprintf( x_pFmt, (CAST_VL)x_pArgs );
+	return vprintf( x_pFmt, CAST_VL( x_pArgs ) );
 }
 
 long Print( const char *x_pFmt, ... )
@@ -90,7 +94,7 @@ long vStrFmt( char *x_pDst, unsigned long x_uMax, const char *x_pFmt, tcVaList x
 		return -1;
 
 	// Create format string
-	long nRet = (long)VSNPRINTF( x_pDst, x_uMax, x_pFmt, (CAST_VL)x_pArgs );
+	long nRet = (long)VSNPRINTF( x_pDst, x_uMax, x_pFmt, CAST_VL( x_pArgs ) );
 	if ( 0 > nRet || x_uMax < (unsigned long)nRet )
 	{
 		// Null terminate buffer
@@ -221,7 +225,7 @@ t_string8 ToMbs( const t_stringw &s )
 
 long vPrint( const wchar_t *x_pFmt, tcVaList x_pArgs )
 {
-	return vwprintf( x_pFmt, (CAST_VL)x_pArgs );
+	return vwprintf( x_pFmt, CAST_VL( x_pArgs ) );
 }
 
 long Print( const wchar_t *x_pFmt, ... )
@@ -247,9 +251,9 @@ long vStrFmt( wchar_t *x_pDst, unsigned long x_uMax, const wchar_t *x_pFmt, tcVa
 
 	// Create format string
 #if !defined( _WIN32 ) || defined( __MINGW32__ )
-	long nRet = (long)VSNWPRINTF( x_pDst, x_uMax, x_pFmt, (CAST_VL)x_pArgs );
+	long nRet = (long)VSNWPRINTF( x_pDst, x_uMax, x_pFmt, CAST_VL( x_pArgs ) );
 #else
-	long nRet = (long)VSNWPRINTF( x_pDst, x_pFmt, (CAST_VL)x_pArgs );
+	long nRet = (long)VSNWPRINTF( x_pDst, x_pFmt, CAST_VL( x_pArgs ) );
 #endif
 	if ( 0 > nRet || x_uMax < (unsigned long)nRet )
 	{

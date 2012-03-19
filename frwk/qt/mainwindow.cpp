@@ -135,6 +135,6 @@ void CMainWindow::onFinished( QNetworkReply *reply )
 				" Message : %s\n\n"
 				, reply->url().path().toUtf8().data()
 				, (int)reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt()
-				, (int)reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toByteArray().data()
+				, reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toByteArray().data()
 			);
 }

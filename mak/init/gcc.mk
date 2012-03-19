@@ -39,16 +39,18 @@ endif
 
 # static build
 ifeq ($(TGT_LINK),static)
-	CFG_PP_FLAGS := $(CFG_PP_FLAGS)  -static
-	CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -static -static-libgcc -static-libstdc++
+	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -static
+	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -static -static-libgcc -static-libstdc++
+	CFG_LD_LASTO := $(CFG_LD_LASTO) -lpthread -lrt
 	
 # shared build
 else
 	ifneq ($(TGT_PLATFORM),windows)
-		CFG_PP_FLAGS := $(CFG_PP_FLAGS)  -shared
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -lpthread -lrt
+		CFG_PP_FLAGS := $(CFG_PP_FLAGS) -shared
+		CFG_LD_FLAGS := $(CFG_LD_FLAGS)
+		CFG_LD_LASTO := $(CFG_LD_LASTO) -lpthread -lrt
 	else
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS)  -shared -shared-libgcc
+		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -shared -shared-libgcc
 	endif
 endif
 
