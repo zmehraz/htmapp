@@ -44,7 +44,9 @@
 #if defined( HTM_PSEUDOLOCKS )
 #endif
 
-//#define HTM_THREAD_USE_GETTIMEOFDAY
+#if defined( HTM_THREAD_USE_GETTIMEOFDAY )
+#	include <sys/time.h>
+#endif
 
 const CThreadResource::t_HANDLE CThreadResource::c_Invalid = (CThreadResource::t_HANDLE)-1;
 
@@ -513,7 +515,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 #	else
 			struct timeval tp;
 			gettimeofday( &tp, 0 );
-			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_sec
+			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_sec;
 #	endif
 
 			// Add our time
@@ -599,7 +601,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 #	else
 			struct timeval tp;
 			gettimeofday( &tp, 0 );
-			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_sec
+			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_sec;
 #	endif
 
 			// Add our time

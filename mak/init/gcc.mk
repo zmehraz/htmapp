@@ -21,6 +21,8 @@ CFG_PP_FLAGS := $(CFG_PP_FLAGS) -MMD -Wall -fno-strict-aliasing -D__int64="long 
 
 ifneq ($(TGT_PLATFORM),windows)
 	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIC -DPIC
+#	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIE -DPIE
+#	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -pie
 endif
 
 
@@ -41,13 +43,15 @@ endif
 ifeq ($(TGT_LINK),static)
 	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -static
 	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -static -static-libgcc -static-libstdc++
-	CFG_LD_LASTO := $(CFG_LD_LASTO) -lpthread -lrt
+ifneq ($(TGT_PLATFORM),windows)
+		CFG_LD_LASTO := $(CFG_LD_LASTO) -lpthread -lrt
+endif
 	
 # shared build
 else
 	ifneq ($(TGT_PLATFORM),windows)
 		CFG_PP_FLAGS := $(CFG_PP_FLAGS) -shared
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS)
+#		CFG_LD_FLAGS := $(CFG_LD_FLAGS)
 		CFG_LD_LASTO := $(CFG_LD_LASTO) -lpthread -lrt
 	else
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -shared -shared-libgcc
@@ -67,8 +71,13 @@ ifeq ($(PRJ_TYPE),dll)
 		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
 	else
 		CFG_TGT_EXT := .so
-		CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIC -DPIC
-		CFG_LD_FLAGS := $(CFG_LD_FLAGS) -shared -module -rdynamic -Wl,-E -Wl,--export-dynamic
+		CFG_PP_FLAGS := $(CFG_PP_FLAGS)
+		ifeq ($(TGT_LINK),static)
+			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -module
+		else
+			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -shared -module
+			#CFG_LD_FLAGS := $(CFG_LD_FLAGS) -shared -module -rdynamic -Wl,-E -Wl,--export-dynamic
+		endif
 	endif
 else
 	ifeq ($(PRJ_TYPE),lib)
@@ -85,7 +94,7 @@ else
 			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -Wl,-enable-auto-import
 		else
 			CFG_TGT_EXT :=
-			CFG_LD_FLAGS := $(CFG_LD_FLAGS) -rdynamic -Wl,-E -Wl,--export-dynamic
+			CFG_LD_FLAGS := $(CFG_LD_FLAGS)
 		endif
 	endif
 endif

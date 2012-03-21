@@ -7,5 +7,8 @@
 # +++ There's probably a bit more elegant way...
 ifeq ($(PRJ_TYPE),exe)
 	PRJ_TYPE := dll
-	PRJ_LIBS := frwk-$(FRWK) $(PRJ_LIBS)
+	#PRJ_LIBS := frwk-$(FRWK) $(PRJ_LIBS)
+	#CFG_LD_LASTO := $(CFG_LD_LASTO) -lapr-1 -laprutil-1
 endif
+
+

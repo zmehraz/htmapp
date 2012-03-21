@@ -45,17 +45,22 @@ extern "C"
 static int BLDNAME( CII_PROJECT, _handler )( request_rec* r )
 {
 	// Is it for our module?
-    if ( !r || !r->handler || strcmp( r->handler, CII_PROJECT_NAME ) )
+//    if ( !r || !r->handler ) // || strcmp( r->handler, CII_PROJECT_NAME ) )
         return DECLINED;
  
-    return OK;
+//    return OK;
 }
  
 static void register_hooks( apr_pool_t* pool )
 {
-    ap_hook_handler( BLDNAME( CII_PROJECT, _handler ), 0, 0, APR_HOOK_MIDDLE );
+//    ap_hook_handler( BLDNAME( CII_PROJECT, _handler ), 0, 0, APR_HOOK_MIDDLE );
 }
  
+static const command_rec mod_cmds[] =
+{
+    { NULL }
+};
+
 module AP_MODULE_DECLARE_DATA BLDNAME( CII_PROJECT, _module ) = 
 {
     STANDARD20_MODULE_STUFF,
@@ -63,7 +68,7 @@ module AP_MODULE_DECLARE_DATA BLDNAME( CII_PROJECT, _module ) =
     0,
     0,
     0,
-    0,
+    mod_cmds,
     register_hooks
 };
 
