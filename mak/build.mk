@@ -3,6 +3,12 @@
 # Build dependencies
 #-------------------------------------------------------------------
 
+ifeq ($(BLD_TYPE),)
+	ifeq ($(BLD_EXTN),c)
+		BLD_TYPE := c
+	endif
+endif
+
 ifeq ($(BLD_TYPE),moc)
 	BLD_PRJROOT := $(CFG_PRJROOT)/_moc
 else
@@ -23,7 +29,11 @@ ifeq ($(BLD_SRCDIR),)
 endif
 
 ifeq ($(BLD_EXTN),)
-	BLD_EXTN := cpp
+	ifeq ($(BLD_TYPE),c)
+		BLD_EXTN := c
+	else
+		BLD_EXTN := cpp
+	endif
 endif
 
 # Build a list of source files
@@ -84,13 +94,29 @@ $(BLD_PRJROOT)/%.moc.o : $(BLD_PRJROOT)/%.moc.cpp
 
 else
 
+# c
+ifeq ($(BLD_TYPE),c)
+
+-include $(BLD_DEPENDS:.o=.d)
+$(BLD_PRJROOT)/%.o : $(BLD_SRCDIR)/%.$(BLD_EXTN) $(BLDOUT)
+	$(CFG_CC) $< $(CFG_CC_FLAGS) $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) -o $@
+
+# c
+else
+
 # cpp build
 -include $(BLD_DEPENDS:.o=.d)
 $(BLD_PRJROOT)/%.o : $(BLD_SRCDIR)/%.$(BLD_EXTN) $(BLDOUT)
 	$(CFG_PP) $< $(CFG_PP_FLAGS) $(CFG_EXTR) $(BLD_DEFS) $(BLD_INCS) -o $@
 	
+# c
+endif
+
+# moc
 endif
 
 # Clear source directory
+BLD_TYPE :=
+BLD_EXTN :=
 BLD_SRCDIR := 
 

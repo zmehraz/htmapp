@@ -33,8 +33,10 @@
 #define _BLDNAME( a, b ) 	a##b
 #define BLDNAME( a, b ) 	_BLDNAME( a, b )
 
-extern "C"
-{
+#if defined( __cplusplus )
+extern "C" {
+#endif
+
 #include <httpd.h>
 #include <http_protocol.h>
 #include <http_config.h>
@@ -42,20 +44,20 @@ extern "C"
 // HTTP_NOT_FOUND
 // HTTP_INTERNAL_SERVER_ERROR
  
-static int BLDNAME( CII_PROJECT, _handler )( request_rec* r )
+static int mod_handler( request_rec* r )
 {
 	// Is it for our module?
-//    if ( !r || !r->handler ) // || strcmp( r->handler, CII_PROJECT_NAME ) )
+    if ( !r || !r->handler || strcmp( r->handler, CII_PROJECT_NAME ) )
         return DECLINED;
- 
-//    return OK;
+
+    return OK;
 }
  
 static void register_hooks( apr_pool_t* pool )
 {
-//    ap_hook_handler( BLDNAME( CII_PROJECT, _handler ), 0, 0, APR_HOOK_MIDDLE );
+    ap_hook_handler( mod_handler, 0, 0, APR_HOOK_MIDDLE );
 }
- 
+
 static const command_rec mod_cmds[] =
 {
     { NULL }
@@ -72,4 +74,6 @@ module AP_MODULE_DECLARE_DATA BLDNAME( CII_PROJECT, _module ) =
     register_hooks
 };
 
+#if defined( __cplusplus )
 };
+#endif
