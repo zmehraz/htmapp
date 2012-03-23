@@ -55,6 +55,18 @@ make TGT=windows-cgi BLD=posix-x86-shared-cgi PRE=i586-mingw32msvc-
 // Build instructions for Apache module
 //------------------------------------------------------------------
 // apache2 apache2-threaded-dev
+//
+/* Example load file
+
+ LoadModule test_module /<path-to-module>/test.so
+ <Location /test>
+   SetHandler test
+ </Location>
+
+*/
 
 // Linux
 make TGT=apache SYSINCS="/usr/include/apache2 /usr/include/apr-1.0"
+
+
+
