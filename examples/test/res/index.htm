@@ -4,8 +4,10 @@
 	out << parser::EncodeJsonStr< str::t_string >( "JSON Encode String \x05" ) + "\n";
 	out << parser::DecodeJsonStr< str::t_string >( "JSON Decode String \\u0041" ) + "\n";
 
+	out << "The number six : " << str::ToString( 6 ) << "\n";
+	
 	tq::set( "a", "12345" );
-	out << tq::get( "a" ) << "\n";
+	out << "a = " << tq::get( "a" ) << "\n";
 
 ?><?global
 
@@ -17,10 +19,14 @@
 
 ?><?c
 
-	tq::start( "", mythread );
-	tq::wait( "b", 3000 );
-	out << tq::get( "b" ) << "\n";
+	int ret = tq::start( "", mythread );
+	out << "tq::start() returned " << ret << "\n";
+	if ( ret ) 
+		tq::wait( "b", 1000 );
+	out << "b = " << tq::get( "b" ) << "\n";
 
+	out << parser::EncodeJson( in ) << "\n\n";
+	
 	t_pb8 pb;
 	pb[ "A" ][ "AA" ] = "Hello World!";
 	pb[ "A" ][ "AB" ] = (long)444;

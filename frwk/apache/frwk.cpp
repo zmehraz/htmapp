@@ -1,3 +1,34 @@
+/*------------------------------------------------------------------
+// Copyright (c) 1997 - 2011
+// Robert Umbehant
+// htmapp@wheresjames.com
+// http://www.wheresjames.com
+//
+// Redistribution and use in source and binary forms, with or
+// without modification, are permitted for commercial and
+// non-commercial purposes, provided that the following
+// conditions are met:
+//
+// * Redistributions of source code must retain the above copyright
+//   notice, this list of conditions and the following disclaimer.
+// * The names of the developers or contributors may not be used to
+//   endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+//   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+//   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+//   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+//   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+//   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+//   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+//   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+//   NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+//   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+//   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+//   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//----------------------------------------------------------------*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +40,19 @@
 
 #include "htmapp.h"
 
+extern "C" 
+{
+#	include <httpd.h>
+#	include <http_protocol.h>
+#	include <http_config.h>
+#	include "frwk.h"
+};
+
 extern "C" void init_frwk()
 {
-	tq::init();
+	// +++ Get thread pool working in apache module
+	// tq::init( true );
+	tq::init( false );
 }
 
 extern "C" void uninit_frwk()
@@ -19,112 +60,60 @@ extern "C" void uninit_frwk()
 	tq::uninit();
 }
 
-extern "C" int process_request( int argc, char* argv[], const char *params )
+void get_params( t_pb8 &pb, request_rec* r, str::t_string8 &path )
 {
-	return 0;
+	if ( !r )
+		return;
+
+	// Fill in the request paraeters
+#	define CPSTR( s, p ) rq[ s ] = r->p ? r->p : ""
+	t_pb &rq = pb[ "REQUEST" ];
+	rq[ "PATH_INFO" ] = path;
+	rq[ "CONTENT_LENGTH" ] = r->bytes_sent;
+	CPSTR( "DOCUMENT_ROOT", filename );
+	CPSTR( "SERVER_NAME", hostname );
+	CPSTR( "QUERY_STRING", args );
+	CPSTR( "REQUEST_METHOD", method );
+
+	// +++ Figure out these parameters
+	CPSTR( "proto", protocol );
+	CPSTR( "the_request", the_request );
+	CPSTR( "content_type", content_type );
+	CPSTR( "handler", handler );
+	CPSTR( "content_encoding", content_encoding );
+	CPSTR( "unparsed_uri", unparsed_uri );
+	CPSTR( "path_info", path_info );
+
+	// GET parameters
+	if ( r->args && *r->args )
+		pb[ "GET" ] = parser::DecodeUrl< t_pb8 >( r->args );
 }
 
-/*
-const char* response_msg( int code )
+extern "C" int process_request( request_rec* r, const char *prj_name )
 {
-	switch( code )
-	{
-		case 200 : return "OK";
-		case 404 : return "File not found";
-		case 500 : return "Internal server error";
+	// Ensure it's for us
+	if ( !r || str::CompareI( str::t_string8( r->handler ), str::t_string8( prj_name ) ) )
+		return DECLINED;
 
-	} // end switch
-	
-	return "Unknown error";
-}
-
-int send_response( t_pb8 &headers, int code, const void *p, long sz )
-{
-
-#if defined( _WIN32 ) || defined( WIN32 )
-
-	// Ensure stdout is in binary mode
-	_setmode( fileno( stdout ), O_BINARY );
-
-#endif
-
-	// NULL terminated?
-	if ( p && 0 >= sz )
-		while ( ((char*)p)[ sz ] ) sz++;
-
-	// Set content size
-	if ( 0 <= sz )
-		headers[ "content-length" ] = sz;
-
-	// Send response headers
-	printf( "HTTP/1.1 %d %s\n%s\n\n", 
-			code, response_msg( code ),
-			parser::EncodeHttpHeaders( headers ).c_str() );
-
-	// Write the data
-	if ( p && 0 < sz )
-		fwrite( p, 1, sz, stdout );
-
-	return 0;
-}
-
-int send_error( int code )
-{
-	t_pb8 headers;
-	send_response( headers, code, response_msg( code ), 0 );
-	return code;
-}
-
-// parser::DecodeJson< t_pb >( CII_PARAMS );
-int process_request( int argc, char* argv[], const char *params )
-{
-	// Supported environment variables
-	static const char *pEnvVars[] = 
-	{
-		"CONTENT_LENGTH",
-		"DOCUMENT_ROOT",
-		"HTTP_REFERER",
-		"HTTP_USER_AGENT",
-		"PATH_INFO",
-		"PATH_TRANSLATED",
-		"QUERY_STRING",
-		"REMOTE_ADDR",
-		"REMOTE_HOST",
-		"REQUEST_METHOD",
-		"SCRIPT_NAME",
-		"SERVER_NAME",
-		"SERVER_PORT",
-		0
-	};
-
-	t_pb8 in, out;
-
-	// Read in environment vars
-	t_pb &r = in[ "REQUEST" ];
-	for ( long i = 0; pEnvVars[ i ]; i++ )
-	{	const char *p = getenv( pEnvVars[ i ] );
-		if ( p && *p )
-			r[ pEnvVars[ i ] ] = p;
-	} // end for
-
-	// Decode GET parameters if any
-	if ( r.isSet( "QUERY_STRING" ) )
-		in[ "GET" ] = parser::DecodeUrl< t_pb8 >( r[ "QUERY_STRING" ].ToString() );
-
-	// Add browser headers
-//	in[ "HEADERS" ] = parser::DecodeHttpHeaders< t_pb8 >( pHeaders );
-
-	// What page does the caller want?
-	str::t_string8 sPath = r[ "PATH_INFO" ].ToString();
+	// Users request path
+	str::t_string8 path = r->uri 
+						  ? ( prj_name ? disk::SkipRoot< str::t_string8 >( r->uri, prj_name ) : r->uri )
+						  : "";
 
 	// Create full path
-	str::t_string8 full = disk::WebPath< str::t_string8 >( "res", r[ "PATH_INFO" ].ToString() );
+	str::t_string8 full = disk::WebPath< str::t_string8 >( "res", path );
 
+/*	t_pb8 pb;
+	get_params( pb, r, path );
+	ap_rputs( parser::EncodeJson( pb ).c_str(), r );
+	return OK;
+*/
+	
 	// Check for resource
 	HMRES hRes = 0;
 	CHmResources res;
 	if ( !res.IsValid() || 0 == ( hRes = res.FindResource( 0, full.c_str() ) ) )
-		return -send_error( 404 );
+		return HTTP_NOT_FOUND;
 
 	t_pb8 headers;
 	switch ( res.Type( hRes ) )
@@ -135,7 +124,7 @@ int process_request( int argc, char* argv[], const char *params )
 		case 1 :
 		{
 			// Set MIME type
-			headers[ "content-type" ] = disk::GetMimeType( full );
+			ap_set_content_type( r, disk::GetMimeType( full ).c_str() );
 
 			// Get data pointers
 			const void *ptr = res.Ptr( hRes );
@@ -143,27 +132,38 @@ int process_request( int argc, char* argv[], const char *params )
 
 			// Verify data
 			if ( !ptr || 0 >= sz )
-				return -send_error( 500 );
+				return HTTP_INTERNAL_SERVER_ERROR;
 
-			// Send the binary data
-			return send_response( headers, 200, ptr, sz );
+			// Send the data
+			ap_rwrite( ptr, sz, r );
+				
+			return OK;
 
 		} break;
 
 		case 2 :
 		{
-			// Set MIME type
-			headers[ "content-type" ] = "text/html";
-
 			// Get function pointer
 			CHmResources::t_fn pFn = res.Fn( hRes );
 			if ( pFn )
 			{
+				t_pb8 in, out;
+				
+				// Format request params
+				get_params( in, r, path );
+			
 				// Execute the page
 				pFn( in, out );
+				
+				// Set MIME type
+				ap_set_content_type( r, out[ "HEADERS" ].isSet( "CONTENT_TYPE" )
+										? out[ "HEADERS" ][ "CONTENT_TYPE" ].ToString().c_str()
+										: "text/html" );
 
-				// Send the response
-				return send_response( headers, 200, out.data(), out.length() );
+				// Send the data
+				ap_rwrite( out.data(), out.length(), r );
+				
+				return OK;
 
 			} // end if
 
@@ -171,7 +171,6 @@ int process_request( int argc, char* argv[], const char *params )
 
 	} // end switch
 
-	// Not found
-	return -send_error( 404 );
+    return HTTP_NOT_FOUND;
 }
-*/
+

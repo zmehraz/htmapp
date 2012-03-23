@@ -207,20 +207,25 @@ int main( int argc, char* argv[] )
 										   "#include \"htmapp_resource_extern.hpp\"\n"
 										   "SHmResourceInfo _htmapp_resources[] = \n{\n" );
 
-	// resource.h
+	// htmapp_resources.h
 	disk::WriteFile( disk::FilePath< t_string8 >( cl.pb()[ "o" ].str(), "htmapp_resources.h" ),
 							 t_string8() + 
-										   ""
+										   "#pragma once\n\n"
 										   "#define HTMAPP_RESOURCES 1\n\n"
 										   "#define hmResourceFn( n ) int (*n)( const TPropertyBag< str::t_string8 > &in, std::basic_string< str::t_string8 > &out );\n"
-										   "\nstruct SHmResourceInfo\n{"
+										   "\ntypedef struct td_SHmResourceInfo\n{"
 										   "\n\tconst char*   name;"
 										   "\n\tunsigned long sz_size;"
 										   "\n\tconst void*   data;"
 										   "\n\tunsigned long sz_data;"
 										   "\n\tunsigned long type;"
-										   "\n};\n" 
-										   "\nextern \"C\" SHmResourceInfo _htmapp_resources[];\n"
+										   "\n} SHmResourceInfo;\n"
+										   "\n#if defined( _cplusplus )\n"
+										   "\nextern \"C\"\n"
+										   "\n#else\n"
+										   "\nextern\n"
+										   "\n#endif\n"
+										   "\n\tSHmResourceInfo _htmapp_resources[];\n"
 										 );
 
 	// Get compiled types

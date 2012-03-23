@@ -33,10 +33,12 @@
 
 #pragma once
 
-extern "C" void init_frwk();
+/// Initialize the apache module framework
+void init_frwk();
 
-extern "C" void uninit_frwk();
+/// Uninitialize the apache module framework
+void uninit_frwk();
 
-extern "C" int process_request( int argc, char* argv[], const char *params );
-
+/// Process request
+int process_request( request_rec* r, const char *prj_name );
 

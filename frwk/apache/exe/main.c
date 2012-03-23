@@ -41,26 +41,39 @@ extern "C" {
 #include <http_protocol.h>
 #include <http_config.h>
 
-// HTTP_NOT_FOUND
-// HTTP_INTERNAL_SERVER_ERROR
+#include "frwk.h"
+#include "htmapp/import_resources.h"
+#include "htmapp_resources.h"
 
 static int mod_handler( request_rec* r )
 {
 	// Is it for our module?
-    if ( !r || !r->handler || strcmp( r->handler, CII_PROJECT_NAME ) )
+    if ( !r || !r->handler )
         return DECLINED;
 
-    ap_set_content_type( r, "text/html" );
-    ap_rputs( "<h1>Hello World!</h1>", r );
-
-    return OK;
+	return process_request( r, CII_PROJECT_NAME );
+}
+ 
+int mod_cleanup(void *p)
+{
+	// Cleanup framework
+	uninit_frwk();
+	
+	return 0;
 }
  
 static void register_hooks( apr_pool_t* pool )
 {
+	// Initialize resources
+	HTMAPP_INIT_RESOURCES();
+
 	// Initialize framework
 	init_frwk();
 
+	// Register cleanup function
+	apr_pool_cleanup_register( pool, 0, mod_cleanup, 0 );
+	
+	// Add our handler
     ap_hook_handler( mod_handler, 0, 0, APR_HOOK_MIDDLE );
 }
 

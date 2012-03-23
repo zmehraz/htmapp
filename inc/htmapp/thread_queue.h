@@ -35,7 +35,7 @@
 namespace tq
 {
 	/// Initialize thread queue objects
-	void init();
+	void init( bool bEnableThreadPool );
 
 	/// Unitialize thread queue objects
 	void uninit();

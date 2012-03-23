@@ -44,17 +44,17 @@
 #if defined( HTM_PSEUDOLOCKS )
 #endif
 
-#if defined( CII_FRWK_apache )
-#	define HTM_THREAD_USE_GETTIMEOFDAY
-#endif
+//#if defined( CII_FRWK_apache )
+//#	define HTM_THREAD_USE_GETTIMEOFDAY
+//#endif
 
 #if defined( HTM_THREAD_USE_GETTIMEOFDAY )
 #	include <sys/time.h>
 #endif
 
-const CThreadResource::t_HANDLE CThreadResource::c_Invalid = (CThreadResource::t_HANDLE)-1;
+CThreadResource::t_HANDLE CThreadResource::c_Invalid = (CThreadResource::t_HANDLE)-1;
 
-const unsigned long CThreadResource::c_Infinite = 0xffffffff;
+unsigned long CThreadResource::c_Infinite = 0xffffffff;
 
 // This is currently the limit in Windows.   Tho there is no real
 // limit in Posix, but we want things to be cross platform right? ;)
@@ -265,6 +265,21 @@ __attribute__((noreturn)) void ThrowException()
 
 	// Forever
 	for(;;) sleep( 1000 );
+}
+
+bool CThreadResource::Init()
+{
+	s_last_error = 0;
+	CThreadResource::c_Invalid = (CThreadResource::t_HANDLE)-1;
+	CThreadResource::c_Infinite = 0xffffffff;
+	CThread::m_lThreadCount = 0;
+	CThread::m_lRunningThreadCount = 0;
+	
+	return true;
+}
+
+void CThreadResource::UnInit()
+{
 }
 
 void CThreadResource::InitException()
@@ -500,6 +515,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 				pRi->uOwner = getThreadId();
 				return waitSuccess;
 			} // end if
+// (*tq::pb())[ "b" ] << "timeout(), ";
 
 			// Does caller want to wait?
 			if ( !x_uTimeout )
@@ -513,13 +529,12 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 		struct timespec to;
 
 		// Get time
-
 #	if !defined( HTM_THREAD_USE_GETTIMEOFDAY )
 			clock_gettime( CLOCK_REALTIME, &to );
 #	else
 			struct timeval tp;
 			gettimeofday( &tp, 0 );
-			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_sec;
+			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_usec * 1000;
 #	endif
 
 			// Add our time
@@ -529,6 +544,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 				to.tv_sec += to.tv_nsec / 1000000000,
 				to.tv_nsec %= 1000000000;
 
+				
 #if defined( HTM_THREAD_TIMEOUTS )
 
 			// Wait for the lock
@@ -560,7 +576,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 #	else
 				struct timeval tp;
 				gettimeofday( &tp, 0 );
-				toNow.tv_sec = tp.tv_sec; toNow.tv_nsec = tp.tv_sec
+				toNow.tv_sec = tp.tv_sec; toNow.tv_nsec = tp.tv_usec * 1000;
 #	endif
 				if ( toNow.tv_nsec > 1000000000 )
 					toNow.tv_sec += toNow.tv_nsec / 1000000000,
@@ -605,7 +621,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 #	else
 			struct timeval tp;
 			gettimeofday( &tp, 0 );
-			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_sec;
+			to.tv_sec = tp.tv_sec; to.tv_nsec = tp.tv_usec * 1000;
 #	endif
 
 			// Add our time
@@ -645,7 +661,7 @@ long CThreadResource::Wait( unsigned long x_uTimeout )
 #	else
 				struct timeval tp;
 				gettimeofday( &tp, 0 );
-				toNow.tv_sec = tp.tv_sec; toNow.tv_nsec = tp.tv_sec
+				toNow.tv_sec = tp.tv_sec; toNow.tv_nsec = tp.tv_usec * 1000;
 #	endif
 				if ( toNow.tv_nsec > 1000000000 )
 					toNow.tv_sec += toNow.tv_nsec / 1000000000,

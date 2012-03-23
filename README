@@ -48,6 +48,9 @@ make TGT=cgi
 // Cygwin on Windows
 make TGT=cgi PRE=/bin/i686-pc-mingw32-
 
+// Cross build from linux to windows
+make TGT=windows-cgi BLD=posix-x86-shared-cgi PRE=i586-mingw32msvc-
+
 //------------------------------------------------------------------
 // Build instructions for Apache module
 //------------------------------------------------------------------
@@ -55,5 +58,3 @@ make TGT=cgi PRE=/bin/i686-pc-mingw32-
 
 // Linux
 make TGT=apache SYSINCS="/usr/include/apache2 /usr/include/apr-1.0"
-
-

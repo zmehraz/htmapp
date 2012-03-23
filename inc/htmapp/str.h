@@ -328,6 +328,16 @@ namespace str
 
 			return memcmp( s1, s2, l1 * sizeof( T ) );
 		}
+
+	template< typename T_STR >
+		long Compare( const T_STR &s1, const T_STR &s2 )
+		{	return Compare( s1.data(), s1.length(), s2.data(), s2.length() ); }
+		
+	template< typename T_STR >
+		long CompareI( const T_STR &s1, const T_STR &s2 )
+		{	T_STR ls1 = ToLower( s1 ), ls2 = ToLower( s2 );
+			return Compare( ls1.data(), ls1.length(), ls2.data(), ls2.length() ); 
+		}
 		
 	template< typename T_STR >
 		static T_STR TrimWs( const T_STR &x_str )

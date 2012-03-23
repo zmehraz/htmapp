@@ -30,56 +30,35 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
-#include "frwk.h"
-#include "htmapp_resources.h"
-#include "network.h"
-#include "web_page.h"
-#include "mainwindow.h"
 
-int main( int argc, char* argv[] )
+#pragma once
+
+typedef struct tag_SHmResourceInfo
 {
-	// Initialize resources
-	HTMAPP_INIT_RESOURCES();
-
-	// Initialize thread queue
-	tq::init( true );
-
-	// Initialize application object
-	QApplication app( argc, argv );
-
-	// Create main window
-	CMainWindow *pWindow = new CMainWindow;
-	if ( !pWindow )
-		return -1;
-
-#if defined( CII_PROJECT_NAME )
-	pWindow->setName( CII_PROJECT_NAME );
-#endif	
-
-#if defined( CII_PROJECT_DESC )
-	pWindow->setDescription( CII_PROJECT_DESC );
-#endif	
-
-	// Make the command line accessible
-	tq::set( "cmdline", TCmdLine< str::t_string >( argc, argv ).pb() );
-
-	// Make the makefile parameters accessible
-#if defined( CII_PARAMS )
-	tq::set( "ciid", parser::DecodeJson< t_pb >( CII_PARAMS ) );
-#endif
+	const char *   name;
+	unsigned long  sz_name;
 	
-	// Initialize the window
-	pWindow->Init();
+	const char *   data;
+	unsigned long  sz_data;
+	
+	unsigned long  type;
+} _SHmResourceInfo;
 
-	// Show the window
-	pWindow->show();
+/// Pointer to embedded resources
+#if defined( __cplusplus )
 
-	// Run the app
-	int ret = app.exec();
+typedef const _SHmResourceInfo* HMRES;
 
-	// Uninitialize thread queue
-	tq::uninit();
+extern "C" const
 
-	return ret;
-}
+#else
+
+extern
+
+#endif
+
+	_SHmResourceInfo* _htmapp_resources_ptr;
+
+/// Use this macro to set the resource pointer
+#define HTMAPP_INIT_RESOURCES()	( _htmapp_resources_ptr = (const _SHmResourceInfo*)_htmapp_resources )
 

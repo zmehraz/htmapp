@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
 #endif
 	
 	// Initialize thread queue
-	tq::init();
+	tq::init( true );
 	
 	// Process the request
 	int ret = process_request( argc, argv, CII_PARAMS );

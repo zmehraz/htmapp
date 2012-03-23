@@ -42,28 +42,60 @@ namespace tq
 
 	CThreadPool *g_htmapp_tp = 0;
 
-	void init()
+	void init( bool bEnableThreadPool )
 	{
+		/// Initialize threads resources
+		CThreadResource::Init();
+	
+		// Property bag
 		if ( !g_htmapp_pb )
 			g_htmapp_pb = new t_pb;
+			
+		// Lock global property bag
 		if ( !g_htmapp_pb_lock )
 			g_htmapp_pb_lock = new CLock;
+			
+		// Wait pool
 		if ( !g_htmapp_wp )
 			g_htmapp_wp = new t_waitpool;
-		if ( !g_htmapp_tp )
+			
+		// Thread pool
+		if ( bEnableThreadPool && !g_htmapp_tp )
 			g_htmapp_tp = new CThreadPool;
 	}
 
 	void uninit()
 	{
-		if ( g_htmapp_pb )
-			delete g_htmapp_pb, g_htmapp_pb = 0;
+		if ( g_htmapp_pb_lock )
+		{
+			CScopeLock sl( g_htmapp_pb_lock );
+			if ( sl.isLocked() )
+			{
+				// Kill the thread pool
+				if ( g_htmapp_tp )
+				{	g_htmapp_tp->Stop();
+					delete g_htmapp_tp;
+					g_htmapp_tp = 0;
+				} // end if
+
+				// Property bag
+				if ( g_htmapp_pb )
+					delete g_htmapp_pb, g_htmapp_pb = 0;
+
+				// Wait pool
+				if ( g_htmapp_wp )
+					delete g_htmapp_wp, g_htmapp_wp = 0;
+
+			} // end if
+
+		} // end if
+
+		// Lose the thread lock
 		if ( g_htmapp_pb_lock )
 			delete g_htmapp_pb_lock, g_htmapp_pb_lock = 0;
-		if ( g_htmapp_wp )
-			delete g_htmapp_wp, g_htmapp_wp = 0;
-		if ( g_htmapp_tp )
-			delete g_htmapp_tp, g_htmapp_tp = 0;
+
+		/// Release thread resources
+		CThreadResource::UnInit();
 	}
 
 	t_pb* pb() 
@@ -78,7 +110,7 @@ namespace tq
 
 	bool set( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep )
 	{
-		if ( !g_htmapp_pb_lock || g_htmapp_pb )
+		if ( !g_htmapp_pb_lock || !g_htmapp_pb )
 			return false;
 
 		CScopeLock sl( g_htmapp_pb_lock );
@@ -104,7 +136,7 @@ namespace tq
 
 	t_pb get( const str::t_string &sKey, const str::t_string &sep )
 	{
-		if ( !g_htmapp_pb_lock || g_htmapp_pb )
+		if ( !g_htmapp_pb_lock || !g_htmapp_pb )
 			return false;
 
 		CScopeLock sl( g_htmapp_pb_lock );
@@ -119,7 +151,7 @@ namespace tq
 	
 	bool wait( const str::t_string &sKey, unsigned long uTimeout )
 	{
-		if ( !g_htmapp_pb_lock || g_htmapp_pb || g_htmapp_wp )
+		if ( !g_htmapp_pb_lock || !g_htmapp_pb || !g_htmapp_wp )
 			return false;
 
 		CEvent *w = tcNULL;
@@ -230,7 +262,7 @@ namespace tq
 	long CThreadPool::DoThread( void* x_pData )
 	{
 		// While not stopped
-		getStopEvent().Wait( m_event, 1000 );
+		getStopEvent().Wait( m_event, 100 );
 		
 		// Command waiting?
 		if ( !m_event.Wait( 0 ) )
@@ -241,7 +273,7 @@ namespace tq
 
 			{ // Scope lock
 			
-				// Grab first command
+				// Lock the command list
 				CScopeLock sl( m_lock );
 				if ( sl.isLocked() )
 				{
@@ -266,8 +298,7 @@ namespace tq
 			{
 				// New thread?
 				if ( ci.f )
-				{
-					CWorkerThread &r = m_tp[ id ];
+				{	CWorkerThread &r = m_tp[ id ];
 					r.Run( ci.s, ci.f, ci.p, true );
 				} // end if
 

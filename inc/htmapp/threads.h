@@ -105,6 +105,14 @@ public:
 
 public:
 
+	/// Call to initialize threads
+	static bool Init();
+
+	/// Call to release thread resources
+	static void UnInit();
+	
+public:
+
 	/// Handle type
 	typedef void*		t_HANDLE;
 
@@ -485,10 +493,10 @@ public:
 private:
 
 	/// Invalid event handle value
-	static const t_HANDLE		c_Invalid;
+	static t_HANDLE		c_Invalid;
 
 	/// Infinite timeout value
-	static const unsigned long	c_Infinite;
+	static unsigned long	c_Infinite;
 
 private:
 
@@ -1001,6 +1009,8 @@ private:
 	/// Stop flag, non-zero if thread should stop
 	volatile long							m_lStopFlag;
 
+public:
+	
     /// Count of all threads that were created
     static long                             m_lThreadCount;
 

@@ -32,9 +32,9 @@
 
 #include "windows.h"
 
-const CThreadResource::t_HANDLE CThreadResource::c_Invalid = (void*)~0;
+CThreadResource::t_HANDLE CThreadResource::c_Invalid = (void*)~0;
 
-const unsigned long CThreadResource::c_Infinite = INFINITE;
+unsigned long CThreadResource::c_Infinite = INFINITE;
 
 /// Contains OS specific information about a resource
 struct SThreadResourceInfo
@@ -172,6 +172,20 @@ static long FreeRi( SThreadResourceInfo* x_pRi, long x_eType, unsigned long x_uT
 	delete x_pRi;
 
 	return 0;
+}
+
+bool CThreadResource::Init()
+{
+	CThreadResource::c_Invalid = (CThreadResource::t_HANDLE)-1;
+	CThreadResource::c_Infinite = 0xffffffff;
+	CThread::m_lThreadCount = 0;
+	CThread::m_lRunningThreadCount = 0;
+
+	return true;
+}
+
+void CThreadResource::UnInit()
+{
 }
 
 void* CThreadResource::getThreadId()
