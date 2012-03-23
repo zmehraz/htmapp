@@ -33,11 +33,10 @@
 
 #pragma once
 
-#include <string>
-#include <list>
-#include <map>
-#include <vector>
+extern "C" void init_frwk();
 
-#include "htmapp.h"
+extern "C" void uninit_frwk();
 
-int process_request( int argc, char* argv[], const char *params );
+extern "C" int process_request( int argc, char* argv[], const char *params );
+
+

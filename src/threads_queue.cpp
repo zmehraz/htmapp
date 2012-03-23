@@ -34,56 +34,94 @@
 
 namespace tq
 {
+	t_pb *g_htmapp_pb = 0;
 
-	t_pb g_htmapp_pb;
+	CLock *g_htmapp_pb_lock = 0;
 
-	CLock g_htmapp_pb_lock;
+	t_waitpool *g_htmapp_wp = 0;
 
-	t_pb& pb() 
+	CThreadPool *g_htmapp_tp = 0;
+
+	void init()
+	{
+		if ( !g_htmapp_pb )
+			g_htmapp_pb = new t_pb;
+		if ( !g_htmapp_pb_lock )
+			g_htmapp_pb_lock = new CLock;
+		if ( !g_htmapp_wp )
+			g_htmapp_wp = new t_waitpool;
+		if ( !g_htmapp_tp )
+			g_htmapp_tp = new CThreadPool;
+	}
+
+	void uninit()
+	{
+		if ( g_htmapp_pb )
+			delete g_htmapp_pb, g_htmapp_pb = 0;
+		if ( g_htmapp_pb_lock )
+			delete g_htmapp_pb_lock, g_htmapp_pb_lock = 0;
+		if ( g_htmapp_wp )
+			delete g_htmapp_wp, g_htmapp_wp = 0;
+		if ( g_htmapp_tp )
+			delete g_htmapp_tp, g_htmapp_tp = 0;
+	}
+
+	t_pb* pb() 
 	{ 
 		return g_htmapp_pb; 
 	}
 
-	CLock& lock() 
+	CLock* lock() 
 	{ 
 		return g_htmapp_pb_lock; 
 	}
 
 	bool set( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep )
 	{
+		if ( !g_htmapp_pb_lock || g_htmapp_pb )
+			return false;
+
 		CScopeLock sl( g_htmapp_pb_lock );
 		if ( !sl.isLocked() )
 			return false;
 
 		if ( sep.length() )
-			g_htmapp_pb.at( sKey, sep ) = pbValue;
+			g_htmapp_pb->at( sKey, sep ) = pbValue;
 		else
-			g_htmapp_pb[ sKey ] = pbValue;
+			(*g_htmapp_pb)[ sKey ] = pbValue;
 
-		// See if someone was waiting for a change
-		t_waitpool::iterator it = g_htmapp_wp.find( sKey );
-		if ( g_htmapp_wp.end() != it )
-			it->second.Signal();
+		if ( g_htmapp_wp )
+		{
+			// See if someone was waiting for a change
+			t_waitpool::iterator it = g_htmapp_wp->find( sKey );
+			if ( g_htmapp_wp->end() != it )
+				it->second.Signal();
+
+		} // end if
 
 		return true;
 	}
 
 	t_pb get( const str::t_string &sKey, const str::t_string &sep )
 	{
+		if ( !g_htmapp_pb_lock || g_htmapp_pb )
+			return false;
+
 		CScopeLock sl( g_htmapp_pb_lock );
 		if ( !sl.isLocked() )
 			return t_pb();
 
 		if ( sep.length() )
-			return g_htmapp_pb.at( sKey, sep );
+			return g_htmapp_pb->at( sKey, sep );
 
-		return g_htmapp_pb[ sKey ];
+		return (*g_htmapp_pb)[ sKey ];
 	}
 	
-	t_waitpool g_htmapp_wp;
-
 	bool wait( const str::t_string &sKey, unsigned long uTimeout )
 	{
+		if ( !g_htmapp_pb_lock || g_htmapp_pb || g_htmapp_wp )
+			return false;
+
 		CEvent *w = tcNULL;
 		
 		// Sanity check
@@ -97,9 +135,9 @@ namespace tq
 			if ( !sl.isLocked() )
 				return false;
 
-			t_waitpool::iterator it = g_htmapp_wp.find( sKey );
-			if ( g_htmapp_wp.end() == it )
-				w = &g_htmapp_wp[ sKey ];
+			t_waitpool::iterator it = g_htmapp_wp->find( sKey );
+			if ( g_htmapp_wp->end() == it )
+				w = &(*g_htmapp_wp)[ sKey ];
 			else
 				w = &it->second, w->AddRef();
 				
@@ -118,13 +156,10 @@ namespace tq
 				return false;
 
 			// Remove wait
-			t_waitpool::iterator it = g_htmapp_wp.find( sKey );
-			if ( g_htmapp_wp.end() != it )
+			t_waitpool::iterator it = g_htmapp_wp->find( sKey );
+			if ( g_htmapp_wp->end() != it )
 				if ( 0 <= it->second.Destroy() )
-				{
-					g_htmapp_wp.erase( it );
-
-				} // end if
+					g_htmapp_wp->erase( it );
 				
 		} // end scope lock
 
@@ -134,16 +169,23 @@ namespace tq
 
 //------------------------------------------------------------------
 
-	CThreadPool g_htmapp_tp;
-
 	long start( const str::t_string &s, t_tqfunc f, void *p )
-	{	return g_htmapp_tp.start( s, f, p ); }
+	{	if ( !g_htmapp_tp )
+			return 0;
+		return g_htmapp_tp->start( s, f, p ); 
+	}
 
 	bool stop( const str::t_string &s )
-	{	return g_htmapp_tp.stop( s ); }
+	{	if ( !g_htmapp_tp )
+			return 0;
+		return g_htmapp_tp->stop( s ); 
+	}
 	
 	bool stop( long id )
-	{	return g_htmapp_tp.stop( id ); }
+	{	if ( !g_htmapp_tp )
+			return 0;
+		return g_htmapp_tp->stop( id ); 
+	}
 
 	CWorkerThread::CWorkerThread() 
 	{

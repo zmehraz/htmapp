@@ -40,21 +40,27 @@ extern "C" {
 #include <httpd.h>
 #include <http_protocol.h>
 #include <http_config.h>
- 
+
 // HTTP_NOT_FOUND
 // HTTP_INTERNAL_SERVER_ERROR
- 
+
 static int mod_handler( request_rec* r )
 {
 	// Is it for our module?
     if ( !r || !r->handler || strcmp( r->handler, CII_PROJECT_NAME ) )
         return DECLINED;
 
+    ap_set_content_type( r, "text/html" );
+    ap_rputs( "<h1>Hello World!</h1>", r );
+
     return OK;
 }
  
 static void register_hooks( apr_pool_t* pool )
 {
+	// Initialize framework
+	init_frwk();
+
     ap_hook_handler( mod_handler, 0, 0, APR_HOOK_MIDDLE );
 }
 

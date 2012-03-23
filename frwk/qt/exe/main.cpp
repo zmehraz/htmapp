@@ -41,6 +41,9 @@ int main( int argc, char* argv[] )
 	// Initialize resources
 	HTMAPP_INIT_RESOURCES();
 
+	// Initialize thread queue
+	tq::init();
+
 	// Initialize application object
 	QApplication app( argc, argv );
 
@@ -72,6 +75,11 @@ int main( int argc, char* argv[] )
 	pWindow->show();
 
 	// Run the app
-	return app.exec();
+	int ret = app.exec();
+
+	// Uninitialize thread queue
+	tq::uninit();
+
+	return ret;
 }
 

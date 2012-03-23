@@ -20,6 +20,7 @@ CFG_RC := $(PRE)windres
 CFG_PP_FLAGS := $(CFG_PP_FLAGS) -MMD -Wall -fno-strict-aliasing -D__int64="long long"
 
 ifneq ($(TGT_PLATFORM),windows)
+	CFG_CC_FLAGS := $(CFG_PP_FLAGS) -fPIC -DPIC
 	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIC -DPIC
 #	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -fPIE -DPIE
 #	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -pie
@@ -41,6 +42,7 @@ endif
 
 # static build
 ifeq ($(TGT_LINK),static)
+	CFG_CC_FLAGS := $(CFG_PP_FLAGS) -static
 	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -static
 	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -static -static-libgcc -static-libstdc++
 ifneq ($(TGT_PLATFORM),windows)
@@ -50,6 +52,7 @@ endif
 # shared build
 else
 	ifneq ($(TGT_PLATFORM),windows)
+		CFG_CC_FLAGS := $(CFG_PP_FLAGS) -shared
 		CFG_PP_FLAGS := $(CFG_PP_FLAGS) -shared
 #		CFG_LD_FLAGS := $(CFG_LD_FLAGS)
 		CFG_LD_LASTO := $(CFG_LD_LASTO) -lpthread -lrt
@@ -60,6 +63,7 @@ endif
 
 # debug build
 ifneq ($(DBG),)
+	CFG_CC_FLAGS := $(CFG_PP_FLAGS) -g -DDEBUG -D_DEBUG
 	CFG_PP_FLAGS := $(CFG_PP_FLAGS) -g -DDEBUG -D_DEBUG
 	CFG_LD_FLAGS := $(CFG_LD_FLAGS) -g
 endif

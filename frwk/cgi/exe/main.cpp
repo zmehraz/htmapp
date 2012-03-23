@@ -41,10 +41,16 @@ int main( int argc, char* argv[] )
 #ifndef CII_PARAMS
 #	define CII_PARAMS 0
 #endif
-
+	
+	// Initialize thread queue
+	tq::init();
+	
 	// Process the request
-	return process_request( argc, argv, CII_PARAMS );
+	int ret = process_request( argc, argv, CII_PARAMS );
 
-	return 0;
+	// Uninitialize thread queue
+	tq::uninit();
+
+	return ret;
 }
 

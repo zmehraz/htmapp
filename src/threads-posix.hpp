@@ -44,6 +44,10 @@
 #if defined( HTM_PSEUDOLOCKS )
 #endif
 
+#if defined( CII_FRWK_apache )
+#	define HTM_THREAD_USE_GETTIMEOFDAY
+#endif
+
 #if defined( HTM_THREAD_USE_GETTIMEOFDAY )
 #	include <sys/time.h>
 #endif

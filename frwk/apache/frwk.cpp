@@ -1,8 +1,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <htmapp.h>
+
+#include <string>
+#include <list>
+#include <map>
+#include <vector>
+
+#include "htmapp.h"
+
+extern "C" void init_frwk()
+{
+	tq::init();
+}
+
+extern "C" void uninit_frwk()
+{
+	tq::uninit();
+}
+
+extern "C" int process_request( int argc, char* argv[], const char *params )
+{
+	return 0;
+}
 
 /*
 const char* response_msg( int code )

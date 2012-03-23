@@ -34,22 +34,28 @@
 
 namespace tq
 {
+	/// Initialize thread queue objects
+	void init();
+
+	/// Unitialize thread queue objects
+	void uninit();
+
 
 //------------------------------------------------------------------
 // Messaging
 //------------------------------------------------------------------
 
 	/// Global Property bag
-	extern t_pb g_htmapp_pb;
+	extern t_pb *g_htmapp_pb;
 
 	/// Global Property bag lock
-	extern CLock g_htmapp_pb_lock;
+	extern CLock *g_htmapp_pb_lock;
 
 	/// Returns a reference to the thread pb
-	t_pb& pb();
+	t_pb* pb();
 
 	/// Returns a reference to the thread pb
-	CLock& lock();
+	CLock* lock();
 
 	/// Sets the specified property value
 	bool set( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep = str::t_string() );
@@ -61,7 +67,7 @@ namespace tq
 	typedef std::map< str::t_string, CEvent > t_waitpool;
 
 	/// Wait pool object
-	extern t_waitpool g_htmapp_wp;
+	extern t_waitpool *g_htmapp_wp;
 
 	/// Wait for key to change
 	/**
@@ -172,7 +178,7 @@ namespace tq
 	};
 
 	/// Thread pool object
-	extern CThreadPool g_htmapp_tp;
+	extern CThreadPool *g_htmapp_tp;
 
 	/// Starts the specified thread
 	/**

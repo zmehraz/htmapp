@@ -30,6 +30,7 @@ endif
 #-------------------------------------------------------------------
 CFG_ESC_QUOTES = $(subst ",\",$(1))
 CFG_ESC_BSLASH = $(subst \,\\,$(1))
+CFG_ESC_CMLINE = $(call CFG_ESC_QUOTES,$(call CFG_ESC_BSLASH,$(call CFG_ESC_QUOTES,$(1))))
 
 # Current working directory
 #ifneq ($(CYGBLD),)
@@ -51,14 +52,15 @@ CFG_PRJROOT := $(CFG_OBJROOT)/$(PRJ_NAME)
 #-------------------------------------------------------------------
 # Project info
 #-------------------------------------------------------------------
-CFG_EXTR := $(CFG_EXTR) -DCII_PROJECT=$(PRJ_NAME) \
+CFG_EXTR := $(CFG_EXTR) -DCII_FRWK_$(FRWK)=1 \
+						-DCII_FRWK="\"$(FRWK)\"" \
+						-DCII_PROJECT=$(PRJ_NAME) \
 						-DCII_PROJECT_NAME="\"$(PRJ_NAME)\"" \
 						-DCII_PROJECT_DESC="\"$(PRJ_DESC)\""
 
 # Project defines
 ifneq ($(PRJ_CIID),)
-#	CFG_EXTR := $(CFG_EXTR) $(foreach ciid,$(PRJ_CIID),-DCII_$(ciid))
-	CFG_EXTR := $(CFG_EXTR) -DCII_PARAMS="\"$(call CFG_ESC_QUOTES,$(call CFG_ESC_BSLASH,$(call CFG_ESC_QUOTES,$(PRJ_CIID))))\""
+	CFG_EXTR := $(CFG_EXTR) -DCII_PARAMS="\"$(call CFG_ESC_CMLINE,$(PRJ_CIID))\""
 endif
 
 #-------------------------------------------------------------------
