@@ -807,6 +807,16 @@ public:
 	/// Destrucotr
 	virtual ~CThread();
 
+public:
+
+	/// Atomically increments the specified value
+	static unsigned long Increment( long *p );
+
+	/// Atomically decrements the specified value
+	static unsigned long Decrement( long *p );
+
+public:
+
 	//==============================================================
 	// Start()
 	//==============================================================

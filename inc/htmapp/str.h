@@ -56,7 +56,7 @@
 #	define tcWc2Str( s )	str::ToMbs( s )
 #endif
 
-// Anyone know a better way?
+// +++ Anyone know a better way?
 #define tcTT( c, s )		( 1 == sizeof( c ) ? ( ( c* )( s ) ) : ( ( c* )( L##s ) ) )
 #define tcTC( c, s )		( 1 == sizeof( c ) ? ( ( c )( s ) ) : ( ( c )( L##s ) ) )
 #define tcTTEXT( c, s )		tcTT( c, s )
@@ -112,7 +112,7 @@ namespace str
 
 	/// 64 bit unsigned integer
 	typedef unsigned long long int tc_uint64;
-	
+
 	/// Default string size
 	const t_size DEFSIZE = 1024;
 
@@ -129,67 +129,67 @@ namespace str
 	long StrFmt( char *x_pDst, unsigned long x_uMax, const char *x_pFmt, ... );
 
 	/// String format
-	template< typename T_STR >	
+	template< typename T_STR >
 		T_STR StrFmt( const typename T_STR::value_type *x_pFmt, ... )
 	{
 		T_STR s;
 		long lRet;
 		t_size sz = DEFSIZE;
-		
+
 		do
 		{
 			// Allocate space
 			try { s.resize( sz ); }
 			catch( ... ) { return T_STR(); }
-			
+
 			// Attempt conversion
 			tcVaList ap; tcVaStart( ap, x_pFmt );
 			lRet = vStrFmt( &s[ 0 ], sz, x_pFmt, ap );
 			tcVaEnd( ap );
-			
+
 			// Try more buffer space if failed
 			if ( 0 > lRet )
 				sz <<= 1;
-			
+
 			// Set string size
 			else
-				s.resize( lRet );		
-			
+				s.resize( lRet );
+
 		} while ( sz && 0 > lRet );
-		
-		return s;		
-	}	
-	
+
+		return s;
+	}
+
 	/// String format
-	template< typename T_STR >	
+	template< typename T_STR >
 		long StrFmt( T_STR &s, const typename T_STR::value_type *x_pFmt, ... )
 	{
 		long lRet;
 		t_size sz = DEFSIZE;
-		
+
 		do
 		{
 			// Allocate space
 			try { s.resize( sz ); }
 			catch( ... ) { return T_STR(); }
-			
+
 			// Attempt conversion
 			tcVaList ap; tcVaStart( ap, x_pFmt );
 			lRet = vStrFmt( &s[ 0 ], sz, x_pFmt, ap );
 			tcVaEnd( ap );
-			
+
 			// Try more buffer space if failed
 			if ( 0 > lRet )
 				sz <<= 1;
-			
+
 			// Set string size
 			else
-				s.resize( lRet );		
-			
+				s.resize( lRet );
+
 		} while ( sz && 0 > lRet );
-		
-		return lRet;		
-	}	
+
+		return lRet;
+	}
 
 	/// Converts to int
 	int StrToInt( const char *x_pStr, long x_lRadix = 10 );
@@ -218,10 +218,10 @@ namespace str
 #ifndef CII_NO_WCHAR
 
 	/// Convert wc string to mb
-	t_stringw ToWcs( const t_string8 &s );	
+	t_stringw ToWcs( const t_string8 &s );
 
 	/// Convert mb char string to wc
-	t_string8 ToMbs( const t_stringw &s );	
+	t_string8 ToMbs( const t_stringw &s );
 
 	/// String format
 	long vPrint( const wchar_t *x_pFmt, tcVaList x_pArgs );
@@ -332,13 +332,13 @@ namespace str
 	template< typename T_STR >
 		long Compare( const T_STR &s1, const T_STR &s2 )
 		{	return Compare( s1.data(), s1.length(), s2.data(), s2.length() ); }
-		
+
 	template< typename T_STR >
 		long CompareI( const T_STR &s1, const T_STR &s2 )
 		{	T_STR ls1 = ToLower( s1 ), ls2 = ToLower( s2 );
-			return Compare( ls1.data(), ls1.length(), ls2.data(), ls2.length() ); 
+			return Compare( ls1.data(), ls1.length(), ls2.data(), ls2.length() );
 		}
-		
+
 	template< typename T_STR >
 		static T_STR TrimWs( const T_STR &x_str )
 	{
@@ -369,7 +369,7 @@ namespace str
 
 	template < typename T >
 		T ReplaceStr( const T s, const T a, const T b )
-		{	T _s( s ); 
+		{	T _s( s );
 			typename T::size_type i = 0;
 			while( T::npos != ( i = _s.find_first_of( a, i ) ) )
 				_s.replace( i, a.length(), b ), i += b.length();
@@ -556,12 +556,17 @@ namespace str
     /**
         \param [out] b	-   Destination buffer
         \param [in] ch	-   Character to serialize
+		\param [in] fix	-	If greater than zero, fixes number to specified size
     */
 	template< typename T, typename N >
-		void ntoa( T *b, N ch )
+		void ntoa( T *b, N ch, long fix = 0 )
 		{
 			T c;
-			const long sz = sizeof( N ) * 2;
+			long sz = sizeof( N ) * 2;
+
+			// Fixed size?
+			if ( 0 < fix && sz > fix )
+				sz = fix;
 
 			// For each nibble
 			for ( long i = 0; i < sz; i++ )
@@ -583,6 +588,7 @@ namespace str
     /**
         \param [out] b	-   Destination buffer
         \param [in] ch	-   Character to serialize
+		\param [in] sz	-	Number of characters to process
     */
 	template< typename T, typename N >
 		N aton( T *b, N *n, long sz )
@@ -1131,15 +1137,15 @@ namespace str
 	/// Appends a size formatted string ( 1.3KB, 44.75GB, etc...)
 	template< typename T_STR, typename T_NUM >
 		T_STR SizeStr( T_NUM dSize, T_NUM dDiv, long nDigits, const typename T_STR::value_type ** pSuffix = tcNULL )
-	{	
+	{
 		typedef typename T_STR::value_type T;
 
 		T_STR s;
 		long i = 0;
-		static const T *sizes[] = 
+		static const T *sizes[] =
 		{	tcTT( T, "" ), 			//
-			tcTT( T, " K" ), 		// Kilo				
-			tcTT( T, " M" ), 		// Mega			
+			tcTT( T, " K" ), 		// Kilo
+			tcTT( T, " M" ), 		// Mega
 			tcTT( T, " G" ), 		// Giga
 			tcTT( T, " T" ), 		// Tera
 			tcTT( T, " P" ),		// Peta
@@ -1154,15 +1160,15 @@ namespace str
 		// Use 1024 as the default divider
 		if ( 0 >= dDiv )
 			dDiv = T_NUM( 1024 );
-		
+
 		bool bNeg = 0 > dSize;
-		if ( bNeg ) 
+		if ( bNeg )
 			dSize = -dSize;
-		
+
 		// Use default suffixes if non provided
 		if ( !pSuffix || !*pSuffix || !**pSuffix )
 			pSuffix = sizes;
-		
+
 		// Which size to use?
 		while ( dSize > dDiv && pSuffix[ i + 1 ] )
 			i++, dSize /= dDiv;
@@ -1170,7 +1176,7 @@ namespace str
 		// Is the number negative?
 		if ( bNeg )
 			s = tcTT( T, "-" );
-			
+
 		// Special formating?
 		if ( 0 > nDigits )
 			s += ToString< T_STR >( dSize );
@@ -1178,15 +1184,15 @@ namespace str
 			s += ToString< T_STR >( (long)dSize );
 		else
 			s += StrFmt< T_STR >( ( T_STR( tcTT( T, "%." ) ) + ToString< T_STR >( nDigits ) + tcTT( T, "f" ) ).c_str(), dSize );
-			
+
 		// Build the string
 		s += pSuffix[ i ];
 
 		return s;
 	}
-	
+
 	/// Returns the Levenshtein distance between the specified strings
-	template < typename T_STR > 
+	template < typename T_STR >
 		typename T_STR::size_type levstr(const T_STR &s1, const T_STR &s2)
 	{
 		typename T_STR::size_type l1 = s1.length(), l2 = s2.length();
@@ -1202,14 +1208,14 @@ namespace str
 		for ( i = 1; i <= l1; i++ )
 		    for ( j = 1; j <= l2; j++ )
 		        d[ i * l2 + j ] = cmn::Min( cmn::Min( d[ ( i - 1 ) * l2 + j ] + 1, d[ i * l2 + ( j - 1 ) ] + 1 ),
-		                                  	d[ ( i - 1 ) * l2 + ( j - 1 ) ] + ( s1[ i - 1 ] == s2[ j - 1 ] ? 0 : 1 ) 
+		                                  	d[ ( i - 1 ) * l2 + ( j - 1 ) ] + ( s1[ i - 1 ] == s2[ j - 1 ] ? 0 : 1 )
 			                              );
 
-		return d[ ( l1 * l2 ) + l2 ];       
+		return d[ ( l1 * l2 ) + l2 ];
 	}
 
 	/// Returns the Levenshtein distance between the specified split paths
-	template < typename T_STR, typename T_LST > 
+	template < typename T_STR, typename T_LST >
 		typename T_STR::size_type levpath(const T_LST &lst1, const T_LST &lst2)
 	{
 		typename T_STR::size_type l1 = lst1.size(), l2 = lst2.size();
@@ -1228,9 +1234,11 @@ namespace str
 											d[ ( i - 1 ) * l2 + ( j - 1 ) ] + levstr( lst1[ i - 1 ], lst2[ j - 1 ] )
 										  );
 
-		return d[ ( l1 * l2 ) + l2 ];       
+		return d[ ( l1 * l2 ) + l2 ];
 	}
 
+	/// Calculates 32 bit CRC
+	unsigned int CRC32( void *x_buf, unsigned long x_size, unsigned int x_crc = 0 );
 
 }; // namespace str
 

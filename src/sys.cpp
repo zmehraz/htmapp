@@ -35,7 +35,8 @@
 #else
 #endif
 
-#include "stdio.h"
+#include <stdio.h>
+#include <time.h>
 
 namespace sys
 {
@@ -44,6 +45,19 @@ namespace sys
 #else
 #	include "sys-posix.hpp"
 #endif
+
+int randomize( void *p, int sz )
+{
+	if ( !p || 0 >= sz )
+		return 0;
+
+	// +++ Maybe there's a better way?
+	srand( time( 0 ) );
+	for ( int i = 0; i < sz; i++ )
+		((unsigned char*)p)[ i ] = (unsigned char)rand();
+
+	return sz;
+}
 
 }; // namespace sys
 

@@ -41,5 +41,8 @@ namespace sys
 	/// Sleeps the thread for the specified time in micro seconds
 	void usleep( long lUSec );
 
+	/// Randomizes a block of memory
+	int randomize( void *p, int sz );
+
 }; // namespace sys
 

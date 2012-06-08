@@ -40,6 +40,10 @@ PRJ_CIID := { home:"http://embedded/index.htm", \
 #-------------------------------------------------------------------
 include $(PRJ_LIBROOT)/mak/init.mk
 
+ifeq ($(TGT_PLATFORM),windows)
+	PRJ_LIBS := $(PRJ_LIBS) ws2_32
+endif
+
 #-------------------------------------------------------------------
 # Build dependencies
 #-------------------------------------------------------------------

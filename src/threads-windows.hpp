@@ -58,6 +58,19 @@ struct SThreadResourceInfo
 };
 
 
+/// Atomically increments the specified value
+unsigned long CThread::Increment( long *p )
+{
+	return InterlockedIncrement( p );
+}
+
+/// Atomically decrements the specified value
+unsigned long CThread::Decrement( long *p )
+{
+	return InterlockedDecrement( p );
+}
+
+
 //==============================================================
 // CThread::CThreadProcImpl
 //==============================================================

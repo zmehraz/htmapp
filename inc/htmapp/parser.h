@@ -149,7 +149,7 @@ namespace parser
 		const T *p = &x_str[ 0 ];
 		typename T_STR::size_type nLen = x_str.length();
 
-		// Sanity check		
+		// Sanity check
 		if ( !p || 0 >= nLen )
 			return T_STR();
 
@@ -194,7 +194,7 @@ namespace parser
 		if ( T_STR::npos == pos )
 			x_pb[ str::ToLower( DecodeHttpHeaderStr( x_sStr ) ) ] = tcTT( T, "" );
 		else
-			x_pb[ str::ToLower( DecodeHttpHeaderStr( T_STR( x_sStr, 0, pos ) ) ) ] 
+			x_pb[ str::ToLower( DecodeHttpHeaderStr( T_STR( x_sStr, 0, pos ) ) ) ]
 				= DecodeHttpHeaderStr( T_STR( x_sStr, pos + 1 ) );
 
 		return 1;
@@ -209,9 +209,9 @@ namespace parser
 
 		if ( !x_bMerge )
 			x_pb.clear();
-	
+
 		long i = 0;
-		typename T_STR::size_type pos = 0, len = x_sStr.length();		
+		typename T_STR::size_type pos = 0, len = x_sStr.length();
 		while ( T_STR::npos != pos && pos < len )
 		{
 			// Start of pair
@@ -269,8 +269,8 @@ namespace parser
 				s += tcTT( T, "\n" );
 
 			// +++ Can't have a : in key, it would seem http headers encoding is far from perfect
-			s += EncodeHttpHeaderStr( str::ReplaceChar( T_STR( it->first ), tcTC( T, ':' ), tcTC( T, '.' ) ) ) 
-				 + tcTT( T, ": " ) 
+			s += EncodeHttpHeaderStr( str::ReplaceChar( T_STR( it->first ), tcTC( T, ':' ), tcTC( T, '.' ) ) )
+				 + tcTT( T, ": " )
 				 + EncodeHttpHeaderStr( it->second->str() );
 
 		} // end if
@@ -438,10 +438,10 @@ namespace parser
 	{
 		typedef typename T_PB::t_String T_STR;
 		typedef typename T_STR::value_type T;
-	
+
 		const T *p = &x_str[ 0 ];
 		typename T_STR::size_type nLen = x_str.length();
-	
+
 		// Lose previous contents
 		if ( !x_bMerge )
 			x_pb.clear();
@@ -575,7 +575,7 @@ namespace parser
 		static T_PB DecodeJson( const typename T_PB::t_String &x_str, long x_lArrayType = 0, bool x_bMerge = false, long *x_pLast = 0 )
 		{	T_PB pb; DecodeJson( x_str, pb, x_lArrayType, x_bMerge, x_pLast ); return pb; }
 
-		
+
 //------------------------------------------------------------------
 // URL encode / decode
 //------------------------------------------------------------------
@@ -597,8 +597,8 @@ namespace parser
 
 		const T *p = &x_str[ 0 ];
 		typename T_STR::size_type nLen = x_str.length();
-	
-		// Sanity check		
+
+		// Sanity check
 		if ( !p || 0 >= nLen )
 			return T_STR();
 
@@ -626,15 +626,15 @@ namespace parser
 
 	template< typename T_STR >
 		static T_STR DecodeUrlStr( const T_STR &x_str )
-	{	
+	{
 		typedef typename T_STR::value_type T;
-		
+
 		const T *p = &x_str[ 0 ];
 		typename T_STR::size_type nLen = x_str.length();
 
 		if ( !p || 0 >= nLen )
 			return T_STR();
-			
+
 		T ch = 0;
 		T_STR ret;
 		while ( 0 < nLen-- )
@@ -654,7 +654,7 @@ namespace parser
 
 		return ret;
 	}
-	
+
 	template< typename T_PB >
 		static typename T_PB::t_String EncodeUrl( const T_PB &x_pb )
 	{
@@ -666,13 +666,13 @@ namespace parser
 		{
 			if ( s.length() )
 				s += tcTC( T, '&' );
-				
-			s += EncodeUrlStr( it->first ) 
-				 + tcTC( T, '=' ) 
+
+			s += EncodeUrlStr( it->first )
+				 + tcTC( T, '=' )
 				 + EncodeUrlStr( it->second->str() );
 
 		} // end if
-	
+
 		return s;
 	}
 
@@ -700,9 +700,9 @@ namespace parser
 
 		if ( !x_bMerge )
 			x_pb.clear();
-	
+
 		long i = 0;
-		typename T_STR::size_type pos = 0, len = x_sStr.length();		
+		typename T_STR::size_type pos = 0, len = x_sStr.length();
 		while ( T_STR::npos != pos && pos < len )
 		{
 			// Find pair sep
@@ -712,14 +712,181 @@ namespace parser
 				i += DecodeUrlPair( T_STR( x_sStr, start ), x_pb );
 			else
 				i += DecodeUrlPair( T_STR( x_sStr, start, pos - start ), x_pb ), pos++;
-	
+
 		} // end while
-	
+
 		return i;
 	}
 
 	template< typename T_PB >
 		static T_PB DecodeUrl( const typename T_PB::t_String &x_str )
 		{	T_PB pb; DecodeUrl( x_str, pb ); return pb; }
+
+//------------------------------------------------------------------
+// URI encode / decode
+//------------------------------------------------------------------
+
+	template< typename T_PB >
+		static typename T_PB::t_String EncodeUri( T_PB &x_pb )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		T_STR str;
+
+		// Scheme
+		if ( x_pb[ tcTT( T, "scheme" ) ].length() )
+			str += x_pb[ tcTT( T, "scheme" ) ].str(), str += "://";
+
+		// Username and password?
+		if ( x_pb[ tcTT( T, "username" ) ].length() )
+		{
+			if ( x_pb[ tcTT( T, "password" ) ].length() )
+				str += x_pb[ tcTT( T, "username" ) ].str(),
+				str += ":",
+				str += x_pb[ tcTT( T, "password" ) ].str(),
+				str += "@";
+			else
+				str += x_pb[ tcTT( T, "username" ) ].str(), str += tcTT( T, "@" );
+
+		} // end if
+
+		// Username and password?
+		if ( x_pb[ tcTT( T, "host" ) ].length() )
+		{
+			if ( x_pb[ tcTT( T, "port" ) ].length() )
+				str += x_pb[ tcTT( T, "host" ) ].str(),
+				str += ":",
+				str += x_pb[ tcTT( T, "port" ) ].str();
+			else
+				str += x_pb[ tcTT( T, "host" ) ].str();
+
+		} // end if
+
+		// Ensure separator
+		if ( '/' != x_pb[ tcTT( T, "path" ) ].str()[ 0 ]
+			 && '\\' != x_pb[ tcTT( T, "path" ) ].str()[ 0 ] )
+			str += '/';
+
+		// Append the path
+		str += x_pb[ tcTT( T, "path" ) ].str();
+
+		// Adding separator
+		if ( x_pb[ tcTT( T, "get" ) ].length() )
+			str += tcTT( T, "?" ), str += x_pb[ tcTT( T, "get" ) ].str();
+
+		// Adding fragment
+		if ( x_pb[ tcTT( T, "fragment" ) ].length() )
+			str += tcTT( T, "#" ), str += x_pb[ tcTT( T, "fragment" ) ].str();
+
+		return str;
+	}
+
+	template< typename T_PB >
+		static long DecodeUri( const typename T_PB::t_String &x_sStr, T_PB &x_pb, int x_bMerge = 0 )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+		typedef typename T_STR::size_type SZ;
+
+		if ( !x_bMerge )
+			x_pb.clear();
+
+		// Anything to do?
+		if ( !x_sStr.length() )
+			return 0;
+
+		// Position
+		SZ pos, start = 0;
+
+		// Temp buffer
+		T_STR tmp;
+
+		// Read in the scheme
+		pos = x_sStr.find_first_of( tcTT( T, "://" ), start );
+		if ( T_STR::npos == pos )
+			return 0;
+
+		// Copy the sceme
+		x_pb[ tcTT( T, "scheme" ) ] = T_STR( x_sStr, 0, pos );
+
+		// Skip the scheme
+		start = pos + 3;
+
+		// Is there a username / password?
+		pos = x_sStr.find_first_of( tcTC( T, '@' ), start );
+		if ( T_STR::npos != pos )
+		{
+			// Copy username:password
+			tmp.assign( x_sStr, start, pos - start );
+
+			// Skip u/p
+			start = pos + 1;
+
+			// username and password, or just username?
+			pos = tmp.find_first_of( tcTC( T, ':' ) );
+			if ( T_STR::npos != pos )
+				x_pb[ tcTT( T, "username" ) ] = T_STR( tmp, 0, pos ),
+				x_pb[ tcTT( T, "password" ) ] = T_STR( tmp, pos + 1, T_STR::npos );
+			else
+				x_pb[ tcTT( T, "username" ) ] = tmp;
+
+		} // end if
+
+		// Parse the host part
+		pos = x_sStr.find_first_of( tcTC( T, '/' ), start );
+		if ( T_STR::npos != pos )
+			tmp.assign( x_sStr, start, pos - start ), start = pos;
+		else
+			tmp.assign( x_sStr, start, T_STR::npos ), start = T_STR::npos;
+
+		if ( tmp.length() )
+		{
+			// host:port?
+			pos = tmp.find_first_of( tcTC( T, ':' ) );
+			if ( T_STR::npos != pos )
+				x_pb[ tcTT( T, "host" ) ] = T_STR( tmp, 0, pos ),
+				x_pb[ tcTT( T, "port" ) ] = T_STR( tmp, pos + 1, T_STR::npos );
+			else
+				x_pb[ tcTT( T, "host" ) ] = tmp;
+
+		} // end if
+
+		// Is that all?
+		if ( T_STR::npos == start )
+			return 1;
+
+		// Parse the path
+		pos = x_sStr.find_first_of( tcTC( T, '?' ), start );
+		if ( T_STR::npos != pos )
+			x_pb[ tcTT( T, "path" ) ] = T_STR( x_sStr, start, pos - start ), start = pos + 1;
+		else
+			x_pb[ tcTT( T, "path" ) ] = T_STR( x_sStr, start, T_STR::npos );
+
+		// Is that all?
+		if ( T_STR::npos == pos )
+			return 1;
+
+		// Parse the get params
+		pos = x_sStr.find_first_of( tcTC( T, '#' ), start );
+		if ( T_STR::npos != pos )
+			x_pb[ tcTT( T, "get" ) ] = T_STR( x_sStr, start, pos - start ), start = pos + 1;
+		else
+			x_pb[ tcTT( T, "get" ) ] = T_STR( x_sStr, start, T_STR::npos );
+
+		// Is that all?
+		if ( T_STR::npos == pos )
+			return 1;
+
+		// Whatever is left is the fragment
+		x_pb[ tcTT( T, "fragment" ) ] = T_STR( x_sStr, start, T_STR::npos );
+
+		return 1;
+	}
+
+	template< typename T_PB >
+		static T_PB DecodeUri( const typename T_PB::t_String &x_sStr )
+	{	T_PB pb; DecodeUri( x_sStr, pb ); return pb; }
+
 
 }; // namespace parser
