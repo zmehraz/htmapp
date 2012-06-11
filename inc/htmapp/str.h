@@ -87,6 +87,17 @@
 #define tcM			( str::Print( "%s(%lu): MARKER\n", __FILE__, __LINE__ ) )
 #define tcS( s )	( str::Print( "%s(%lu): %s = %s\n", __FILE__, __LINE__, #s, str::ToString< str::t_string8>( s ).c_str() ) )
 
+#if defined( __MINGW64__ )
+#define tcPtrType long long int
+#else
+#define tcPtrType unsigned long long int
+#endif
+#define tcPtrToInt( p ) ( (int)(tcPtrType)p )
+#define tcPtrToUInt( p ) ( (unsigned int)(tcPtrType)p )
+#define tcPtrToLong( p ) ( (long)(tcPtrType)p )
+#define tcPtrToULong( p ) ( (unsigned long)(tcPtrType)p )
+
+
 namespace str
 {
 	// char string type

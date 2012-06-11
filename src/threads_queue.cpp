@@ -345,7 +345,7 @@ namespace tq
 
 		// Will the thread be named?
 		if ( s.length() )
-		{			
+		{
 			// See if we already have a thread by that name
 			t_threadnames::iterator it = m_names.find( s );
 			if ( m_names.end() != it )
@@ -355,7 +355,7 @@ namespace tq
 			m_names[ s ] = id;
 
 		} // end if
-			
+
 		// Send start thread command
 		m_cmds[ id ] = SCmdInfo( s, f, p );
 		

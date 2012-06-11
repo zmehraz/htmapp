@@ -125,8 +125,9 @@ static long FreeRi( SThreadResourceInfo* x_pRi, long x_eType, unsigned long x_uT
 		return -1;
 
 	// Decrement reference
-	if ( --x_pRi->uRef )
-		return x_pRi->uRef;
+	long lRef = CThread::Decrement( &x_pRi->uRef );
+	if ( 0 < lRef )
+		return lRef;
 
 	// Error code
 	long nErr = 0;
@@ -213,6 +214,18 @@ static long FreeRi( SThreadResourceInfo* x_pRi, long x_eType, unsigned long x_uT
 	return 0;
 }
 
+/// Atomically increments the specified value
+unsigned long CThread::Increment( long *p )
+{
+	return __sync_add_and_fetch( p, 1 );
+}
+
+/// Atomically decrements the specified value
+unsigned long CThread::Decrement( long *p )
+{
+	return __sync_sub_and_fetch( p, 1 );
+}
+
 void* CThreadResource::getThreadId()
 {
 	return (void*)pthread_self();
@@ -224,7 +237,7 @@ long CThreadResource::AddRef() const
 	if ( CThreadResource::cInvalid() == m_hHandle || !m_hHandle )
 		return -1;
 	SThreadResourceInfo *pRi = (SThreadResourceInfo*)m_hHandle;
-	return ++pRi->uRef;
+	return CThread::Increment( &pRi->uRef );
 }
 
 long CThreadResource::Destroy( unsigned long x_uTimeout, bool x_bForce )

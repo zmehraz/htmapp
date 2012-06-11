@@ -42,7 +42,7 @@ namespace parser
 // C++ encode / decode
 //------------------------------------------------------------------
 
-	/// Returns non-zero if the character is a valid html character
+	/// Returns non-zero if the character is a valid character
 	template< typename T >
 		static bool IsCppChar( T x_ch )
 	{

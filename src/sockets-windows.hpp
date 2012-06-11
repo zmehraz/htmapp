@@ -117,71 +117,10 @@ static int CIpSocket_SetAddressInfo( CIpAddress *x_pIa, SOCKADDR *x_pSa )
 }
 */
 
-int CIpAddress::SetRawAddress( t_int64 x_llIp, unsigned int x_uPort, unsigned int x_uType )
-{
-    // Set the ip address
-    if ( x_uType == eAddrTypeIpv4 )
-        m_uIpv4 = (unsigned int)x_llIp, m_uIpv4Extra = 0;
-    else m_llIpv6 = x_llIp;
-
-    // Port number
-    m_uPort = x_uPort;
-
-    // Type information
-    m_uType = x_uType;
-
-    // Set the crc
-    m_uCrc = 0;
-	m_uCrc = str::CRC32( &m_uid, sizeof( m_uid ) );
-
-    return 1;
-}
-
-int CIpAddress::ValidateAddress()
-{
-    // Save the crc
-    unsigned short uCrc = m_uCrc;
-
-	// Clear the crc while we hash
-	m_uCrc = 0;
-
-    // Create hash
-    unsigned int u = str::CRC32( &m_uid, sizeof( m_uid ) );
-
-    // Verify the hash value
-    if ( uCrc != u )
-    {	Destroy(); 
-		return 0; 
-	} // end if
-
-    // Restore the crc
-    m_uCrc = uCrc;
-
-    return 1;
-}
-
-CIpAddress::t_string CIpAddress::GetHostName()
-{
-	// Look up the host name
-	char szHostName[ MAX_PATH ] = { 0 };
-	if( ::gethostname( szHostName, sizeof( szHostName ) ) )
-		return t_string();
-	
-	return t_string( szHostName );
-}
-
-CIpAddress::t_string CIpAddress::GetFullHostName()
-{
-	t_string sDomain = GetDomainName();
-	if ( sDomain.length() )
-		return disk::FilePath( sDomain, GetHostName() );
-	return GetHostName();
-}
-
 #define NET_API_FUNCTION __stdcall
 typedef WCHAR* LMSTR;
 typedef DWORD NET_API_STATUS;
-typedef struct _WKSTA_INFO_100 
+typedef struct _WKSTA_INFO_100
 {	DWORD wki100_platform_id;
 	LMSTR wki100_computername;
 	LMSTR wki100_langroup;
@@ -207,7 +146,7 @@ CIpAddress::t_string CIpAddress::GetDomainName( const t_string &x_sServer )
 
 	// Attempt to read the domain name
 	WKSTA_INFO_100 *pwi100 = 0;
-	if ( pNetWkstaGetInfo 
+	if ( pNetWkstaGetInfo
 		 && !pNetWkstaGetInfo( x_sServer.length() ? (LPWSTR)tcStr2Wc( x_sServer ).c_str() : 0, 100, (LPBYTE*)&pwi100 ) )
 		if ( pwi100 && pwi100->wki100_langroup )
 			sRet = tcWc2Str( pwi100->wki100_langroup );
@@ -255,40 +194,6 @@ CIpAddress::t_string CIpAddress::GetDotAddress()
 	// Create dot address if needed
 	return inet_ntoa( ia );
 #endif
-}
-
-CIpAddress& CIpAddress::setUid( const uid::UID *x_pUid )
-{
-    uid::Copy( &m_uid, x_pUid );
-    return *this;
-}
-
-int CIpAddress::LookupUri( const t_string &x_sUrl, unsigned int x_uPort, unsigned int x_uType )
-{
-    // Lose old info
-    Destroy();
-
-    // Ensure we have a valid pointer
-    if ( !x_sUrl.length() )
-        return 0;
-
-    // Crack the url
-    t_pb8 pbUri = parser::DecodeUri< t_pb8 >( x_sUrl );
-    if ( !pbUri.size() )
-        return 0;
-
-    // Did we get a host name?
-    if ( !pbUri[ "host" ].length() )
-        return 0;
-
-    // Get the port
-    if ( !x_uPort )
-        x_uPort = pbUri[ "port" ].ToLong();
-
-    // Save the type
-    m_uType = x_uType;
-
-    return LookupHost( pbUri[ "host" ].str(), x_uPort );
 }
 
 int CIpAddress::LookupHost( const t_string &x_sServer, unsigned int x_uPort, unsigned int x_uType )
@@ -366,8 +271,10 @@ void CIpSocket::Construct()
 	m_uFlags = 0;
 
 	m_bFree = 0;
-	
-	m_uTimeout = 60000000;
+
+	m_lActivity = 0;
+
+	m_lTimeout = 60000;
 }
 
 CIpSocket::CIpSocket()
@@ -379,7 +286,6 @@ CIpSocket::CIpSocket()
 
 CIpSocket::CIpSocket( t_SOCKET hSocket, int x_bFree )
 {
-
 	// Construct class
 	Construct();
 
@@ -395,6 +301,11 @@ CIpSocket::~CIpSocket()
 
 	// Uninitialize socket library
 	UninitSockets();
+}
+
+int CIpSocket::IsInitialized()
+{
+	return m_lInit ? 0 : 1; 
 }
 
 int CIpSocket::InitSockets()
@@ -441,7 +352,7 @@ long CIpSocket::GetInitCount()
 }
 
 CIpSocket::t_SOCKET CIpSocket::Detach()
-{   
+{
 	// Save away the socket handle
 	t_SOCKET hSocket = m_hSocket;
 
@@ -450,7 +361,7 @@ CIpSocket::t_SOCKET CIpSocket::Detach()
 
 	// We won't be freeing the socket
 	m_hSocket = c_InvalidSocket;
-	
+
 	// Free whatever else is left
 	Destroy();
 
@@ -556,6 +467,10 @@ int CIpSocket::Create( int x_af, int x_type, int x_protocol, int x_timeout )
 	{	m_uConnectState |= eCsError;
 		return 0;
 	} // end if
+
+	// Set default timeout
+	if ( 0 >= x_timeout )
+		x_timeout = m_lTimeout;
 
 	// Setup socket timeout defaults
 	struct timeval tv;
@@ -817,8 +732,8 @@ void CIpSocket::CloseEventHandle()
 
 			// Restore socket timeout defaults
 			struct timeval tv;
-			tv.tv_sec = ( m_uTimeout / 1000 );
-			tv.tv_usec = ( m_uTimeout % 1000 ) * 1000;
+			tv.tv_sec = ( m_lTimeout / 1000 );
+			tv.tv_usec = ( m_lTimeout % 1000 ) * 1000;
 			setsockopt( (SOCKET)m_hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof( tv ) );
 			setsockopt( (SOCKET)m_hSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&tv, sizeof( tv ) );
 
@@ -851,7 +766,7 @@ int CIpSocket::EventSelect( long x_lEvents )
 #endif
 }
 
-long CIpSocket::WaitEvent( long x_lEventId, unsigned int x_uTimeout )
+long CIpSocket::WaitEvent( long x_lEventId, long x_uTimeout )
 {
 #if defined( HTM_NOSOCKET2 )
 	return 0;
@@ -865,6 +780,9 @@ long CIpSocket::WaitEvent( long x_lEventId, unsigned int x_uTimeout )
 	{   if ( !CreateEventHandle() || !EventSelect() )
 			return 0;
 	} // end if
+	
+	if ( 0 >= x_uTimeout )
+		x_uTimeout = m_lTimeout;
 
 	// Save start time
 	UINT uEnd = GetTickCount() + x_uTimeout;
@@ -1262,59 +1180,6 @@ unsigned long CIpSocket::RecvFrom( void *x_pData, unsigned long x_uSize, unsigne
 	return nRet;
 }
 
-CIpSocket::t_string CIpSocket::RecvFrom( unsigned long x_uMax, unsigned long x_uFlags )
-{
-	// Do we have a size limit?
-	if ( x_uMax )
-	{
-		// Allocate buffer
-		t_string sBuf;
-		try{ sBuf.resize( x_uMax ); }
-		catch( ... ) { return sBuf; }
-		if ( sBuf.length() >= x_uMax )
-		{
-			// Attempt to read data
-			unsigned int uRead = RecvFrom( &sBuf[ 0 ], x_uMax, 0, x_uFlags );
-
-			// Accept as the length
-			sBuf.resize( uRead );
-
-		} // end if
-
-		return sBuf;
-
-	} // end if
-
-	// Allocate buffer
-	t_string sBuf;
-	unsigned int uRead = 0, uOffset = 0;
-
-	// Allocate space
-	try{ sBuf.resize( x_uMax ); }
-	catch( ... ) { return sBuf; }
-	const unsigned int minbuf = 1024;
-	if ( sBuf.length() < minbuf )
-		return sBuf;
-
-	// Read all available data
-	while ( 0 < ( uRead = RecvFrom( &sBuf[ uOffset ], minbuf, 0, x_uFlags ) )
-			&& uRead >= (unsigned int)minbuf )
-	{
-		// Allocate more space
-		uOffset += uRead;
-		try{ sBuf.resize( uOffset + minbuf ); }
-		catch( ... ) { return sBuf; }
-		if ( sBuf.length() < uOffset + minbuf )
-			return sBuf;
-
-	} // end while
-
-	// Set the length
-	sBuf.resize( uOffset + uRead );
-
-	return sBuf;
-}
-
 int CIpSocket::v_recv( int socket, void *buffer, int length, int flags )
 {
 	return recv( socket, (char*)buffer, length, flags );
@@ -1369,59 +1234,6 @@ unsigned long CIpSocket::Recv( void *x_pData, unsigned long x_uSize, unsigned lo
 		*x_puRead = nRet;
 
 	return nRet;
-}
-
-CIpSocket::t_string CIpSocket::Recv( unsigned long x_uMax, unsigned long x_uFlags )
-{
-	// Do we have a size limit?
-	if ( x_uMax )
-	{
-		// Allocate buffer
-		t_string sBuf;
-		try{ sBuf.resize( x_uMax ); }
-		catch( ... ) { return sBuf; }
-		if ( sBuf.length() >= x_uMax )
-		{
-			// Attempt to read data
-			unsigned int uRead = Recv( &sBuf[ 0 ], x_uMax, 0, x_uFlags );
-
-			// Accept as the length
-			sBuf.resize( uRead );
-
-		} // end if
-
-		return sBuf;
-
-	} // end if
-
-	// Allocate buffer
-	t_string sBuf;
-	unsigned int uRead = 0, uOffset = 0;
-
-	// Allocate space
-	try{ sBuf.resize( x_uMax ); }
-	catch( ... ) { return sBuf; }
-	const unsigned int minbuf = 1024;
-	if ( sBuf.length() < minbuf )
-		return sBuf;
-
-	// Read all available data
-	while ( 0 < ( uRead = Recv( &sBuf[ uOffset ], minbuf, 0, x_uFlags ) )
-			&& uRead >= (unsigned int)minbuf )
-	{
-		// Allocate more space
-		uOffset += uRead;
-		try{ sBuf.resize( uOffset + minbuf ); }
-		catch( ... ) { return sBuf; }
-		if ( sBuf.length() < uOffset + minbuf )
-			return sBuf;
-
-	} // end while
-
-	// Set the length
-	sBuf.resize( uOffset + uRead );
-
-	return sBuf;
 }
 
 
@@ -1588,8 +1400,3 @@ int CIpSocket::GetLocalAddress( t_SOCKET x_hSocket, CIpAddress *x_pIa )
 	// Format the info
 	return CIpSocket_GetAddressInfo( x_pIa, &sai );
 }
-
-unsigned int CIpSocket::hton_l( unsigned int v ) { return ::htonl( v ); }
-unsigned int CIpSocket::ntoh_l( unsigned int v ) { return ::ntohl( v ); }
-unsigned short CIpSocket::hton_s( unsigned short v ) { return ::htons( v ); }
-unsigned short CIpSocket::ntoh_s( unsigned short v ) { return ::ntohs( v ); }

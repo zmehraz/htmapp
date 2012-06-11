@@ -127,8 +127,9 @@ static long FreeRi( SThreadResourceInfo* x_pRi, long x_eType, unsigned long x_uT
 		return -1;
 
 	// Check for other references
-	if ( --x_pRi->uRef )
-		return x_pRi->uRef;
+	long lRef = CThread::Decrement( &x_pRi->uRef );
+	if ( 0 < lRef )
+		return lRef;
 
 	// Execute proper release function if valid handle
 	switch( x_eType )
@@ -211,7 +212,7 @@ long CThreadResource::AddRef() const
 	if ( CThreadResource::cInvalid() == m_hHandle || !m_hHandle )
 		return -1;
 	SThreadResourceInfo *pRi = (SThreadResourceInfo*)m_hHandle;
-	return ++pRi->uRef;
+	return CThread::Increment( &pRi->uRef );
 }
 
 

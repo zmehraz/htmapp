@@ -21,11 +21,11 @@
 
 	int ret = tq::start( "", mythread );
 	out << "tq::start() returned " << ret << "\n";
-	if ( ret ) 
+	if ( 0 <= ret ) 
 		tq::wait( "b", 1000 );
 	out << "b = " << tq::get( "b" ) << "\n";
 
-	out << parser::EncodeJson( in ) << "\n\n";
+	out << " --- INPUT ---\n" << parser::EncodeJson( in ) << "\n\n";
 	
 	t_pb8 pb;
 	pb[ "A" ][ "AA" ] = "Hello World!";
@@ -78,25 +78,34 @@
 	{
 		CIpSocket is;
 
-		if ( !is.Connect( "google.com", 80 ) || !is.WaitEvent( CIpSocket::eConnectEvent ) )
+		if ( !is.Connect( "google.com", 80 ) )
 			out << "CIpSocket::Connect() failed : " << is.GetLastErrorMsg();
 
 		else if ( !is.WaitEvent( CIpSocket::eConnectEvent ) )
 			out << "CIpSocket::WaitEvent( CIpSocket::eConnectEvent ) failed : " << is.GetLastErrorMsg();
-			
+
 		else
 		{
-			out << "Local  : " << is.LocalAddress().GetDotAddress();
-			out << "Remote : " << is.PeerAddress().GetDotAddress();
+			out << "Local  : " << is.LocalAddress().GetDotAddress() << "\n";
+			out << "Remote : " << is.PeerAddress().GetDotAddress() << "\n";
 				
 			if ( !is.Send( "GET / HTTP/1.0\r\n\r\n" ) )
 				out << "CIpSocket::Send() : " << is.GetLastErrorMsg();
 
 			// Wait for data
 			if ( !is.WaitEvent( CIpSocket::eReadEvent ) )
-				out << "CIpSocket::WaitEvent() : " << is.GetLastErrorMsg();
+				out << "CIpSocket::WaitEvent( CIpSocket::eReadEvent ) : " << is.GetLastErrorMsg();
+
 			else
-				out << is.Recv();
+			{
+			
+				out << is.Recv( 64 );
+
+//				CIpSocket::t_string data;
+//				do { out << ( data = is.Recv() );
+//				} while ( data.length() && is.WaitEvent( CIpSocket::eReadEvent, 1000 ) );
+
+			} // end while
 
 		} // end else
 

@@ -58,7 +58,7 @@ public:
 	typedef str::t_string8 t_string;
 
 	/// Character type
-	typedef typename t_string::value_type t_char;
+	typedef t_string::value_type t_char;
 
 	/// 64 bit integer
 	typedef str::tc_int64 t_int64;
@@ -421,7 +421,7 @@ public:
 	typedef str::t_string8 t_string;
 
 	/// Character type
-	typedef typename t_string::value_type t_char;
+	typedef t_string::value_type t_char;
 
 	/// 64 bit integer
 	typedef str::tc_int64 t_int64;
@@ -490,8 +490,7 @@ public:
 	// IsInitialized()
 	//==============================================================
 	/// Returns non-zero if the Socket API was successfully initialized.
-	static int IsInitialized()
-    {   return ( m_lInit == 0 ); }
+	static int IsInitialized();
 
 public:
 
@@ -819,15 +818,16 @@ public:
 	/**
 		\param [in] x_lEventId	-	Mask identifying event(s) to wait
 									for.
-		\param [in] x_uTimeout	-	Maximum time to wait in milli-
-									seconds.
+		\param [in] x_lTimeout	-	Maximum time to wait in milli-
+									seconds.  Negative for default
+									timeout value.
 
 		\return The mask of the event that triggered the return. Zero
                 if timed out waiting for event.
 
 		\see
 	*/
-	long WaitEvent( long x_lEventId = ~0, unsigned int x_uTimeout = 0 );
+	long WaitEvent( long x_lEventId = ~0, long x_lTimeout = 0 );
 
 	//==============================================================
 	// GetEventBit()
@@ -1069,10 +1069,10 @@ public:
 	unsigned long getNumAccepts() { return m_uAccepts; }
 
 	/// Returns the default timeout in microseconds
-	unsigned long getTimeout() { return m_uTimeout; }
+	long getTimeout() { return m_lTimeout; }
 
 	/// Sets the default timeout in microseconds
-	void setTimeout( unsigned long ul ) { m_uTimeout = ul; }
+	void setTimeout( long ul ) { m_lTimeout = ul; }
 
 private:
 
@@ -1142,8 +1142,8 @@ private:
 	/// Flags
 	unsigned long			m_uFlags;
 
-	/// Default timeout in micro-seconds
-	unsigned long			m_uTimeout;
+	/// Default timeout in milliseconds
+	long					m_lTimeout;
 };
 
 
