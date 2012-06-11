@@ -40,7 +40,7 @@ unsigned long CThreadResource::c_Infinite = INFINITE;
 struct SThreadResourceInfo
 {
 	/// Reference count
-	unsigned long						uRef;
+	long								uRef;
 
 	/// Resource handle
 	HANDLE								hHandle;
