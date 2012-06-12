@@ -572,7 +572,7 @@ int CIpSocket::Listen( unsigned int x_uMaxConnections )
 	return 1;
 }
 
-int CIpSocket::Connect( CIpAddress &x_rIpAddress )
+int CIpSocket::Connect( const CIpAddress &x_rIpAddress )
 {
 	// Punt if not initialized
 	if ( !IsInitialized() )
@@ -617,28 +617,6 @@ int CIpSocket::Connect( CIpAddress &x_rIpAddress )
 
 	// Return the result
 	return 1;
-}
-
-int CIpSocket::Connect( const t_string &x_sAddress, unsigned int x_uPort )
-{
-	if ( !x_sAddress.length() )
-		return 0;
-
-	// Punt if not initialized
-	if ( !IsInitialized() )
-		return 0;
-
-	CIpAddress addr;
-
-	// Were we passed a URL?
-	if ( !x_uPort && !addr.LookupUri( x_sAddress.c_str() ) )
-		return 0;
-
-	// Lookup the host address
-	else if ( !addr.LookupHost( x_sAddress.c_str(), x_uPort ) )
-		return 0;
-
-	return Connect( addr );
 }
 
 int CIpSocket::Attach( t_SOCKET x_hSocket, int x_bFree )

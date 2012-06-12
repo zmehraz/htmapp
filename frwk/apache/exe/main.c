@@ -54,7 +54,7 @@ static int mod_handler( request_rec* r )
 	return process_request( r, CII_PROJECT_NAME );
 }
  
-int mod_cleanup(void *p)
+int mod_cleanup( void *p )
 {
 	// Cleanup framework
 	uninit_frwk();
@@ -79,7 +79,7 @@ static void register_hooks( apr_pool_t* pool )
 
 static const command_rec mod_cmds[] =
 {
-    { NULL }
+    { 0 }
 };
 
 module AP_MODULE_DECLARE_DATA BLDNAME( CII_PROJECT, _module ) = 

@@ -58,25 +58,20 @@ int CIpAddress::SetRawAddress( t_int64 x_llIp, unsigned int x_uPort, unsigned in
     return 1;
 }
 
-int CIpAddress::ValidateAddress()
+int CIpAddress::ValidateAddress() const
 {
-    // Save the crc
-    unsigned short uCrc = m_uCrc;
+	// Temp copy, so this function can be const ;)
+	CIpAddress t( *this );
 
 	// Clear the crc while we hash
-	m_uCrc = 0;
+	t.m_uCrc = 0;
 
     // Create hash
-    unsigned short u = (unsigned short)str::CRC32( &m_uid, sizeof( m_uid ) );
+    unsigned short u = (unsigned short)str::CRC32( &t.m_uid, sizeof( t.m_uid ) );
 
     // Verify the hash value
-    if ( uCrc != u )
-    {	Destroy(); 
+    if ( m_uCrc != u )
 		return 0; 
-	} // end if
-
-    // Restore the crc
-    m_uCrc = uCrc;
 
     return 1;
 }
@@ -105,7 +100,6 @@ CIpAddress& CIpAddress::setUid( const uid::UID *x_pUid )
     return *this;
 }
 
-
 int CIpAddress::LookupUri( const t_string &x_sUrl, unsigned int x_uPort, unsigned int x_uType )
 {
     // Lose old info
@@ -132,6 +126,28 @@ int CIpAddress::LookupUri( const t_string &x_sUrl, unsigned int x_uPort, unsigne
     m_uType = x_uType;
 
     return LookupHost( pbUri[ "host" ].str(), x_uPort );
+}
+
+int CIpSocket::Connect( const t_string &x_sAddress, unsigned int x_uPort )
+{
+	if ( !x_sAddress.length() )
+        return 0;
+
+	// Punt if not initialized
+	if ( !IsInitialized() )
+		return 0;
+
+	CIpAddress addr;
+
+    // Were we passed a URL?
+    if ( !x_uPort && addr.LookupUri( x_sAddress ) )
+		return Connect( addr );
+
+	// Lookup the host address
+    if ( addr.LookupHost( x_sAddress, x_uPort ) )
+		return Connect( addr );
+
+	return 0;
 }
 
 CIpSocket::t_string CIpSocket::RecvFrom( unsigned long x_uMax, unsigned long x_uFlags )

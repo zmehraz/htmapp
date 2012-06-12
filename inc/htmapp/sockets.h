@@ -75,9 +75,14 @@ public:
     {   Copy( r );
     }
 
+    /// Copy constructor
+    CIpAddress( const t_string &r )
+    {   m_uType = 0; m_uCrc = 0; m_uPort = 0; m_llIpv6 = 0; LookupUri( r );
+    }
+
     /// Resets address information
     void Destroy()
-    {   m_uType = 0; m_uCrc = 0; m_uPort = 0; m_llIpv6 = 0;
+    {   m_uType = 0; m_uCrc = 0; m_uPort = 0; m_llIpv6 = 0; 
     }
 
     /// Returns the UID
@@ -109,7 +114,7 @@ public:
     int SetRawAddress( t_int64 x_llIp, unsigned int x_uPort, unsigned int x_uType = eAddrTypeIpv4 );
 
     /// Validates the address check sum
-    int ValidateAddress();
+    int ValidateAddress() const;
 
     //==============================================================
     // LookupUri()
@@ -164,7 +169,6 @@ public:
     /// Copy another address
     CIpAddress& Copy( const CIpAddress &rIa )
     {   uid::Copy( &m_uid, &rIa.m_uid );
-        ValidateAddress();
 		return *this;
     }
 
@@ -757,7 +761,7 @@ public:
 
 		\return Returns non-zero if success.
 	*/
-	int Connect( const t_string &x_sAddress, unsigned int x_uPort );
+	int Connect( const t_string &x_sAddress, unsigned int x_uPort = 0 );
 
 	//==============================================================
 	// Connect()
@@ -768,7 +772,7 @@ public:
 
 		\return Returns non-zero if success.
 	*/
-	int Connect( CIpAddress &x_rIpAddress );
+	int Connect( const CIpAddress &x_rIpAddress );
 
 public:
 

@@ -11,30 +11,30 @@ C++ framework for building HTML5 applications
 //------------------------------------------------------------------
 
 // Linux - default Qt
-make SYSINCS=/usr/include/qt4
+make TGT=qt SYSINCS=/usr/include/qt4
 
 // Linux - installed Qt
-make SYSINCS=~/qtsdk-2010.05/qt/include SYSLIBP=~/qtsdk-2010.05/qt/lib
+make TGT=qt SYSINCS=~/qtsdk-2010.05/qt/include SYSLIBP=~/qtsdk-2010.05/qt/lib
 
 // Linux cross build for Windows
 make TOOLSONLY=1
-make TGT=windows BLD=posix-x86-shared-qt PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN=
+make TGT=qt-windows BLD=posix-x86-shared-qt PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN=
 
 // Linux cross build for Windows with installer
 make TOOLSONLY=1
-make TGT=windows BLD=posix-x86-shared-qt PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN= \
+make TGT=qt-windows BLD=posix-x86-shared-qt PRE=i586-mingw32msvc- QTBIN= QTROOT=~/code/lib3/qt-win/mingw32 QTBIN= \
 	 NSIS="wine /home/bob/code/lib3/nsis/makensis.exe"
 
 // Cygwin
-make PRE=/bin/i686-pc-mingw32- QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
+make TGT=qt PRE=/bin/i686-pc-mingw32- QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
 
 // Cygwin x64
-make TGT=x64\
+make TGT=qt-x64 \
 	 PRE=/bin/x86_64-w64-mingw32- \
 	 QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
 
 // Cygwin with Qt bundled mingw 
-make PRE=/cygdrive/c/QtSDK/mingw/bin/ \
+make TGT=qt PRE=/cygdrive/c/QtSDK/mingw/bin/ \
 	 QTROOT=/cygdrive/c/QtSDK/Desktop/Qt/4.7.4/mingw
 
 
