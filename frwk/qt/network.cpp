@@ -51,7 +51,7 @@ CNetworkReply::CNetworkReply( QObject *parent, const QNetworkRequest &req, const
 
 	str::t_string8 mime = "application/octet-stream";
 	str::t_string8 full = 
-		disk::WebPath< str::t_string8 >( "res", str::t_string8( path.data(), path.length() ) );
+		disk::WebPath< str::t_string8 >( "htm", str::t_string8( path.data(), path.length() ) );
 
 	printf( "%s(%d) : RES : %s\n", __FILE__, __LINE__, full.c_str() );
 

@@ -60,6 +60,12 @@ namespace tq
 	/// Sets the specified property value
 	bool set( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep = str::t_string() );
 
+	/// Swaps the specified property value
+	/**
+		Sets the new value and returns the old value.
+	*/
+	t_pb swp( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep );
+
 	/// Returns the specified property value
 	t_pb get( const str::t_string &sKey, const str::t_string &sep = str::t_string() );
 

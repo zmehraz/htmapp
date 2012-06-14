@@ -134,10 +134,39 @@ namespace tq
 		return true;
 	}
 
+	t_pb swp( const str::t_string &sKey, const t_pb &pbValue, const str::t_string &sep )
+	{
+		if ( !g_htmapp_pb_lock || !g_htmapp_pb )
+			return t_pb();
+
+		CScopeLock sl( g_htmapp_pb_lock );
+		if ( !sl.isLocked() )
+			return t_pb();
+
+		t_pb ret;
+		if ( sep.length() )
+			ret = g_htmapp_pb->at( sKey, sep ),
+			g_htmapp_pb->at( sKey, sep ) = pbValue;
+		else
+			ret = (*g_htmapp_pb)[ sKey ],
+			(*g_htmapp_pb)[ sKey ] = pbValue;
+
+		if ( g_htmapp_wp )
+		{
+			// See if someone was waiting for a change
+			t_waitpool::iterator it = g_htmapp_wp->find( sKey );
+			if ( g_htmapp_wp->end() != it )
+				it->second.Signal();
+
+		} // end if
+
+		return ret;
+	}
+
 	t_pb get( const str::t_string &sKey, const str::t_string &sep )
 	{
 		if ( !g_htmapp_pb_lock || !g_htmapp_pb )
-			return false;
+			return t_pb();
 
 		CScopeLock sl( g_htmapp_pb_lock );
 		if ( !sl.isLocked() )

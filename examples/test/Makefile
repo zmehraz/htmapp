@@ -15,7 +15,7 @@ PRJ_DESC := HtmApp Test Application
 PRJ_TYPE := exe
 
 # Resource directories (dir1 dir2 ...)
-PRJ_RESD := res
+PRJ_RESD := htm
 
 # Files to compile
 PRJ_CIIX := *.htm

@@ -101,7 +101,7 @@ extern "C" int process_request( request_rec* r, const char *prj_name )
 						  : "";
 
 	// Create full path
-	str::t_string8 full = disk::WebPath< str::t_string8 >( "res", path );
+	str::t_string8 full = disk::WebPath< str::t_string8 >( "htm", path );
 
 /*	t_pb8 pb;
 	get_params( pb, r, path );

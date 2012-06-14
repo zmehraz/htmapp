@@ -97,7 +97,7 @@ int process_request( int argc, char* argv[], const char *params )
 	str::t_string8 sPath = r[ "PATH_INFO" ].ToString();
 
 	// Create full path
-	str::t_string8 full = disk::WebPath< str::t_string8 >( "res", r[ "PATH_INFO" ].ToString() );
+	str::t_string8 full = disk::WebPath< str::t_string8 >( "htm", r[ "PATH_INFO" ].ToString() );
 
 	// Check for resource
 	HMRES hRes = 0;
