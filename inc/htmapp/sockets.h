@@ -382,7 +382,7 @@ public:
 	{
 		/// Maximum number of events handled on a single call to
 		/// epoll_wait() (linux only)
-		eMaxEvents						= 1000
+		eMaxEvents						= 64
 	};
 
 	enum
@@ -565,12 +565,21 @@ public:
 	//==============================================================
 	/// Returns non-zero if th socket is connected
 	int IsConnected()
-	{	if ( m_uLastError )
+	{
+		// If errors, we're closed
+		if ( m_uLastError )
 			return 0;
+
+		// Do we think we're connected?
 		if ( m_uConnectState & ( eCsActivity | eCsConnected ) )
-			return 1;
+
+			// Check for close event
+			return ( WaitEvent( eCloseEvent, 0 ) || m_uLastError ) ? 0 : 1;
+
+		// See if we're just now connecting
 		if ( !WaitEvent( eConnectEvent, 0 ) )
 			return 0;
+
 		return m_uLastError ? 0 : 1;
 	}
 
@@ -602,7 +611,7 @@ public:
 	//==============================================================
 	// IsRunning()
 	//==============================================================
-	/// Returns non-zero if the socket is working
+	/// Returns non-zero if the socket is alive
 	int IsRunning()
 	{
 		// Is there a socket?
@@ -831,7 +840,7 @@ public:
 
 		\see
 	*/
-	long WaitEvent( long x_lEventId = ~0, long x_lTimeout = 0 );
+	long WaitEvent( long x_lEventId = ~0, long x_lTimeout = -1 );
 
 	//==============================================================
 	// GetEventBit()

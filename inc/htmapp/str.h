@@ -92,11 +92,16 @@
 #else
 #define tcPtrType unsigned long long int
 #endif
+
 #define tcPtrToInt( p ) ( (int)(tcPtrType)p )
 #define tcPtrToUInt( p ) ( (unsigned int)(tcPtrType)p )
 #define tcPtrToLong( p ) ( (long)(tcPtrType)p )
 #define tcPtrToULong( p ) ( (unsigned long)(tcPtrType)p )
 
+#define tcIntToPtr( p ) ( (tcPtrType)(int)p )
+#define tcUIntToPtr( p ) ( (tcPtrType)(unsigned int)p )
+#define tcLongToPtr( p ) ( (tcPtrType)(long)p )
+#define tcULongToPtr( p ) ( (tcPtrType)(unsigned long)p )
 
 namespace str
 {
@@ -351,7 +356,7 @@ namespace str
 		}
 
 	template< typename T_STR >
-		static T_STR TrimWs( const T_STR &x_str )
+		static T_STR TrimWsInPlace( const T_STR &x_str )
 	{
 		typedef typename T_STR::value_type T;
 
@@ -378,6 +383,38 @@ namespace str
 		return T_STR( x_str, s, e - s + 1 );
 	}
 
+	template< typename T_STR >
+		T_STR& RTrimInPlace( T_STR &s, typename T_STR::value_type c )
+		{	return s.erase( s.find_last_not_of( c ) + 1 ); }
+
+	template< typename T_STR >
+		T_STR& RTrimInPlace( T_STR &s, const T_STR &t )
+		{	return s.erase( s.find_last_not_of( t ) + 1 ); }
+
+	template< typename T_STR >
+		T_STR& LTrimInPlace( T_STR &s, typename T_STR::value_type c )
+		{	return s.erase( 0, s.find_first_not_of( c ) ); }
+
+	template< typename T_STR >
+		T_STR& LTrimInPlace( T_STR &s, const T_STR &t )
+		{	return s.erase( 0, s.find_first_not_of( t ) ); }
+
+	template< typename T_STR >
+		T_STR RTrim( T_STR s, typename T_STR::value_type c )
+		{	return s.erase( s.find_last_not_of( c ) + 1 ); }
+
+	template< typename T_STR >
+		T_STR RTrim( T_STR s, const T_STR &t )
+		{	return s.erase( s.find_last_not_of( t ) + 1 ); }
+
+	template< typename T_STR >
+		T_STR LTrim( T_STR s, typename T_STR::value_type c )
+		{	return s.erase( 0, s.find_first_not_of( c ) ); }
+
+	template< typename T_STR >
+		T_STR LTrim( T_STR s, const T_STR &t )
+		{	return s.erase( 0, s.find_first_not_of( t ) ); }
+
 	template < typename T >
 		T ReplaceStr( const T s, const T a, const T b )
 		{	T _s( s );
@@ -396,11 +433,27 @@ namespace str
 		}
 
 	template < typename T_STR >
-		T_STR& ReplaceCharInplace( T_STR &s, const typename T_STR::value_type a, const typename T_STR::value_type b )
+		T_STR& ReplaceCharInPlace( T_STR &s, const typename T_STR::value_type a, const typename T_STR::value_type b )
 		{	typename T_STR::size_type i = 0;
 			while( T_STR::npos != ( i = s.find_first_of( a, i ) ) )
 				s[ i++ ] = b;
 			return s;
+		}
+
+	template < typename T_STR >
+		T_STR Token( const T_STR &s, const T_STR &seps )
+	{	typename T_STR::size_type e = s.find_first_of( seps );
+		if ( T_STR::npos == e )
+			return s;
+		return T_STR( s, 0, e );
+	}
+
+	template < typename T_STR >
+		T_STR Token( const T_STR &s )
+		{	typename T_STR::size_type i = 0, l = s.length();
+			while( i < l && tcTC( typename T_STR::value_type, ' ' ) < s[ i ] )
+				i++;
+			return T_STR( s, 0, i );
 		}
 
 	/// Converts upper case letters to lower case
@@ -427,12 +480,12 @@ namespace str
 	}
 
 	template < typename T_STR >
-		T_STR& ToLowerInplace( T_STR &s )
+		T_STR& ToLowerInPlace( T_STR &s )
 	{	ToLower( &s[ 0 ], s.length() ); return s; }
 
 	template < typename T_STR >
 		T_STR ToLower( T_STR s )
-	{	return ToLowerInplace( s ); }
+	{	return ToLowerInPlace( s ); }
 
 	/// Converts lower case letters to upper case
     /**
@@ -458,12 +511,12 @@ namespace str
 	}
 
 	template < typename T_STR >
-		T_STR& ToUpperInplace( T_STR &s )
+		T_STR& ToUpperInPlace( T_STR &s )
 	{	ToUpper( &s[ 0 ], s.length() ); return s; }
 
 	template < typename T_STR >
 		T_STR ToUpper( T_STR s )
-	{	return ToUpperInplace( s ); }
+	{	return ToUpperInPlace( s ); }
 
     /// Returns the length of the null terminated string in s
     /**
@@ -563,14 +616,14 @@ namespace zstr
 namespace str
 {
 
-	/// 'Fast' number to ascii conversion
+	/// 'Fast' hex number to ascii conversion
     /**
         \param [out] b	-   Destination buffer
         \param [in] ch	-   Character to serialize
 		\param [in] fix	-	If greater than zero, fixes number to specified size
     */
 	template< typename T, typename N >
-		void ntoa( T *b, N ch, long fix = 0 )
+		void htoa( T *b, N ch, long fix = 0 )
 		{
 			T c;
 			long sz = sizeof( N ) * 2;
@@ -595,14 +648,14 @@ namespace str
 
 		}
 
-	/// 'Fast' ascii to number conversion
+	/// 'Fast' ascii to hex number conversion
     /**
         \param [out] b	-   Destination buffer
         \param [in] ch	-   Character to serialize
 		\param [in] sz	-	Number of characters to process
     */
 	template< typename T, typename N >
-		N aton( T *b, N *n, long sz )
+		N atoh( T *b, N *n, long sz )
 		{
 			// Initialize to zero
 			*n = 0;
@@ -624,6 +677,64 @@ namespace str
 			} // end for
 
 			return *n;
+		}
+
+	/// 'Fast' number to ascii conversion
+    /**
+        \param [out] b	-   Destination buffer
+        \param [in] ch	-   Character to serialize
+		\param [in] fix	-	If greater than zero, pads number to specified size
+    */
+	template< typename T, typename N >
+		void dtoa( T *b, N ch, long fix = 0 )
+		{
+			T c;
+
+			// For each nibble
+			long i;
+			for ( i = 0; ch || ( fix && i < fix ); i++ )
+			{
+				// Write digit
+				b[ i++ ] = tcTC( T, '0' ) + ( ch % 10 );
+
+				// Divide by 10
+				ch /= 10;
+
+			} // end for
+
+			// Number is in reverse order
+			cmn::RevBytes( b, i );
+		}
+
+	/// 'Fast' ascii to number conversion
+    /**
+        \param [out] b	-   Destination buffer
+        \param [in] ch	-   Character to serialize
+		\param [in] sz	-	Number of characters to process
+    */
+	template< typename T, typename N >
+		long atod( T *b, N *n, long sz, int *pErr = 0 )
+		{
+			// Initialize to zero
+			*n = 0;
+
+			// For each character
+			long i;
+			for ( i = 0; i < sz; i++ )
+
+				// Is it valid
+				if ( tcTC( T, '0' ) <= b[ i ] && tcTC( T, '0' ) >= b[ i ] )
+					*n *= 10, *n += b[ i ] - tcTC( T, '0' );
+
+				// Are we just counting errors?
+				else if ( pErr )
+					(*pErr)++;
+
+				// Punt
+				else
+					return i;
+
+			return i;
 		}
 
 	/// Retuns the offset of ch
@@ -720,7 +831,7 @@ namespace str
 		    return -1;
 	    }
 
-    /// Unquotes a string inplace
+    /// Unquotes a string in place
     /**
         \param [in] s       -   Quoted string
         \param [in] ln      -   Length of the string in s
@@ -740,7 +851,7 @@ namespace str
 
     */
 	template< typename T >
-		t_size UnquoteInplace( T* s, t_size ln, const T* open, t_size ln_open, const T *close, t_size ln_close, const T *esc = 0, t_size ln_esc = 0 )
+		t_size UnquoteInPlace( T* s, t_size ln, const T* open, t_size ln_open, const T *close, t_size ln_close, const T *esc = 0, t_size ln_esc = 0 )
 	    {
 			if ( !s )
 				return 0;
@@ -994,7 +1105,7 @@ namespace str
 			else if ( nPos )
 			{
 				// Unquote the string and add it
-				lst.push_back( T_STR( x_pStr, UnquoteInplace( x_pStr, nPos, x_pOpen, nOpen, x_pClose, nClose, x_pEsc, nEsc ) ) );
+				lst.push_back( T_STR( x_pStr, UnquoteInPlace( x_pStr, nPos, x_pOpen, nOpen, x_pClose, nClose, x_pEsc, nEsc ) ) );
 
 				// Skip
 				x_nSize -= nPos; x_pStr += nPos;

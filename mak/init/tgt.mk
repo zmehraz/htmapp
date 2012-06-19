@@ -38,7 +38,7 @@ endif
 ifeq ($(FRWK),)
 	FRWK := $(strip $(foreach t,qt apache cgi srv,$(findstring $(t),$(TGT))))
 	ifeq ($(FRWK),)
-		FRWK := qt
+		FRWK := srv
 	endif
 endif
 

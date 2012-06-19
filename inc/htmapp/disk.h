@@ -70,14 +70,6 @@ namespace disk
 	const t_size MAXPATHLEN = 1024;
 
 	template< typename T_STR >
-		T_STR& RTrim( T_STR &s, typename T_STR::value_type c )
-		{	return s.erase( s.find_last_not_of( c ) + 1 ); }
-
-	template< typename T_STR >
-		T_STR& LTrim( T_STR &s, typename T_STR::value_type c )
-		{	return s.erase( 0, s.find_first_not_of( c ) ); }
-
-	template< typename T_STR >
 		T_STR GetRoot( T_STR s )
 		{	typedef typename T_STR::value_type T;
 			typename T_STR::size_type i = s.find_first_of( tcTT( T, "\\/" ) );
@@ -134,11 +126,11 @@ namespace disk
 	template< typename T_STR >
 		T_STR Path( T_STR s1, T_STR s2, typename T_STR::value_type sep )
 		{	typedef typename T_STR::value_type T;
-			str::ReplaceCharInplace( s1, tcTC( T, '\\' ), sep );
-			str::ReplaceCharInplace( s2, tcTC( T, '\\' ), sep );
-			return RTrim( RTrim( s1, tcTC( T, '\\' ) ), tcTC( T, '/' ) )
+			str::ReplaceCharInPlace( s1, tcTC( T, '\\' ), sep );
+			str::ReplaceCharInPlace( s2, tcTC( T, '\\' ), sep );
+			return str::RTrimInPlace( str::RTrimInPlace( s1, tcTC( T, '\\' ) ), tcTC( T, '/' ) )
 				   + sep
-				   + LTrim( LTrim( s2, tcTC( T, '\\' ) ), tcTC( T, '/' ) );
+				   + str::LTrimInPlace( str::LTrimInPlace( s2, tcTC( T, '\\' ) ), tcTC( T, '/' ) );
 		}
 
 	template< typename T_STR >

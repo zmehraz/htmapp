@@ -30,6 +30,8 @@
 //   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------------------------------------------------------------*/
 
+#include "htmapp.h"
+
 #if defined( _WIN32 )
 #	include <windows.h>
 #else
@@ -46,6 +48,49 @@ namespace sys
 #else
 #	include "sys-posix.hpp"
 #endif
+
+long get_gmt_timestamp()
+{
+	return time( 0 );
+}
+
+long get_local_timestamp()
+{
+	return time( 0 ) + get_local_tzbias() * 60;
+}
+
+static const char* s_htmapp_days[] = 
+	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "" };
+static const char* s_htmapp_months[] = 
+	{ "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+static const char* s_htmapp_fdays[] = 
+	{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "" };
+static const char* s_htmapp_fmonths[] = 
+	{ "", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+
+const char* get_abr_month_name( int x_m )
+{
+	if ( x_m < 0 || x_m > 12 ) return s_htmapp_months[ 0 ];
+	return s_htmapp_months[ x_m ];
+}
+
+const char* get_month_name( int x_m )
+{
+	if ( x_m < 0 || x_m > 12 ) return s_htmapp_fmonths[ 0 ];
+	return s_htmapp_fmonths[ x_m ];
+}
+
+const char* get_abr_day_name( int x_d )
+{
+	if ( x_d < 0 || x_d > 6 ) return s_htmapp_days[ 7 ];
+	return s_htmapp_days[ x_d ];
+}
+
+const char* get_day_name( int x_d )
+{
+	if ( x_d < 0 || x_d > 6 ) return s_htmapp_fdays[ 7 ];
+	return s_htmapp_fdays[ x_d ];
+}
 
 int randomize( void *p, int sz )
 {

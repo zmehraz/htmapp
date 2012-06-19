@@ -31,8 +31,9 @@ PRJ_FRWK := html5
 
 # Parameters
 PRJ_CIID := { home:"http://embedded/index.htm", \
+			  server_port:"12345" \
 			  width:"800", \
-			  height:"600" \
+			  height:"600", \
 			}
 
 #-------------------------------------------------------------------

@@ -81,7 +81,7 @@ template< typename T_STR >
 					memcpy( s, t, tl * sizeof( T ) ), bl += tl;
 
 				// Convert byte to ascii
-				str::ntoa( &s[ 2 * sizeof( T ) ], (T)in[ i ] );
+				str::htoa( &s[ 2 * sizeof( T ) ], (T)in[ i ] );
 
 				// Write data out if the buffer is getting full
 				if ( ( sizeof( out ) - 128 ) < (unsigned long)bl )

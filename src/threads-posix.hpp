@@ -231,7 +231,6 @@ void* CThreadResource::getThreadId()
 	return (void*)pthread_self();
 }
 
-
 long CThreadResource::AddRef() const
 {
 	if ( CThreadResource::cInvalid() == m_hHandle || !m_hHandle )

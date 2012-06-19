@@ -149,7 +149,13 @@ public:
 	/// Item beyond the last item, yeah, that's what it is
 	iterator end() { return m_lstSub.end(); }
 	const_iterator end() const { return m_lstSub.end(); }
-    
+
+	/// Expose the list erase function
+	void erase( iterator it ) { m_lstSub.erase( it ); }
+	typename t_map::size_type erase( const typename t_map::key_type &k ) 
+	{	return m_lstSub.erase( k ); }
+	
+
 public:
 
     /// Default constructor

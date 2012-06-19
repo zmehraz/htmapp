@@ -40,3 +40,108 @@ void usleep( long lUSec )
 	Sleep( lUSec / 1000 );
 }
 
+static void sys_SystemTimeToSTime( SYSTEMTIME &st, STime &t )
+{
+    t.uYear = st.wYear;
+    t.uMonth = st.wMonth;
+    t.uDayOfWeek = st.wDayOfWeek;
+    t.uDay = st.wDay;
+    t.uHour = st.wHour;
+    t.uMinute = st.wMinute;
+    t.uSecond = st.wSecond;
+    t.uMillisecond = st.wMilliseconds;
+}
+
+static void sys_STimeToSystemTime( STime &t, SYSTEMTIME &st )
+{
+    st.wYear = t.uYear;
+    st.wMonth = t.uMonth;
+    st.wDayOfWeek = t.uDayOfWeek;
+    st.wDay = t.uDay;
+    st.wHour = t.uHour;
+    st.wMinute = t.uMinute;
+    st.wSecond = t.uSecond;
+    st.wMilliseconds = t.uMillisecond;
+}
+
+int get_local_time( STime &t )
+{
+    memset( &t, 0, sizeof( t ) );
+
+    SYSTEMTIME st;
+    memset( &st, 0, sizeof( st ) );
+
+    ::GetLocalTime( &st );
+    sys_SystemTimeToSTime( st, t );
+
+    TIME_ZONE_INFORMATION tz;
+    memset( &tz, 0, sizeof( tz ) );
+
+    ::GetTimeZoneInformation( &tz );
+    t.nTzBias = tz.Bias;
+
+    return 1;
+}
+
+int set_local_time( STime &t )
+{
+    SYSTEMTIME st;
+    memset( &st, 0, sizeof( st ) );
+
+	sys_STimeToSystemTime( t, st );
+
+	// Set local time must be called twice to ensure
+	// daylight saving is updated correctly.  Why the
+	// function couldn't do this on it's own is beyond me.
+    ::SetLocalTime( &st );
+    ::SetLocalTime( &st );
+
+    return 1;
+}
+
+int get_local_tzbias()
+{
+    TIME_ZONE_INFORMATION tz;
+    memset( &tz, 0, sizeof( tz ) );
+
+    ::GetTimeZoneInformation( &tz );
+    return tz.Bias;
+}
+
+int set_local_tzbias( STime &t )
+{
+    memset( &t, 0, sizeof( t ) );
+
+    SYSTEMTIME st;
+    memset( &st, 0, sizeof( st ) );
+
+    ::GetSystemTime( &st );
+    sys_SystemTimeToSTime( st, t );
+
+    return 1;
+}
+
+int get_gmt_time( STime &t )
+{
+    memset( &t, 0, sizeof( t ) );
+
+    SYSTEMTIME st;
+    memset( &st, 0, sizeof( st ) );
+
+    ::GetSystemTime( &st );
+    sys_SystemTimeToSTime( st, t );
+
+    return 1;
+}
+
+int set_gmt_time( STime &t )
+{
+    SYSTEMTIME st;
+    memset( &st, 0, sizeof( st ) );
+
+	sys_STimeToSystemTime( t, st );
+
+    ::SetSystemTime( &st );
+
+    return 1;
+}

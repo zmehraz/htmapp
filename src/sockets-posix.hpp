@@ -502,25 +502,25 @@ void CIpSocket::Destroy()
 	if ( IsInitialized() )
 	{
 		// Turn off non-blocking
-//		int flags = fcntl( tcPtrToInt( hSocket ), F_GETFL, 0 );
-//		fcntl( tcPtrToInt( m_hSocket ), F_SETFL, flags & ~O_NONBLOCK );
+//		int flags = fcntl( tcPtrToULong( hSocket ), F_GETFL, 0 );
+//		fcntl( tcPtrToULong( m_hSocket ), F_SETFL, flags & ~O_NONBLOCK );
 
 		struct linger lopt;
 		lopt.l_onoff = 1;
 		lopt.l_linger = 60;
 
-		if ( -1 == setsockopt( tcPtrToInt( hSocket ), SOL_SOCKET, SO_LINGER, &lopt, sizeof( lopt ) ) )
+		if ( -1 == setsockopt( tcPtrToULong( hSocket ), SOL_SOCKET, SO_LINGER, &lopt, sizeof( lopt ) ) )
 			m_uLastError = errno;
 
 		// Shutdown the socket
-//		if ( -1 == shutdown( tcPtrToInt( hSocket ), SHUT_RDWR ) )
+//		if ( -1 == shutdown( tcPtrToULong( hSocket ), SHUT_RDWR ) )
 //		{	m_uLastError = errno;
 //			if ( ENOTCONN != errno )
 //				;
 //		} // end if
 
 		// Close the socket
-		if ( -1 == close( tcPtrToInt( hSocket ) ) )
+		if ( -1 == close( tcPtrToULong( hSocket ) ) )
 			m_uLastError = errno;
 
 	} // end if
@@ -533,7 +533,7 @@ int CIpSocket::Shutdown()
         return 0;
 
     // Shut down the socket
-    if ( -1 == shutdown( tcPtrToInt( m_hSocket ), SHUT_RDWR ) )
+    if ( -1 == shutdown( tcPtrToULong( m_hSocket ), SHUT_RDWR ) )
 		m_uLastError = errno;
 
     return 1;
@@ -550,7 +550,7 @@ int CIpSocket::Create( int x_af, int x_type, int x_protocol, int x_timeout )
 	Destroy();
 
 	// Create a scocket
-	m_hSocket = (t_SOCKET)socket( (int)x_af, (int)x_type, (int)x_protocol );
+	m_hSocket = (t_SOCKET)tcULongToPtr( socket( (int)x_af, (int)x_type, (int)x_protocol ) );
 
 	if ( c_InvalidSocket == m_hSocket )
     {	m_uLastError = errno;
@@ -565,8 +565,8 @@ int CIpSocket::Create( int x_af, int x_type, int x_protocol, int x_timeout )
 	struct timeval tv;
 	tv.tv_sec = ( x_timeout / 1000 );
 	tv.tv_usec = ( x_timeout % 1000 ) * 1000;
-	setsockopt( tcPtrToInt( m_hSocket ), SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof( tv ) );
-	setsockopt( tcPtrToInt( m_hSocket ), SOL_SOCKET, SO_SNDTIMEO, (const char *)&tv, sizeof( tv ) );
+	setsockopt( tcPtrToULong( m_hSocket ), SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof( tv ) );
+	setsockopt( tcPtrToULong( m_hSocket ), SOL_SOCKET, SO_SNDTIMEO, (const char *)&tv, sizeof( tv ) );
 
 	// Process socket creation
 	if ( !OnAttach() )
@@ -582,7 +582,7 @@ int CIpSocket::Create( int x_af, int x_type, int x_protocol, int x_timeout )
     m_uSocketProtocol = x_protocol;
 
 	int set = 1;
-	if ( -1 == setsockopt( tcPtrToInt( m_hSocket ), SOL_SOCKET, SO_REUSEADDR, &set, sizeof(set) ) )
+	if ( -1 == setsockopt( tcPtrToULong( m_hSocket ), SOL_SOCKET, SO_REUSEADDR, &set, sizeof(set) ) )
 //		WARNING( errno, tcT( "socket interface does not support SO_REUSEADDR" ) );
 		;
 
@@ -608,7 +608,7 @@ int CIpSocket::Bind( unsigned int x_uPort )
 	sai.sin_port = htons( (unsigned short)x_uPort );
 
 	// Attempt to bind the socket
-	int nRet = bind( tcPtrToInt( m_hSocket ), (sockaddr*)&sai, sizeof( sockaddr_in ) );
+	int nRet = bind( tcPtrToULong( m_hSocket ), (sockaddr*)&sai, sizeof( sockaddr_in ) );
 
 	if ( -1 == nRet )
 		m_uLastError = errno;
@@ -639,7 +639,7 @@ int CIpSocket::Listen( unsigned int x_uMaxConnections )
         x_uMaxConnections = SOMAXCONN;
 
 	// Start the socket listening
-	int nRet = listen( tcPtrToInt( m_hSocket ), (int)x_uMaxConnections );
+	int nRet = listen( tcPtrToULong( m_hSocket ), (int)x_uMaxConnections );
 
 	if ( -1 == nRet )
     {	m_uLastError = errno;
@@ -682,7 +682,7 @@ int CIpSocket::Connect( const CIpAddress &x_rIpAddress )
     CIpSocket_SetAddressInfo( &m_addrPeer, &si );
 
     // Attempt to connect
-    int nRet = connect( tcPtrToInt( m_hSocket ), (sockaddr*)&si, sizeof( si ) );
+    int nRet = connect( tcPtrToULong( m_hSocket ), (sockaddr*)&si, sizeof( si ) );
 
 	m_uLastError = errno;
 
@@ -736,11 +736,22 @@ int CIpSocket::Accept( CIpSocket &x_is )
 	socklen_t iAddr = sizeof( saAddr );
 
 	// Accept and encapsulate the socket
-	int bSuccess = x_is.Attach( (t_SOCKET)accept( tcPtrToInt( m_hSocket ), &saAddr, &iAddr ) );
+	int bSuccess = x_is.Attach( (t_SOCKET)tcULongToPtr( accept( tcPtrToULong( m_hSocket ), &saAddr, &iAddr ) ) );
 
-	if ( !bSuccess && EAGAIN != errno )
+	if ( !bSuccess )
+	{
 		m_uLastError = errno;
+		
+		if ( EAGAIN != m_uLastError )
+			m_uEventState |= eCloseEvent;
 
+		else 
+			m_uEventState = 0;
+
+		return 0;
+
+	} // end if
+		
 	else
 		m_uLastError = 0;
 
@@ -770,19 +781,20 @@ int CIpSocket::CreateEventHandle()
     if ( IsEventHandle() )
         return 1;
 
-	// Create an event handle
-	m_hSocketEvent = (void*)epoll_create( eMaxEvents );
-
-	if ( -1 == tcPtrToInt( m_hSocketEvent ) )
-		m_uLastError = errno;
-
+	int id = epoll_create( eMaxEvents );
+	if ( -1 == id )
+	{	m_uLastError = errno;
+		return 0;
+	} // end if
 	else
 		m_uLastError = 0;
-
+		
+	// Create an event handle
+	m_hSocketEvent = (void*)id;
+		
 	// Create event object array and initialize
-	m_pEventObject = malloc( sizeof( epoll_event ) * eMaxEvents );
-	memset( m_pEventObject, 0, sizeof( epoll_event ) * eMaxEvents );
-
+	m_pEventObject = calloc( eMaxEvents, sizeof( epoll_event ) );
+	
     return 1;
 #endif
 }
@@ -803,11 +815,11 @@ void CIpSocket::CloseEventHandle()
 
 				epoll_event ev; 
 				memset( &ev, 0, sizeof( ev ) );
-				ev.data.fd = tcPtrToInt( m_hSocket );
+				ev.data.fd = tcPtrToULong( m_hSocket );
 				ev.events = 0;
 
 				// Set the event masks
-				int nRes = epoll_ctl( tcPtrToInt( m_hSocketEvent ), EPOLL_CTL_DEL, tcPtrToInt( m_hSocket ), &ev );
+				int nRes = epoll_ctl( tcPtrToULong( m_hSocketEvent ), EPOLL_CTL_DEL, tcPtrToULong( m_hSocket ), &ev );
 
 				if ( -1 == nRes )
 					m_uLastError = errno;
@@ -815,7 +827,7 @@ void CIpSocket::CloseEventHandle()
 			} // end if
 
 			// Close event handle
-			if ( -1 == close( tcPtrToInt( m_hSocketEvent ) ) )
+			if ( -1 == close( tcPtrToULong( m_hSocketEvent ) ) )
 				m_uLastError = errno;
 
 			else
@@ -846,8 +858,8 @@ int CIpSocket::EventSelect( long x_lEvents )
 		return 0;
 
 	// Enable non-blocking mode
-	int flags = fcntl( tcPtrToInt( m_hSocket ), F_GETFL, 0 );
-	fcntl( tcPtrToInt( m_hSocket ), F_SETFL, flags | O_NONBLOCK );
+	int flags = fcntl( tcPtrToULong( m_hSocket ), F_GETFL, 0 );
+	fcntl( tcPtrToULong( m_hSocket ), F_SETFL, flags | O_NONBLOCK );
 
     // Must have event handle
     if ( !IsEventHandle() || !m_pEventObject )
@@ -858,13 +870,13 @@ int CIpSocket::EventSelect( long x_lEvents )
 
 	epoll_event ev;
 	memset( &ev, 0, sizeof( ev ) );
-	ev.data.fd = tcPtrToInt( m_hSocket );
+	ev.data.fd = tcPtrToULong( m_hSocket );
 	ev.events = EPOLLERR | FlagWinToNix( x_lEvents );
 
 	// Set the event masks
-	int nRes = epoll_ctl( tcPtrToInt( m_hSocketEvent ),
+	int nRes = epoll_ctl( tcPtrToULong( m_hSocketEvent ),
 						  m_bEventsHooked ? EPOLL_CTL_MOD : EPOLL_CTL_ADD,
-						  tcPtrToInt( m_hSocket ), &ev );
+						  tcPtrToULong( m_hSocket ), &ev );
 
 	if ( -1 == nRes )
     {	m_uLastError = errno;
@@ -904,7 +916,7 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_lTimeout )
 	epoll_event *pev = (epoll_event*)m_pEventObject;
 
 	// Check for default timeout
-	if ( 0 >= x_lTimeout )
+	if ( 0 > x_lTimeout )
 		x_lTimeout = (long)m_lTimeout;
 
 	// Save start time
@@ -914,9 +926,14 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_lTimeout )
         // What's the event state
         if ( 0 == ( m_uEventState & x_lEventId ) )
         {
+			// Wait only for our specific event
+			EventSelect( x_lEventId );
+
 			// Wait for events
 			int nRes;
-			do { nRes = epoll_wait( tcPtrToInt( m_hSocketEvent ), pev, eMaxEvents, x_lTimeout );
+			do { 
+				nRes = epoll_wait( tcPtrToULong( m_hSocketEvent ), pev, eMaxEvents, x_lTimeout );
+
 			} while ( -1 == nRes && EINTR == errno );
 
 			if ( -1 == nRes )
@@ -942,7 +959,7 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_lTimeout )
 					unsigned long uFlags = FlagNixToWin( pev[ i ].events );
 
 					// Save the status of all events
-					if ( pev[ i ].data.fd == tcPtrToInt( m_hSocket ) )
+					if ( pev[ i ].data.fd == tcPtrToULong( m_hSocket ) )
 					{	pev[ i ].events = 0;
 						for ( unsigned long uMask = 1; uMask < eAllEvents; uMask <<= 1 )
 							if ( uFlags & uMask )
@@ -962,7 +979,7 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_lTimeout )
 									sockaddr_in sai; 
 									memset( &sai, 0, sizeof( sai ) );
 									socklen_t len = sizeof( sai );
-									if ( -1 == getpeername( tcPtrToInt( m_hSocket ), (sockaddr*)&sai, &len ) )
+									if ( -1 == getpeername( tcPtrToULong( m_hSocket ), (sockaddr*)&sai, &len ) )
 									{	m_uLastError = errno;
 										m_uEventStatus[ uOffset ] = errno;
 										m_uConnectState |= eCsError;
@@ -970,7 +987,7 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_lTimeout )
 */
 /* +++ gives error : Resource temporarily unavailable
 									char buf[ 1 ];
-									if ( -1 == recv( tcPtrToInt( m_hSocket ), buf, 0, 0 ) )
+									if ( -1 == recv( tcPtrToULong( m_hSocket ), buf, 0, 0 ) )
 									{	m_uLastError = errno;
 										m_uEventStatus[ uOffset ] = errno;
 										m_uConnectState |= eCsError;
@@ -1012,7 +1029,7 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_lTimeout )
             unsigned long uMask = 1 << uBit;
 
             // Acknowledge this event
-            m_uEventState &= ~uMask;
+            // m_uEventState &= ~uMask;
 
 			// Save the error code
 			if ( m_uEventStatus[ uBit ] )
@@ -1152,7 +1169,7 @@ unsigned long CIpSocket::RecvFrom( void *x_pData, unsigned long x_uSize, unsigne
 
 	// Receive data from socket
 	x_uFlags |= MSG_NOSIGNAL;
-	int nRes = v_recvfrom( tcPtrToInt( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
+	int nRes = v_recvfrom( tcPtrToULong( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
 
 	m_uLastError = errno;
 
@@ -1170,12 +1187,17 @@ unsigned long CIpSocket::RecvFrom( void *x_pData, unsigned long x_uSize, unsigne
 	m_uLastError = 0;
 
 	// Check for closed socket
-	if ( !nRes )
-        return 0;
+	if ( !nRes && m_uLastError != EAGAIN )
+	{	m_uEventState |= eCloseEvent;
+        return -1;
+	} // end if
 
 	// Check for socket error
 	if ( -1 == nRes || x_uSize < (unsigned long)nRes  || 0 > nRes )
 	{
+		if ( EAGAIN == m_uLastError )
+			m_uEventState &= ~EPOLLIN;
+	
 		// Nothing read
 		if ( x_puRead )
             *x_puRead = 0;
@@ -1208,7 +1230,7 @@ unsigned long CIpSocket::Recv( void *x_pData, unsigned long x_uSize, unsigned lo
 
 	// Receive data from socket
 	x_uFlags |= MSG_NOSIGNAL;
-	int nRes = v_recv( tcPtrToInt( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
+	int nRes = v_recv( tcPtrToULong( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
 
 	m_uLastError = errno;
 
@@ -1220,20 +1242,21 @@ unsigned long CIpSocket::Recv( void *x_pData, unsigned long x_uSize, unsigned lo
 		m_uConnectState |= eCsError;
 		if ( x_puRead )
             *x_puRead = 0;
-		return 0;
+		return -1;
 	} // end if
 
-	m_uLastError = 0;
-
 	// Check for closed socket
-	if ( !nRes )
+	if ( !nRes && m_uLastError != EAGAIN )
 	{	m_uEventState |= eCloseEvent;
-        return 0;
+        return -1;
 	} // end if
 
 	// Check for socket error
-	if ( x_uSize < (unsigned long)nRes  || 0 > nRes )
+	if ( x_uSize < (unsigned long)nRes  || 0 >= nRes )
 	{
+		if ( EAGAIN == m_uLastError )
+			m_uEventState &= ~EPOLLIN;
+
 		// Nothing read
 		if ( x_puRead )
             *x_puRead = 0;
@@ -1241,6 +1264,8 @@ unsigned long CIpSocket::Recv( void *x_pData, unsigned long x_uSize, unsigned lo
 		return 0;
 
 	} // end if
+
+	m_uLastError = 0;
 
 	// Save the number of bytes read
 	if ( x_puRead )
@@ -1273,7 +1298,7 @@ unsigned long CIpSocket::SendTo( const void *x_pData, unsigned long x_uSize, uns
 
     // Send the data
 	x_uFlags |= MSG_NOSIGNAL;
-    int nRes = v_sendto( tcPtrToInt( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
+    int nRes = v_sendto( tcPtrToULong( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
 
 	m_uLastError = errno;
 
@@ -1281,10 +1306,9 @@ unsigned long CIpSocket::SendTo( const void *x_pData, unsigned long x_uSize, uns
 	m_lActivity++;
 
 	// Check for error
-	if ( -1 == nRes )
+	if ( -1 == nRes && m_uLastError != EAGAIN )
 	{
 		m_uEventState |= eCloseEvent;
-
 		m_uConnectState |= eCsError;
 
 		// Number of bytes sent
@@ -1298,6 +1322,20 @@ unsigned long CIpSocket::SendTo( const void *x_pData, unsigned long x_uSize, uns
 
 	m_uLastError = 0;
 
+	// Check for socket error
+	if ( x_uSize < (unsigned long)nRes  || 0 > nRes )
+	{
+		if ( EAGAIN == m_uLastError )
+			m_uEventState &= ~EPOLLOUT;
+
+		// Nothing written
+		if ( x_puSent )
+            *x_puSent = 0;
+
+		return 0;
+
+	} // end if
+	
 	// Save the number of bytes sent
 	if ( x_puSent )
         *x_puSent = nRes;
@@ -1322,7 +1360,7 @@ unsigned long CIpSocket::Send( const void *x_pData, unsigned long x_uSize, unsig
 
 	// Attempt to send the data
 	x_uFlags |= MSG_NOSIGNAL;
-	int nRes = v_send( tcPtrToInt( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
+	int nRes = v_send( tcPtrToULong( m_hSocket ), x_pData, (int)x_uSize, (int)x_uFlags );
 
 	m_uLastError = errno;
 
@@ -1330,10 +1368,9 @@ unsigned long CIpSocket::Send( const void *x_pData, unsigned long x_uSize, unsig
 	m_lActivity++;
 
 	// Check for error
-	if ( -1 == nRes )
+	if ( -1 == nRes && m_uLastError != EAGAIN )
 	{
 		m_uEventState |= eCloseEvent;
-
 		m_uConnectState |= eCsError;
 
 		// Number of bytes sent
@@ -1347,6 +1384,20 @@ unsigned long CIpSocket::Send( const void *x_pData, unsigned long x_uSize, unsig
 
 	m_uLastError = 0;
 
+	// Check for socket error
+	if ( x_uSize < (unsigned long)nRes  || 0 > nRes )
+	{
+		if ( EAGAIN == m_uLastError )
+			m_uEventState &= ~EPOLLOUT;
+
+		// Nothing written
+		if ( x_puSent )
+            *x_puSent = 0;
+
+		return 0;
+
+	} // end if
+	
 	// Save the number of bytes sent
 	if ( x_puSent )
         *x_puSent = nRes;
@@ -1372,7 +1423,7 @@ int CIpSocket::GetPeerAddress( t_SOCKET x_hSocket, CIpAddress *x_pIa )
 	socklen_t len = sizeof( sai );
 
 	// Get the socket info
-	if ( -1 == getpeername( tcPtrToInt( x_hSocket ), (sockaddr*)&sai, &len ) )
+	if ( -1 == getpeername( tcPtrToULong( x_hSocket ), (sockaddr*)&sai, &len ) )
 		if ( ENOTCONN != errno )
 			return 0;
 
@@ -1399,7 +1450,7 @@ int CIpSocket::GetLocalAddress( t_SOCKET x_hSocket, CIpAddress *x_pIa )
 	socklen_t len = sizeof( sai );
 
 	// Get the socket info
-	if ( -1 == getsockname( tcPtrToInt( x_hSocket ), (sockaddr*)&sai, &len ) )
+	if ( -1 == getsockname( tcPtrToULong( x_hSocket ), (sockaddr*)&sai, &len ) )
 		return 0;
 
     // Format the info

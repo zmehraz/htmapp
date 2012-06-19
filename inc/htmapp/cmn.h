@@ -35,6 +35,48 @@
 namespace cmn
 {
 
+	/// Class factory interface
+	class CFactory
+	{
+	public:
+
+		/// Creates a class
+		typedef void* (*PFN_Create)();
+
+		/// Free a class
+		typedef void (*PFN_Free)( void *p );
+
+	public:
+
+		/// Returns non-zero if there is valid memory
+		virtual int IsValid() { return 0; }
+
+		/// Creates an object instance
+		virtual void* Create() = 0;
+
+		/// Frees an object instance
+		virtual void Free( void *p ) = 0;
+
+	};
+
+	/// Class factory template
+	template< typename T > class TFactory : public CFactory
+	{
+	public:
+
+		/// Returns non-zero if there is valid memory
+		virtual int IsValid() { return 1; }
+
+		/// Creates an object instance
+		virtual void* Create()
+		{	return (void*)new T(); }
+
+		/// Frees an object instance
+		virtual void Free( void *p )
+		{	if ( p ) delete (T*)p; }
+
+	};
+
 	/// Returns the number of units required for val
 	/**
 		Example: How many 8-bit bytes needed to hold 42 bits

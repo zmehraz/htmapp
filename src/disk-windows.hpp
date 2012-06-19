@@ -34,7 +34,7 @@
 #	include <ShlObj.h>
 #	include <Shellapi.h>
 #else
-#	define OEX_USE_DYNAMIC_SHELL32
+#	define HTM_USE_DYNAMIC_SHELL32
 
 #define CSIDL_ALTSTARTUP              29
 #define CSIDL_APPDATA                 26
@@ -241,7 +241,7 @@ bool FindClose( HFIND x_hFind )
 	return ::FindClose( x_hFind ) ? true : false;
 }
 
-#if defined( OEX_USE_DYNAMIC_SHELL32 )
+#if defined( HTM_USE_DYNAMIC_SHELL32 )
 	
 	// SH Types
 	typedef IMalloc* t_LPMALLOC;
@@ -397,7 +397,7 @@ str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength 
 
 	} // end switch
 
-#if defined( OEX_USE_DYNAMIC_SHELL32 )
+#if defined( HTM_USE_DYNAMIC_SHELL32 )
 
 	// Functions
 	pfn_SHGetMalloc pSHGetMalloc = tcNULL;
@@ -439,7 +439,7 @@ str::t_string GetSysFolder( bool x_bShared, long x_nFolderId, long x_nMaxLength 
 	} // end if
 
 
-#if defined( OEX_USE_DYNAMIC_SHELL32 )
+#if defined( HTM_USE_DYNAMIC_SHELL32 )
 
 	// Unload shell lib
 	FreeLibrary( hShell32 );

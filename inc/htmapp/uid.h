@@ -127,25 +127,25 @@ namespace uid
 	    } // end if
 
 	    // Example UID : DD05F574-2D69-4463-95DD-F76C9F7C5E6D
-		str::ntoa( x_pStr,			x_pUid->Data1, 8 );
+		str::htoa( x_pStr,			x_pUid->Data1, 8 );
 
 		x_pStr[ 8 ] = tcTC( T, '-' );
-		str::ntoa( &x_pStr[ 9 ],	x_pUid->Data2, 4 );
+		str::htoa( &x_pStr[ 9 ],	x_pUid->Data2, 4 );
 
 		x_pStr[ 13 ] = tcTC( T, '-' );
-		str::ntoa( &x_pStr[ 14 ],	x_pUid->Data3, 4 );
+		str::htoa( &x_pStr[ 14 ],	x_pUid->Data3, 4 );
 
 		x_pStr[ 18 ] = tcTC( T, '-' );
-		str::ntoa( &x_pStr[ 19 ],	x_pUid->Data4[ 0 ], 2 );
-		str::ntoa( &x_pStr[ 21 ],	x_pUid->Data4[ 1 ], 2 );
+		str::htoa( &x_pStr[ 19 ],	x_pUid->Data4[ 0 ], 2 );
+		str::htoa( &x_pStr[ 21 ],	x_pUid->Data4[ 1 ], 2 );
 
 		x_pStr[ 23 ] = tcTC( T, '-' );
-		str::ntoa( &x_pStr[ 24 ],	x_pUid->Data4[ 2 ], 2 );
-		str::ntoa( &x_pStr[ 26 ],	x_pUid->Data4[ 3 ], 2 );
-		str::ntoa( &x_pStr[ 28 ],	x_pUid->Data4[ 4 ], 2 );
-		str::ntoa( &x_pStr[ 30 ],	x_pUid->Data4[ 5 ], 2 );
-		str::ntoa( &x_pStr[ 32 ],	x_pUid->Data4[ 6 ], 2 );
-		str::ntoa( &x_pStr[ 34 ],	x_pUid->Data4[ 7 ], 2 );
+		str::htoa( &x_pStr[ 24 ],	x_pUid->Data4[ 2 ], 2 );
+		str::htoa( &x_pStr[ 26 ],	x_pUid->Data4[ 3 ], 2 );
+		str::htoa( &x_pStr[ 28 ],	x_pUid->Data4[ 4 ], 2 );
+		str::htoa( &x_pStr[ 30 ],	x_pUid->Data4[ 5 ], 2 );
+		str::htoa( &x_pStr[ 32 ],	x_pUid->Data4[ 6 ], 2 );
+		str::htoa( &x_pStr[ 34 ],	x_pUid->Data4[ 7 ], 2 );
 
 		// Null terminate
 		x_pStr[ 36 ] = 0;
@@ -160,6 +160,16 @@ namespace uid
 		try { s.resize( 36 ); }
 		catch( ... ) { return T_STR(); }
 		ToStr< T_STR, T_UID >( &s[ 0 ], s.length(), x_pUid );
+		return s;
+	}
+
+	template< typename T_STR >
+		T_STR ToStr()
+	{
+		T_STR s; 
+		try { s.resize( 36 ); }
+		catch( ... ) { return T_STR(); }
+		ToStr< T_STR, UID >( &s[ 0 ], s.length(), 0 );
 		return s;
 	}
 
@@ -191,27 +201,27 @@ namespace uid
 
 	    // Convert each component
 	    unsigned long ul = 0;
-		if ( !str::aton( x_pString, &ul, 8 ) )
+		if ( !str::atoh( x_pString, &ul, 8 ) )
             return 0;
 	    x_pUid->Data1 = ul;
 
-		if ( !str::aton( &x_pString[ 9 ], &ul, 4 ) )
+		if ( !str::atoh( &x_pString[ 9 ], &ul, 4 ) )
             return 0;
 	    x_pUid->Data2 = (unsigned short)ul;
 
-		if ( !str::aton( &x_pString[ 14 ], &ul, 4 ) )
+		if ( !str::atoh( &x_pString[ 14 ], &ul, 4 ) )
             return 0;
 	    x_pUid->Data3 = (unsigned short)ul;
 
 	    SZ i;
 	    for ( i = 0; i < 2; i++ )
-	    {	if ( !str::aton( &x_pString[ 19 + ( i << 1 ) ], &ul, 2 ) )
+	    {	if ( !str::atoh( &x_pString[ 19 + ( i << 1 ) ], &ul, 2 ) )
                 return 0;
 		    x_pUid->Data4[ i ] = (unsigned char)ul;
 	    } // end for
 
 	    for ( i = 0; i < 6; i++ )
-	    {	if ( !str::aton( &x_pString[ 24 + ( i << 1 ) ], &ul, 2 ) )
+	    {	if ( !str::atoh( &x_pString[ 24 + ( i << 1 ) ], &ul, 2 ) )
                 return 0;
 		    x_pUid->Data4[ 2 + i ] = (unsigned char)ul;
 	    } // end for

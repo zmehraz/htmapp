@@ -1,5 +1,21 @@
+<style type='text/css'>
+
+	form input
+	{
+		float: left;
+	}
+
+</style>
+
+<form method='POST'>
+	<input name='str' type='text' value='hello world'>
+	<input type='submit' value='POST'>
+</form>
+<br>
+
 <pre>
 <?c
+	out << " --- INPUT ---\n" << parser::EncodeJson( in ) << "\n\n";
 
 	out << parser::EncodeJsonStr< str::t_string >( "JSON Encode String \x05" ) + "\n";
 	out << parser::DecodeJsonStr< str::t_string >( "JSON Decode String \\u0041" ) + "\n";
@@ -25,8 +41,6 @@
 		tq::wait( "b", 1000 );
 	out << "b = " << tq::get( "b" ) << "\n";
 
-	out << " --- INPUT ---\n" << parser::EncodeJson( in ) << "\n\n";
-	
 	t_pb8 pb;
 	pb[ "A" ][ "AA" ] = "Hello World!";
 	pb[ "A" ][ "AB" ] = (long)444;

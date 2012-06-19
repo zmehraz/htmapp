@@ -38,6 +38,42 @@
 
 namespace parser
 {
+	template< typename T_LST >
+		T_LST Split( const typename T_LST::value_type &s, const typename T_LST::value_type &div )
+	{
+		typedef typename T_LST::value_type T_STR;
+
+		T_LST lst;
+
+		// Explode?
+		if ( !div.length() )
+		{
+			typename T_STR::size_type i = 0;
+			while ( i < s.length() )
+				lst.push_back( T_STR( s, i, 1 ) );
+
+		} // end if
+
+		// Split on divider
+		else
+		{
+			typename T_STR::size_type start = 0, end = 0;
+			while ( T_STR::npos != end )
+			{
+				end = s.find_first_of( div, start );
+				if ( T_STR::npos != end )
+					lst.push_back( T_STR( s, start, end - start ) ), start = end + div.length();
+				else
+					lst.push_back( T_STR( s, start ) );
+
+			} // end while
+
+		} // end else
+
+		return lst;
+
+	}
+
 //------------------------------------------------------------------
 // C++ encode / decode
 //------------------------------------------------------------------
@@ -81,7 +117,7 @@ namespace parser
 
 		// Convert to two byte character
 		T s[ 16 ] = { '"', ' ', '"', '\\', 'x', 0, 0, '"', ' ', '"', 0 };
-		str::ntoa< char >( &s[ 5 ], (char)x_ch );
+		str::htoa< char >( &s[ 5 ], (char)x_ch );
 
 		return T_STR( s, 10 );
 	}
@@ -176,7 +212,7 @@ namespace parser
 	/// Decodes the string from an http header field
 	template< typename T_STR >
 		static T_STR DecodeHttpHeaderStr( const T_STR &x_str )
-	{	return str::TrimWs( x_str ); }
+	{	return str::TrimWsInPlace( x_str ); }
 
 	/// Decodes a single http header name/value pair
 	template< typename T_PB >
@@ -314,7 +350,7 @@ namespace parser
 				case tcTC( T, '\t' ) : ret += tcTT( T, "\\t" ); break;
 				default :
 					if ( *p < tcTC( T, ' ' ) || *p > tcTC( T, '~' ) )
-						str::ntoa( &hex[ 2 ], (unsigned short)*p ), ret.append( hex, 6 );
+						str::htoa( &hex[ 2 ], (unsigned short)*p ), ret.append( hex, 6 );
 					else
 						ret += *p;
 					break;
@@ -414,7 +450,7 @@ namespace parser
 						case tcTC( T, 'v' ) :	ret += tcTC( T, '\v' ); break;
 						case tcTC( T, 'u' ) :
 							if ( 4 <= nLen )
-								p++, ret += (T)str::aton( p, &n, 4 ), nLen -= 4;
+								p++, ret += (T)str::atoh( p, &n, 4 ), nLen -= 4;
 							break;
 						default: break;
 					} // end switch
@@ -612,7 +648,7 @@ namespace parser
 		while ( 0 < nLen-- )
 		{
 			if ( !IsUrlChar( *p ) )
-				str::ntoa( &hex[ 1 ], (unsigned char)*p ), ret.append( hex, 3 );
+				str::htoa( &hex[ 1 ], (unsigned char)*p ), ret.append( hex, 3 );
 			else
 				ret += *p;
 
@@ -646,7 +682,7 @@ namespace parser
 				ret += *p;
 
 			else
-				p++, ret += str::aton( p++, &ch, 2 ), nLen -= 2;
+				p++, ret += str::atoh( p++, &ch, 2 ), nLen -= 2;
 
 			p++;
 
@@ -803,15 +839,16 @@ namespace parser
 		T_STR tmp;
 
 		// Read in the scheme
-		pos = x_sStr.find_first_of( tcTT( T, "://" ), start );
-		if ( T_STR::npos == pos )
-			return 0;
+		pos = x_sStr.find( tcTT( T, "://" ), start );
+		if ( T_STR::npos != pos )
+		{
+			// Copy the sceme
+			x_pb[ tcTT( T, "scheme" ) ] = T_STR( x_sStr, 0, pos );
 
-		// Copy the sceme
-		x_pb[ tcTT( T, "scheme" ) ] = T_STR( x_sStr, 0, pos );
+			// Skip the scheme
+			start = pos + 3;
 
-		// Skip the scheme
-		start = pos + 3;
+		} // end if
 
 		// Is there a username / password?
 		pos = x_sStr.find_first_of( tcTC( T, '@' ), start );
@@ -835,10 +872,10 @@ namespace parser
 
 		// Parse the host part
 		pos = x_sStr.find_first_of( tcTC( T, '/' ), start );
-		if ( T_STR::npos != pos )
-			tmp.assign( x_sStr, start, pos - start ), start = pos;
-		else
+		if ( T_STR::npos == pos )
 			tmp.assign( x_sStr, start, T_STR::npos ), start = T_STR::npos;
+		else if ( start < pos )
+			tmp.assign( x_sStr, start, pos - start ), start = pos;
 
 		if ( tmp.length() )
 		{
@@ -858,10 +895,10 @@ namespace parser
 
 		// Parse the path
 		pos = x_sStr.find_first_of( tcTC( T, '?' ), start );
-		if ( T_STR::npos != pos )
-			x_pb[ tcTT( T, "path" ) ] = T_STR( x_sStr, start, pos - start ), start = pos + 1;
-		else
+		if ( T_STR::npos == pos )
 			x_pb[ tcTT( T, "path" ) ] = T_STR( x_sStr, start, T_STR::npos );
+		else if ( start < pos )
+			x_pb[ tcTT( T, "path" ) ] = T_STR( x_sStr, start, pos - start ), start = pos + 1;
 
 		// Is that all?
 		if ( T_STR::npos == pos )
@@ -869,10 +906,10 @@ namespace parser
 
 		// Parse the get params
 		pos = x_sStr.find_first_of( tcTC( T, '#' ), start );
-		if ( T_STR::npos != pos )
-			x_pb[ tcTT( T, "get" ) ] = T_STR( x_sStr, start, pos - start ), start = pos + 1;
-		else
+		if ( T_STR::npos == pos )
 			x_pb[ tcTT( T, "get" ) ] = T_STR( x_sStr, start, T_STR::npos );
+		else if ( start < pos )
+			x_pb[ tcTT( T, "get" ) ] = T_STR( x_sStr, start, pos - start ), start = pos + 1;
 
 		// Is that all?
 		if ( T_STR::npos == pos )
@@ -887,6 +924,127 @@ namespace parser
 	template< typename T_PB >
 		static T_PB DecodeUri( const typename T_PB::t_String &x_sStr )
 	{	T_PB pb; DecodeUri( x_sStr, pb ); return pb; }
+
+//------------------------------------------------------------------
+// URI encode / decode
+//------------------------------------------------------------------
+
+	/// Decode MIME variables
+	template< typename T_PB >
+		static T_PB DecodeMime( const typename T_PB::t_String &x_s, int x_bCaseSensitive = 0 )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		T_PB pb;
+		typename T_STR::size_type s = 0, e = 0;
+		while ( T_STR::npos != s )
+		{
+			T_STR sKey, sVal;
+
+			// Skip leading white space
+			s = x_s.find_first_not_of( tcTT( T, "\r\n" ), s );
+
+			// Find the key/value sep
+			e = x_s.find_first_of( tcTT( T, ":\r\n" ), s );
+
+			// Grab the key
+			if ( T_STR::npos != e )
+				sKey = T_STR( x_s, s, e - s );
+			else
+				sKey = T_STR( x_s, s );
+
+			// Trim white space
+			str::TrimWsInPlace( sKey );
+
+			// Change to lower case if not case sensitive
+			if ( !x_bCaseSensitive )
+				sKey = str::ToLowerInPlace( sKey );
+
+			// End of the string?
+			if ( T_STR::npos == e )
+				s = T_STR::npos;
+
+			// No value separator found?
+			else if ( tcTC( T, ':' ) != x_s[ e ] )
+				s = x_s.find_first_not_of( tcTT( T, "\r\n" ), e );
+
+			// Copy the value
+			else
+			{
+				// Skip value sep
+				s = e + 1;
+
+				do
+				{
+					// Find the end of the line
+					e = x_s.find_first_of( tcTT( T, "\r\n" ), s );
+
+					// End of string?
+					if ( T_STR::npos == e )
+						sVal += T_STR( x_s, s ), s = e;
+
+					// See if the value continues on the next line
+					else
+					{
+						// Peel off this part of the value
+						sVal += T_STR( x_s, s, e - s );
+
+						// Next non-empty line
+						s = x_s.find_first_not_of( tcTT( T, "\r\n" ), e );
+
+						// End of string?
+						if ( T_STR::npos == s )
+							e = s;
+
+						// If it's not white space, it's a new key/value pair
+						else if ( tcTC( T, ' ' ) < x_s[ s ] )
+							e = T_STR::npos;
+
+						// Skip leading white space
+						else
+							while ( s < x_s.length() && tcTC( T, ' ' ) >= x_s[ s ] )
+								e = ++s;
+
+					} // end if
+
+				} while ( T_STR::npos != e && e < x_s.length() );
+
+			} // end if
+
+			// Save item
+			if ( sKey.length() )
+				pb[ sKey ] = str::TrimWsInPlace( sVal );
+
+		} // end while
+
+		return pb;
+	}
+
+	/// Encode MIME variables
+	template< typename T_PB >
+		static typename T_PB::t_String EncodeMime( T_PB &x_pb, int x_bCaseSensitive )
+	{
+		typedef typename T_PB::t_String T_STR;
+		typedef typename T_STR::value_type T;
+
+		T_STR str;
+
+		// Write out each value
+		if ( x_bCaseSensitive )
+		{	for( typename T_PB::iterator it = x_pb.begin(); x_pb.end() != it; it++ )
+				if ( it->first.length() && it->second->str().length() )
+					str += it->first, str += tcTT( T, ": " ), str += it->second->str(), str += tcTT( T, "\r\n" );
+		} // end if
+
+		else
+		{	for( typename T_PB::iterator it = x_pb.begin(); x_pb.end() != it; it++ )
+				if ( it->first.length() && it->second->str().length() )
+					str += str::ToLower( it->first ), str += tcTT( T, ": " ), str += it->second->str(), str += tcTT( T, "\r\n" );
+		} // end else
+
+		return str;
+	}
 
 
 }; // namespace parser

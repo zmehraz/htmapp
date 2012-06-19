@@ -758,8 +758,8 @@ long CIpSocket::WaitEvent( long x_lEventId, long x_uTimeout )
 	{   if ( !CreateEventHandle() || !EventSelect() )
 			return 0;
 	} // end if
-	
-	if ( 0 >= x_uTimeout )
+
+	if ( 0 > x_uTimeout )
 		x_uTimeout = m_lTimeout;
 
 	// Save start time

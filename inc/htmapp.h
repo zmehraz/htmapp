@@ -43,5 +43,6 @@
 #include "htmapp/threads.h"
 #include "htmapp/thread_queue.h"
 #include "htmapp/sockets.h"
-
+#include "htmapp/http_server.h"
+#include "htmapp/http_session.h"
 
