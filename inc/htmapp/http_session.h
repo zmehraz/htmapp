@@ -515,10 +515,7 @@ public:
 		if ( SendMappedFile( (*m_pMappedFolders)[ sName ], sPath ) )
 			return 1;
 
-		// Not found
-		SendErrorMsg( HTTP_NOT_FOUND, t_string( "File not found : " ) + m_pb[ "REQUEST" ][ "uri" ][ "path" ].ToString() );
-
-		return 1;
+		return 0;
 	}
 
 	//==============================================================
